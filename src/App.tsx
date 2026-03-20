@@ -15,7 +15,7 @@ import type { Vehicle } from '@/types/fleet';
 
 function LoadingSkeleton() {
   return (
-    <div className="mr-[300px] pt-[110px] px-5 pb-10 space-y-6 animate-pulse">
+    <div className="lg:mr-[300px] pt-[80px] lg:pt-[110px] px-3 lg:px-5 pb-10 space-y-6 animate-pulse">
       {/* KPI Cards skeleton */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[...Array(5)].map((_, i) => (
@@ -57,7 +57,7 @@ export default function App() {
         <LoadingSkeleton />
       ) : (
         /* Main Content — offset for sidebar */
-        <main className="mr-[300px] pt-[110px] px-5 pb-10 space-y-6">
+        <main className="lg:mr-[300px] pt-[80px] lg:pt-[110px] px-3 lg:px-5 pb-10 space-y-6">
           {currentView === 'dashboard' && (
             <>
               {/* KPI Cards */}

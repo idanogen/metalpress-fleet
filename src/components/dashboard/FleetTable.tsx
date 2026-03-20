@@ -108,7 +108,7 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
       </div>
 
       <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[700px]">
           <thead>
             <tr className="border-b border-white/30">
               {[

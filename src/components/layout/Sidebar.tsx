@@ -1,4 +1,5 @@
-import { LayoutDashboard, Truck, Settings, ShieldCheck, Users } from 'lucide-react';
+import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export type ViewType = 'dashboard' | 'fleet-management' | 'driver-reminders' | 'drivers-detail' | 'settings';
 
@@ -33,12 +34,38 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentView, onNavigate, unreportedCount }: SidebarProps) {
-  return (
-    <aside className="fixed top-5 right-5 bottom-5 w-[260px] bg-white/40 backdrop-blur-[25px] border border-white/60 rounded-[30px] p-[30px_15px] flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.03)] z-50">
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close drawer on resize to desktop
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = () => { if (mq.matches) setMobileOpen(false); };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (mobileOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
+  const handleNavigate = (view: ViewType) => {
+    onNavigate(view);
+    setMobileOpen(false);
+  };
+
+  const sidebarContent = (
+    <>
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 mb-10">
         <ShieldCheck className="w-6 h-6 text-[#007AFF]" />
         <span className="text-2xl font-extrabold text-[#007AFF]">MetalPress</span>
+        {/* Close button — mobile only */}
+        <button onClick={() => setMobileOpen(false)} className="mr-auto lg:hidden p-1 rounded-xl hover:bg-black/5">
+          <X className="w-5 h-5 text-[#86868b]" />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -51,7 +78,7 @@ export function Sidebar({ currentView, onNavigate, unreportedCount }: SidebarPro
           return (
             <button
               key={item.view}
-              onClick={() => !isDisabled && onNavigate(item.view)}
+              onClick={() => !isDisabled && handleNavigate(item.view)}
               disabled={isDisabled}
               className={`flex items-center gap-3 px-[18px] py-3 rounded-[14px] cursor-pointer transition-all duration-200 font-medium text-right w-full ${
                 isActive
@@ -88,6 +115,38 @@ export function Sidebar({ currentView, onNavigate, unreportedCount }: SidebarPro
           </div>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="fixed top-4 right-4 z-50 lg:hidden w-11 h-11 rounded-2xl bg-white/60 backdrop-blur-[20px] border border-white/60 shadow-[0_4px_16px_rgba(0,0,0,0.06)] flex items-center justify-center"
+      >
+        <Menu className="w-5 h-5 text-[#1d1d1f]" />
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-[59] lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar — desktop: always visible, mobile: drawer */}
+      <aside className={`
+        fixed top-5 right-5 bottom-5 w-[260px]
+        bg-white/40 backdrop-blur-[25px] border border-white/60 rounded-[30px]
+        p-[30px_15px] flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.03)] z-[60]
+        transition-transform duration-300 ease-out
+        lg:translate-x-0
+        ${mobileOpen ? 'translate-x-0' : 'translate-x-[120%]'}
+      `}>
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

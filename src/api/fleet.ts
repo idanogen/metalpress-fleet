@@ -66,8 +66,8 @@ function mapMakeRecordToVehicle(record: MakeVehicleRecord): Vehicle {
   };
 }
 
-async function fetchPage(offset: number): Promise<MakeDataStoreResponse> {
-  const url = `${MAKE_API_BASE}/data-stores/${DATA_STORE_ID}/data?pg%5Boffset%5D=${offset}`;
+async function fetchPage(offset: number, limit: number = 100): Promise<MakeDataStoreResponse> {
+  const url = `${MAKE_API_BASE}/data-stores/${DATA_STORE_ID}/data?pg%5Blimit%5D=${limit}&pg%5Boffset%5D=${offset}`;
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -92,11 +92,11 @@ export async function fetchFleetData(): Promise<Vehicle[]> {
   try {
     const allRecords: MakeVehicleRecord[] = [];
     let offset = 0;
-    const pageSize = 10; // Make default
+    const pageSize = 100;
 
-    // Fetch all pages
+    // Fetch all pages (100 per page — Make max limit, ~2 requests for 103 vehicles)
     while (true) {
-      const page = await fetchPage(offset);
+      const page = await fetchPage(offset, pageSize);
 
       if (!page?.records || page.records.length === 0) break;
 

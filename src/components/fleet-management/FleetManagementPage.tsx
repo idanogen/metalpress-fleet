@@ -136,7 +136,7 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
         {summaryCards.map((card, i) => {
           const Icon = card.icon;
           return (
@@ -146,7 +146,7 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
             >
-              <div className="glass-card p-6 hover:translate-y-[-8px] transition-all duration-300 cursor-default">
+              <div className="glass-card p-4 lg:p-6 hover:translate-y-[-8px] transition-all duration-300 cursor-default">
                 <div className={`w-10 h-10 rounded-2xl ${card.iconBg} flex items-center justify-center mb-4`}>
                   <Icon className={`w-5 h-5 ${card.iconColor}`} />
                 </div>
@@ -165,7 +165,7 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
         transition={{ delay: 0.35 }}
         className="glass-card p-5"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 lg:gap-4">
           {/* Tab Toggle — Lease / License */}
           <div className="flex items-center bg-black/5 rounded-2xl p-1">
             <button
@@ -190,7 +190,7 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
             </button>
           </div>
 
-          <div className="h-8 w-px bg-black/10" />
+          <div className="h-8 w-px bg-black/10 hidden lg:block" />
 
           {/* Search */}
           <div className="relative flex-1 max-w-[260px]">
@@ -204,10 +204,10 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
             />
           </div>
 
-          <div className="h-8 w-px bg-black/10" />
+          <div className="h-8 w-px bg-black/10 hidden lg:block" />
 
           {/* Urgency filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
             <span className="text-xs font-bold text-[#86868b]">דחיפות:</span>
             {urgencyOptions.map(opt => {
               const color = opt.value === 'all' ? getUrgencyColor('ok') : getUrgencyColor(opt.value);
@@ -238,7 +238,7 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
           {/* Supplier filter */}
           {suppliers.length > 0 && (
             <>
-              <div className="h-8 w-px bg-black/10" />
+              <div className="h-8 w-px bg-black/10 hidden lg:block" />
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-[#86868b]">ספק:</span>
                 <select
@@ -271,7 +271,7 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
         </div>
 
         <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[600px]">
             <thead className="sticky top-0 bg-white/80 backdrop-blur-sm z-10">
               <tr className="border-b border-white/30">
                 <th className="px-4 py-3 text-right text-xs font-bold text-[#86868b]">נהג</th>

@@ -53,7 +53,7 @@ const cards = [
 
 export function KpiCards({ stats }: KpiCardsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-6">
       {cards.map((card, i) => {
         const Icon = card.icon;
         const value = card.getValue(stats);
@@ -66,13 +66,13 @@ export function KpiCards({ stats }: KpiCardsProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08, duration: 0.4 }}
           >
-            <div className="glass-card p-6 hover:translate-y-[-8px] transition-all duration-300 cursor-default">
+            <div className="glass-card p-4 lg:p-6 hover:translate-y-[-8px] transition-all duration-300 cursor-default">
               <div className={`w-10 h-10 rounded-2xl ${card.iconBg} flex items-center justify-center mb-4`}>
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
               </div>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[#1d1d1f]">{value}</span>
+                <span className="text-2xl lg:text-3xl font-extrabold text-[#1d1d1f]">{value}</span>
                 {subtext && (
                   <span className="text-sm font-bold text-[#86868b]">{subtext}</span>
                 )}

@@ -198,9 +198,9 @@ export function DriverRemindersPage({
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0, duration: 0.4 }}>
-          <div className="glass-card p-6 cursor-default">
+          <div className="glass-card p-4 lg:p-6 cursor-default">
             <div className="w-10 h-10 rounded-2xl bg-[#ff3b30]/10 flex items-center justify-center mb-4">
               <AlertCircle className="w-5 h-5 text-[#ff3b30]" />
             </div>
@@ -210,7 +210,7 @@ export function DriverRemindersPage({
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.4 }}>
-          <div className="glass-card p-6 cursor-default">
+          <div className="glass-card p-4 lg:p-6 cursor-default">
             <div className="w-10 h-10 rounded-2xl bg-[#34c759]/10 flex items-center justify-center mb-4">
               <CheckCircle className="w-5 h-5 text-[#248a3d]" />
             </div>
@@ -220,7 +220,7 @@ export function DriverRemindersPage({
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16, duration: 0.4 }}>
-          <div className="glass-card p-6 cursor-default">
+          <div className="glass-card p-4 lg:p-6 cursor-default">
             <div className="w-10 h-10 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center mb-4">
               <Send className="w-5 h-5 text-[#007AFF]" />
             </div>
@@ -230,7 +230,7 @@ export function DriverRemindersPage({
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.4 }}>
-          <div className="glass-card p-6 cursor-default">
+          <div className="glass-card p-4 lg:p-6 cursor-default">
             <div className="w-10 h-10 rounded-2xl bg-[#ff9500]/10 flex items-center justify-center mb-4">
               <span className="text-lg font-bold text-[#ff9500]">%</span>
             </div>
@@ -249,13 +249,13 @@ export function DriverRemindersPage({
         transition={{ delay: 0.35 }}
         className="glass-card p-5"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 lg:gap-4">
           {/* Month indicator */}
           <div className="bg-[#007AFF]/10 text-[#007AFF] px-4 py-2 rounded-xl text-sm font-bold">
             {monthName} {selectedYear}
           </div>
 
-          <div className="h-8 w-px bg-black/10" />
+          <div className="h-8 w-px bg-black/10 hidden lg:block" />
 
           {/* Search */}
           <div className="relative flex-1 max-w-[300px]">
@@ -329,7 +329,7 @@ export function DriverRemindersPage({
         </div>
 
         <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[700px]">
             <thead className="sticky top-0 bg-white/80 backdrop-blur-sm z-10">
               <tr className="border-b border-white/30">
                 <th className="px-4 py-3 text-right text-xs font-bold text-[#86868b]">נהג</th>

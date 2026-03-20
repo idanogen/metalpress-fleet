@@ -88,7 +88,7 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
           >
             <div className="px-5 pb-5 space-y-4">
               {/* Info cards */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <InfoMini icon={Car} label="לוחית" value={vehicle.plateNumber} />
                 <InfoMini icon={Phone} label="טלפון" value={vehicle.phone || '—'} isPhone={!!vehicle.phone} />
                 <InfoMini icon={Calendar} label="ספק" value={vehicle.supplier || '—'} />
@@ -96,8 +96,8 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
               </div>
 
               {/* Monthly breakdown table */}
-              <div className="rounded-2xl bg-white/30 border border-white/40 overflow-hidden">
-                <table className="w-full text-xs">
+              <div className="rounded-2xl bg-white/30 border border-white/40 overflow-x-auto">
+                <table className="w-full text-xs min-w-[400px]">
                   <thead>
                     <tr className="border-b border-white/30">
                       <th className="px-3 py-2 text-right text-[#86868b] font-bold">חודש</th>
@@ -261,9 +261,9 @@ export function DriversDetailPage({ vehicles }: DriversDetailPageProps) {
         animate={{ opacity: 1, y: 0 }}
         className="glass-card p-5"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 lg:gap-4">
           {/* Search */}
-          <div className="relative flex-1 max-w-[300px]">
+          <div className="relative flex-1 min-w-[200px] max-w-[300px]">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
             <input
               type="text"
@@ -274,7 +274,7 @@ export function DriversDetailPage({ vehicles }: DriversDetailPageProps) {
             />
           </div>
 
-          <div className="h-8 w-px bg-black/10" />
+          <div className="h-8 w-px bg-black/10 hidden lg:block" />
 
           {/* Sort */}
           <div className="flex items-center gap-2">

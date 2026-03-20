@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MONTH_NAMES } from '@/lib/analytics';
 
@@ -111,11 +111,13 @@ export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChang
   const yearOptions = ['2026', '2025', '2024'].map(y => ({ value: y, label: y }));
 
   return (
-    <header className="fixed top-5 right-[300px] left-5 h-[70px] bg-white/40 backdrop-blur-[25px] border border-white/60 rounded-[20px] px-6 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.03)] z-40">
-      <div className="flex items-center gap-4">
-        <h1 className="text-lg font-extrabold text-[#1d1d1f] tracking-tight">ניהול צי רכבים</h1>
-        <div className="h-5 w-px bg-black/10" />
-        <div className="flex items-center gap-2">
+    <header className="fixed top-3 lg:top-5 right-3 lg:right-[300px] left-3 lg:left-5 h-[60px] lg:h-[70px] bg-white/40 backdrop-blur-[25px] border border-white/60 rounded-2xl lg:rounded-[20px] px-3 lg:px-6 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.03)] z-40">
+      <div className="flex items-center gap-2 lg:gap-4">
+        {/* Spacer for hamburger button on mobile */}
+        <div className="w-8 lg:hidden" />
+        <h1 className="text-sm lg:text-lg font-extrabold text-[#1d1d1f] tracking-tight">ניהול צי רכבים</h1>
+        <div className="h-5 w-px bg-black/10 hidden lg:block" />
+        <div className="hidden lg:flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-[#ff9500] animate-pulse' : 'bg-[#34c759]'}`} />
           <span className="text-xs font-bold text-[#86868b] uppercase tracking-wider">
             {isLoading ? 'מסנכרן...' : 'מסונכרן'}
@@ -123,24 +125,20 @@ export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChang
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 lg:gap-3">
         <GlassDropdown
           value={String(selectedMonth)}
           options={monthOptions}
           onChange={(v) => onMonthChange(Number(v))}
-          width={110}
+          width={90}
         />
 
         <GlassDropdown
           value={selectedYear}
           options={yearOptions}
           onChange={onYearChange}
-          width={90}
+          width={75}
         />
-
-        <button className="w-10 h-10 rounded-xl hover:bg-white/40 flex items-center justify-center transition-colors">
-          <Bell className="w-5 h-5 text-[#424245]" />
-        </button>
 
         <div className="text-xs text-[#86868b] hidden lg:block">
           {lastUpdated
