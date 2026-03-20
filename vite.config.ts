@@ -10,4 +10,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/api/make': {
+        target: 'https://us1.make.com/api/v2',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/make/, ''),
+      },
+    },
+  },
 })
