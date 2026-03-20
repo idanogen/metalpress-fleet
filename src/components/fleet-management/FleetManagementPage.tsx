@@ -210,7 +210,7 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-[#86868b]">דחיפות:</span>
             {urgencyOptions.map(opt => {
-              const color = getUrgencyColor(opt.value);
+              const color = opt.value === 'all' ? getUrgencyColor('ok') : getUrgencyColor(opt.value);
               return (
                 <button
                   key={opt.value}

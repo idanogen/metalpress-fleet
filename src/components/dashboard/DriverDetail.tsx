@@ -1,4 +1,4 @@
-import { X, Phone, Car, Calendar, Gauge, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, Phone, Car, Calendar, Gauge } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import type { Vehicle } from '@/types/fleet';

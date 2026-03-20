@@ -1,7 +1,6 @@
 import { CheckCircle2, XCircle, Phone, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Progress } from '@/components/ui/progress';
 import type { Vehicle, FleetStats } from '@/types/fleet';
 import { getDriverAvgUsage, getMonthData } from '@/lib/analytics';
 

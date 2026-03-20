@@ -1,4 +1,4 @@
-import { LayoutDashboard, Truck, MessageCircle, BarChart3, Settings, ShieldCheck, Users } from 'lucide-react';
+import { LayoutDashboard, Truck, Settings, ShieldCheck, Users } from 'lucide-react';
 
 export type ViewType = 'dashboard' | 'fleet-management' | 'driver-reminders' | 'drivers-detail' | 'settings';
 
