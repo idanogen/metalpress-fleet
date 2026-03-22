@@ -12,7 +12,7 @@ interface FleetTableProps {
   onSelectVehicle: (vehicle: Vehicle) => void;
 }
 
-type SortField = 'driverName' | 'model' | 'plateNumber' | 'ownershipType' | 'carUsage' | 'avg';
+type SortField = 'driverName' | 'model' | 'plateNumber' | 'ownershipType' | 'mileage' | 'avg';
 type SortDir = 'asc' | 'desc';
 
 export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehicle }: FleetTableProps) {
@@ -26,7 +26,6 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
       const avg = getDriverAvgUsage(v);
       return {
         vehicle: v,
-        carUsage: monthData?.carUsage || 0,
         mileage: monthData?.mileage || 0,
         avg: Math.round(avg),
         reported: (monthData?.mileage || 0) > 0,
@@ -55,7 +54,7 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
         case 'model': aVal = a.vehicle.model; bVal = b.vehicle.model; break;
         case 'plateNumber': aVal = a.vehicle.plateNumber; bVal = b.vehicle.plateNumber; break;
         case 'ownershipType': aVal = a.vehicle.ownershipType; bVal = b.vehicle.ownershipType; break;
-        case 'carUsage': aVal = a.carUsage; bVal = b.carUsage; break;
+        case 'mileage': aVal = a.mileage; bVal = b.mileage; break;
         case 'avg': aVal = a.avg; bVal = b.avg; break;
       }
 
@@ -116,7 +115,7 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
                 { field: 'model' as SortField, label: 'דגם' },
                 { field: 'plateNumber' as SortField, label: 'לוחית' },
                 { field: 'ownershipType' as SortField, label: 'בעלות' },
-                { field: 'carUsage' as SortField, label: 'ק"מ חודשי' },
+                { field: 'mileage' as SortField, label: 'קילומטראז\'' },
                 { field: 'avg' as SortField, label: 'ממוצע' },
               ].map(col => (
                 <th
@@ -153,7 +152,7 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
                     {row.vehicle.ownershipType}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-[#1d1d1f] font-medium">{row.carUsage > 0 ? row.carUsage.toLocaleString() : '—'}</td>
+                <td className="px-4 py-3 text-[#1d1d1f] font-medium">{row.mileage > 0 ? row.mileage.toLocaleString() : '—'}</td>
                 <td className="px-4 py-3 text-[#86868b]">{row.avg > 0 ? row.avg.toLocaleString() : '—'}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-block w-2.5 h-2.5 rounded-full ${row.reported ? 'bg-[#34c759]' : 'bg-[#ff9500]'}`} />

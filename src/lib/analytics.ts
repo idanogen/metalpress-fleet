@@ -13,12 +13,12 @@ export function hasReported(vehicle: Vehicle, year: string, monthNum: number): b
 export function getDriverAvgUsage(vehicle: Vehicle, excludeYear?: string, excludeMonth?: number): number {
   const usage = Array.isArray(vehicle.monthlyUsage) ? vehicle.monthlyUsage : [];
   const months = usage.filter(m => {
-    if (m.carUsage <= 0) return false;
+    if (m.mileage <= 0) return false;
     if (excludeYear && excludeMonth && m.year === excludeYear && m.monthNum === excludeMonth) return false;
     return true;
   });
   if (months.length === 0) return 0;
-  return months.reduce((sum, m) => sum + m.carUsage, 0) / months.length;
+  return months.reduce((sum, m) => sum + m.mileage, 0) / months.length;
 }
 
 export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: number): FleetStats {
@@ -27,9 +27,9 @@ export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: numbe
 
   const monthUsages = vehicles
     .map(v => getMonthData(v, year, monthNum))
-    .filter((m): m is MonthlyUsage => !!m && m.carUsage > 0);
+    .filter((m): m is MonthlyUsage => !!m && m.mileage > 0);
 
-  const totalKm = monthUsages.reduce((sum, m) => sum + m.carUsage, 0);
+  const totalKm = monthUsages.reduce((sum, m) => sum + m.mileage, 0);
   const avgKm = monthUsages.length > 0 ? totalKm / monthUsages.length : 0;
 
   const anomalies = detectAnomalies(vehicles, year, monthNum);
@@ -56,7 +56,7 @@ export function detectAnomalies(vehicles: Vehicle[], year: string, monthNum: num
     const avg = getDriverAvgUsage(vehicle, year, monthNum);
     if (avg <= 0) continue;
 
-    const currentUsage = monthData.carUsage;
+    const currentUsage = monthData.mileage;
     if (currentUsage <= 0) continue;
 
     const deviation = ((currentUsage - avg) / avg) * 100;
@@ -161,7 +161,7 @@ export function getTopDriversByUsage(vehicles: Vehicle[], year: string, monthNum
       const month = getMonthData(v, year, monthNum);
       return {
         name: v.driverName,
-        km: month?.carUsage || 0,
+        km: month?.mileage || 0,
         model: v.model,
       };
     })
@@ -176,10 +176,10 @@ export function getMonthlyTrend(vehicles: Vehicle[], months = 12): { month: stri
 
   for (const v of vehicles) {
     for (const m of v.monthlyUsage) {
-      if (m.carUsage <= 0) continue;
+      if (m.mileage <= 0) continue;
       const key = `${m.year}-${String(m.monthNum).padStart(2, '0')}`;
       const existing = allMonths.get(key) || { totalKm: 0, count: 0 };
-      existing.totalKm += m.carUsage;
+      existing.totalKm += m.mileage;
       existing.count += 1;
       allMonths.set(key, existing);
     }

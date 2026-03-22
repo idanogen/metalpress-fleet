@@ -23,14 +23,14 @@ export function DriverDetail({ vehicle, onClose }: DriverDetailProps) {
 
   const chartData = last12.map(m => ({
     month: `${m.monthName} ${m.year.slice(2)}`,
-    km: m.carUsage,
+    km: m.mileage,
     reported: m.mileage > 0,
   }));
 
-  const totalKm = vehicle.monthlyUsage.reduce((sum, m) => sum + m.carUsage, 0);
-  const maxKm = Math.max(...vehicle.monthlyUsage.map(m => m.carUsage));
-  const minKm = Math.min(...vehicle.monthlyUsage.filter(m => m.carUsage > 0).map(m => m.carUsage));
-  const monthsWithData = vehicle.monthlyUsage.filter(m => m.carUsage > 0).length;
+  const totalKm = vehicle.monthlyUsage.reduce((sum, m) => sum + m.mileage, 0);
+  const maxKm = Math.max(...vehicle.monthlyUsage.map(m => m.mileage));
+  const minKm = Math.min(...vehicle.monthlyUsage.filter(m => m.mileage > 0).map(m => m.mileage));
+  const monthsWithData = vehicle.monthlyUsage.filter(m => m.mileage > 0).length;
   const reportedMonths = vehicle.monthlyUsage.filter(m => m.mileage > 0).length;
 
   return (
@@ -89,7 +89,7 @@ export function DriverDetail({ vehicle, onClose }: DriverDetailProps) {
 
             {/* Chart */}
             <div className="rounded-2xl bg-white/30 border border-white/40 p-4">
-              <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">ק"מ חודשי — 12 חודשים אחרונים</h3>
+              <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">קילומטראז' — 12 חודשים אחרונים</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />

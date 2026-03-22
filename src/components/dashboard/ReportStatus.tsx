@@ -138,7 +138,7 @@ export function ReportStatus({
             filteredReported.map((vehicle) => {
               const monthData = getMonthData(vehicle, selectedYear, selectedMonth);
               const avg = getDriverAvgUsage(vehicle);
-              const usage = monthData?.carUsage || 0;
+              const usage = monthData?.mileage || 0;
               const diff = avg > 0 ? ((usage - avg) / avg * 100) : 0;
 
               return (

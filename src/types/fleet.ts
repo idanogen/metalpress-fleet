@@ -5,10 +5,10 @@ export interface MonthlyUsage {
   startDate: string;
   endDate: string;
   days: number;
-  mileage: number; // odometer reading (0 = not reported)
+  mileage: number; // קילומטראז' מפריורטי (0 = לא דווח)
   fuelConsumption: number;
   fuelCost: number;
-  carUsage: number; // monthly KM driven
+  carUsage: number; // מזהה שורה פנימי של פריורטי — לא לשימוש בתצוגה
 }
 
 export interface Vehicle {
