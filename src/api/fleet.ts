@@ -53,6 +53,29 @@ function filterCurrentMonth(usage: MonthlyUsage[]): MonthlyUsage[] {
     });
 }
 
+// Bot updates currentMileage + lastReportYear/Month immediately when a driver reports via WhatsApp,
+// but doesn't touch the monthlyUsage array (only the weekly Priority sync rebuilds it).
+// Patch the matching month entry so dashboard, table and chart reflect the fresh report instantly.
+function patchLatestReport(record: MakeVehicleRecord, usage: MonthlyUsage[]): MonthlyUsage[] {
+  const reportMonthRaw = (record.lastReportMonth || '').trim();
+  const reportYear = (record.lastReportYear || '').trim();
+  const mileage = Number(record.currentMileage) || 0;
+  if (!reportMonthRaw || !reportYear || mileage <= 0) return usage;
+
+  const monthNum = parseInt(reportMonthRaw, 10);
+  const isNumeric = !isNaN(monthNum);
+
+  return usage.map(m => {
+    const matches =
+      m.year === reportYear &&
+      ((isNumeric && m.monthNum === monthNum) || (!isNumeric && m.monthName === reportMonthRaw));
+    if (matches && (!m.mileage || m.mileage <= 0)) {
+      return { ...m, mileage };
+    }
+    return m;
+  });
+}
+
 function mapMakeRecordToVehicle(record: MakeVehicleRecord): Vehicle {
   let monthlyUsage: MonthlyUsage[] = [];
   try {
@@ -61,6 +84,7 @@ function mapMakeRecordToVehicle(record: MakeVehicleRecord): Vehicle {
     const clean = match ? match[0] : '[]';
     const parsed = JSON.parse(clean);
     monthlyUsage = Array.isArray(parsed) ? filterCurrentMonth(parsed) : [];
+    monthlyUsage = patchLatestReport(record, monthlyUsage);
   } catch {
     monthlyUsage = [];
   }
