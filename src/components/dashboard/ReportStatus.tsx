@@ -2,7 +2,7 @@ import { CheckCircle2, XCircle, Phone, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import type { Vehicle, FleetStats } from '@/types/fleet';
-import { getDriverAvgUsage, getMonthData } from '@/lib/analytics';
+import { getDriverAvgUsage, getMonthDelta } from '@/lib/analytics';
 
 interface ReportStatusProps {
   stats: FleetStats;
@@ -136,9 +136,8 @@ export function ReportStatus({
             </div>
           ) : (
             filteredReported.map((vehicle) => {
-              const monthData = getMonthData(vehicle, selectedYear, selectedMonth);
+              const usage = getMonthDelta(vehicle, selectedYear, selectedMonth);
               const avg = getDriverAvgUsage(vehicle);
-              const usage = monthData?.mileage || 0;
               const diff = avg > 0 ? ((usage - avg) / avg * 100) : 0;
 
               return (

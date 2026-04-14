@@ -1,7 +1,7 @@
-import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, MessageCircle, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export type ViewType = 'dashboard' | 'fleet-management' | 'driver-reminders' | 'drivers-detail' | 'settings';
+export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'driver-reminders' | 'send-first-message' | 'drivers-detail' | 'reports' | 'settings';
 
 // WhatsApp icon as inline SVG for accurate branding
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -19,11 +19,21 @@ interface NavItemDef {
   customIcon?: boolean;
 }
 
-const navItems: NavItemDef[] = [
+const mainNavItems: NavItemDef[] = [
   { icon: LayoutDashboard, label: 'דאשבורד', view: 'dashboard' },
   { icon: Truck, label: 'ניהול צי', view: 'fleet-management' },
   { icon: WhatsAppIcon, label: 'תזכורת לנהגים', view: 'driver-reminders', customIcon: true },
+  { icon: MessageCircle, label: 'הודעה ראשונה', view: 'send-first-message' },
   { icon: Users, label: 'נהגים מפורט', view: 'drivers-detail' },
+  { icon: Package, label: 'רכבי מלאי', view: 'inventory' },
+];
+
+const reportNavItems: NavItemDef[] = [
+  { icon: FileBarChart, label: 'דוחות', view: 'reports' },
+  { icon: Fuel, label: 'הוצאות דלק', view: 'fuel-expenses' },
+];
+
+const settingsNavItems: NavItemDef[] = [
   { icon: Settings, label: 'הגדרות', view: 'settings' },
 ];
 
@@ -56,6 +66,34 @@ export function Sidebar({ currentView, onNavigate, unreportedCount }: SidebarPro
     setMobileOpen(false);
   };
 
+  const renderNavSection = (items: NavItemDef[]) =>
+    items.map((item) => {
+      const Icon = item.icon;
+      const isActive = currentView === item.view;
+      const isWhatsApp = item.view === 'driver-reminders';
+      return (
+        <button
+          key={item.view}
+          onClick={() => handleNavigate(item.view)}
+          className={`flex items-center gap-3 px-[18px] py-3 rounded-[14px] cursor-pointer transition-all duration-200 font-medium text-right w-full ${
+            isActive
+              ? isWhatsApp
+                ? 'bg-[#25D366]/10 text-[#25D366]'
+                : 'bg-[rgba(0,122,255,0.1)] text-[#007AFF]'
+              : 'text-[#424245] hover:bg-white/40'
+          }`}
+        >
+          <Icon className="w-5 h-5" />
+          <span>{item.label}</span>
+          {isWhatsApp && unreportedCount != null && unreportedCount > 0 && (
+            <span className="mr-auto bg-[#ff3b30] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+              {unreportedCount}
+            </span>
+          )}
+        </button>
+      );
+    });
+
   const sidebarContent = (
     <>
       {/* Logo */}
@@ -69,38 +107,15 @@ export function Sidebar({ currentView, onNavigate, unreportedCount }: SidebarPro
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = currentView === item.view;
-          const isDisabled = item.view === 'settings';
-          const isWhatsApp = item.view === 'driver-reminders';
-          return (
-            <button
-              key={item.view}
-              onClick={() => !isDisabled && handleNavigate(item.view)}
-              disabled={isDisabled}
-              className={`flex items-center gap-3 px-[18px] py-3 rounded-[14px] cursor-pointer transition-all duration-200 font-medium text-right w-full ${
-                isActive
-                  ? isWhatsApp
-                    ? 'bg-[#25D366]/10 text-[#25D366]'
-                    : 'bg-[rgba(0,122,255,0.1)] text-[#007AFF]'
-                  : isDisabled
-                    ? 'text-[#c7c7cc] cursor-not-allowed'
-                    : 'text-[#424245] hover:bg-white/40'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
-              {isWhatsApp && unreportedCount != null && unreportedCount > 0 && (
-                <span className="mr-auto bg-[#ff3b30] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                  {unreportedCount}
-                </span>
-              )}
-              {isDisabled && <span className="mr-auto text-[10px] text-[#c7c7cc]">בקרוב</span>}
-            </button>
-          );
-        })}
+      <nav className="flex flex-col gap-1">
+        {renderNavSection(mainNavItems)}
+
+        <div className="my-2 mx-3 border-t border-black/5" />
+        <span className="text-[10px] font-semibold text-[#86868b] px-[18px] mb-1">דוחות</span>
+        {renderNavSection(reportNavItems)}
+
+        <div className="my-2 mx-3 border-t border-black/5" />
+        {renderNavSection(settingsNavItems)}
       </nav>
 
       {/* Bottom section */}

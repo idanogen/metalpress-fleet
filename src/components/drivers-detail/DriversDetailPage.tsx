@@ -3,7 +3,7 @@ import { Search, ChevronDown, ChevronUp, Phone, Car, Calendar, Gauge, Fuel, Doll
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import type { Vehicle } from '@/types/fleet';
-import { getDriverAvgUsage } from '@/lib/analytics';
+import { getDriverAvgUsage, getMonthlyDeltas } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 
 interface DriversDetailPageProps {
@@ -27,6 +27,7 @@ const CHART_TABS: { key: ChartTab; label: string; icon: typeof TrendingUp; color
 function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: boolean; onToggle: () => void }) {
   const [chartTab, setChartTab] = useState<ChartTab>('km');
   const avg = getDriverAvgUsage(vehicle);
+  const allDeltas = useMemo(() => getMonthlyDeltas(vehicle), [vehicle]);
   const last12 = useMemo(() =>
     [...(Array.isArray(vehicle.monthlyUsage) ? vehicle.monthlyUsage : [])]
       .sort((a, b) => {
@@ -37,18 +38,21 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
     [vehicle.monthlyUsage]
   );
 
-  const chartData = last12.map(m => ({
-    month: `${MONTH_NAMES_HE[m.monthNum] || m.monthName} ${m.year.slice(2)}`,
-    km: m.mileage,
-    mileage: m.mileage,
-    fuel: m.fuelConsumption || 0,
-    cost: m.fuelCost || 0,
-    reported: m.mileage > 0,
-    monthNum: m.monthNum,
-    year: m.year,
-  }));
+  const chartData = last12.map(m => {
+    const delta = allDeltas.find(d => d.year === m.year && d.monthNum === m.monthNum);
+    return {
+      month: `${MONTH_NAMES_HE[m.monthNum] || m.monthName} ${m.year.slice(2)}`,
+      km: delta?.km || 0,
+      mileage: m.mileage,
+      fuel: m.fuelConsumption || 0,
+      cost: m.fuelCost || 0,
+      reported: m.mileage > 0,
+      monthNum: m.monthNum,
+      year: m.year,
+    };
+  });
 
-  const totalKm = last12.reduce((sum, m) => sum + m.mileage, 0);
+  const totalKm = allDeltas.reduce((sum, d) => sum + d.km, 0);
   const totalFuel = last12.reduce((sum, m) => sum + (m.fuelConsumption || 0), 0);
   const totalCost = last12.reduce((sum, m) => sum + (m.fuelCost || 0), 0);
   const reportedMonths = last12.filter(m => m.mileage > 0).length;
@@ -276,18 +280,20 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
                   </thead>
                   <tbody>
                     {[...last12].reverse().map((m, i) => {
-                      const deviation = avg > 0 ? ((m.mileage - avg) / avg) * 100 : 0;
+                      const delta = allDeltas.find(d => d.year === m.year && d.monthNum === m.monthNum);
+                      const deltaKm = delta?.km || 0;
+                      const deviation = avg > 0 && deltaKm > 0 ? ((deltaKm - avg) / avg) * 100 : 0;
                       return (
                         <tr key={i} className="border-b border-black/[0.02]">
                           <td className="px-3 py-2 text-[#1d1d1f] font-medium">
                             {MONTH_NAMES_HE[m.monthNum]} {m.year}
                           </td>
                           <td className="px-3 py-2">
-                            {m.mileage > 0 ? (
+                            {deltaKm > 0 ? (
                               <span className={`font-bold ${
                                 deviation > 30 ? 'text-[#ff9500]' : deviation < -30 ? 'text-[#5ac8fa]' : 'text-[#1d1d1f]'
                               }`}>
-                                {m.mileage.toLocaleString()}
+                                {deltaKm.toLocaleString()}
                                 {Math.abs(deviation) > 30 && (
                                   <span className="text-[10px] mr-1 opacity-70">
                                     ({deviation > 0 ? '+' : ''}{Math.round(deviation)}%)

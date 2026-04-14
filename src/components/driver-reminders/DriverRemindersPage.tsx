@@ -8,6 +8,7 @@ import { VehicleImage } from '@/components/ui/VehicleImage';
 const WEBHOOK_URL = 'https://hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl';
 const COOLDOWN_MS = 48 * 60 * 60 * 1000; // 48 hours
 const STORAGE_KEY = 'fleet-reminder-timestamps';
+const HISTORY_KEY = 'fleet-reminder-history';
 
 /** Convert Israeli phone like "0523694547" → "972523694547@c.us" for Green API */
 function formatWhatsAppId(phone: string): string {
@@ -17,13 +18,12 @@ function formatWhatsAppId(phone: string): string {
   return intl + '@c.us';
 }
 
-/** Load sent timestamps from localStorage */
+/** Load sent timestamps from localStorage (for cooldown) */
 function loadTimestamps(): Record<string, number> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const data = JSON.parse(raw) as Record<string, number>;
-    // Clean up expired entries
     const now = Date.now();
     const clean: Record<string, number> = {};
     for (const [key, ts] of Object.entries(data)) {
@@ -35,9 +35,43 @@ function loadTimestamps(): Record<string, number> {
   }
 }
 
-/** Save sent timestamps to localStorage */
 function saveTimestamps(timestamps: Record<string, number>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(timestamps));
+}
+
+/** Load reminder history — array of timestamps per vehicle/month */
+function loadHistory(): Record<string, number[]> {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const history: Record<string, number[]> = raw ? JSON.parse(raw) : {};
+
+    // Migrate: copy entries from old timestamps that aren't in history yet
+    const tsRaw = localStorage.getItem(STORAGE_KEY);
+    if (tsRaw) {
+      const timestamps = JSON.parse(tsRaw) as Record<string, number>;
+      let migrated = false;
+      for (const [key, ts] of Object.entries(timestamps)) {
+        if (!history[key]) {
+          history[key] = [ts];
+          migrated = true;
+        } else if (!history[key].includes(ts)) {
+          history[key].push(ts);
+          migrated = true;
+        }
+      }
+      if (migrated) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      }
+    }
+
+    return history;
+  } catch {
+    return {};
+  }
+}
+
+function saveHistory(history: Record<string, number[]>) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
 /** Get remaining cooldown time as readable Hebrew string */
@@ -48,6 +82,14 @@ function getCooldownLabel(sentAt: number): string {
   const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
   if (hours > 0) return `${hours} שעות`;
   return `${minutes} דקות`;
+}
+
+/** Format timestamp to Hebrew date+time string */
+function formatDateTime(ts: number): string {
+  return new Date(ts).toLocaleString('he-IL', {
+    day: 'numeric', month: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
 }
 
 interface DriverRemindersPageProps {
@@ -73,6 +115,7 @@ export function DriverRemindersPage({
   const [sendStatuses, setSendStatuses] = useState<Record<number, SendStatus>>({});
   const [sendAllStatus, setSendAllStatus] = useState<'idle' | 'sending' | 'done'>('idle');
   const [sentTimestamps, setSentTimestamps] = useState<Record<string, number>>(loadTimestamps);
+  const [reminderHistory, setReminderHistory] = useState<Record<string, number[]>>(loadHistory);
 
   // Refresh cooldown display every minute
   const [, setTick] = useState(0);
@@ -81,31 +124,70 @@ export function DriverRemindersPage({
     return () => clearInterval(interval);
   }, []);
 
+  /** Get history key for a vehicle in the selected month */
+  const historyKey = useCallback((vehicleId: number) =>
+    `${vehicleId}-${selectedMonth}-${selectedYear}`,
+    [selectedMonth, selectedYear]
+  );
+
+  /** Get monthly manual reminder count for a vehicle */
+  const getMonthlyCount = useCallback((vehicleId: number): number => {
+    return (reminderHistory[historyKey(vehicleId)] || []).length;
+  }, [reminderHistory, historyKey]);
+
+  /** Get last sent date for a vehicle */
+  const getLastSentDate = useCallback((vehicleId: number): number | null => {
+    const entries = reminderHistory[historyKey(vehicleId)];
+    if (!entries || entries.length === 0) return null;
+    return entries[entries.length - 1];
+  }, [reminderHistory, historyKey]);
+
+  /** Total manual reminders sent this month across all vehicles */
+  const totalMonthlyReminders = useMemo(() => {
+    let total = 0;
+    const suffix = `-${selectedMonth}-${selectedYear}`;
+    for (const [key, timestamps] of Object.entries(reminderHistory)) {
+      if (key.endsWith(suffix)) total += timestamps.length;
+    }
+    return total;
+  }, [reminderHistory, selectedMonth, selectedYear]);
+
   /** Check if a vehicle is on cooldown */
   const isOnCooldown = useCallback((vehicleId: number): boolean => {
-    const key = `${vehicleId}-${selectedMonth}-${selectedYear}`;
+    const key = historyKey(vehicleId);
     const ts = sentTimestamps[key];
     if (!ts) return false;
     return Date.now() - ts < COOLDOWN_MS;
-  }, [sentTimestamps, selectedMonth, selectedYear]);
+  }, [sentTimestamps, historyKey]);
 
   /** Get cooldown remaining label */
   const cooldownRemaining = useCallback((vehicleId: number): string => {
-    const key = `${vehicleId}-${selectedMonth}-${selectedYear}`;
+    const key = historyKey(vehicleId);
     const ts = sentTimestamps[key];
     if (!ts) return '';
     return getCooldownLabel(ts);
-  }, [sentTimestamps, selectedMonth, selectedYear]);
+  }, [sentTimestamps, historyKey]);
 
-  /** Mark vehicle as sent in persistent storage */
+  /** Mark vehicle as sent in persistent storage (cooldown + history) */
   const markSent = useCallback((vehicleId: number) => {
-    const key = `${vehicleId}-${selectedMonth}-${selectedYear}`;
+    const key = historyKey(vehicleId);
+    const now = Date.now();
+
+    // Update cooldown timestamps
     setSentTimestamps(prev => {
-      const updated = { ...prev, [key]: Date.now() };
+      const updated = { ...prev, [key]: now };
       saveTimestamps(updated);
       return updated;
     });
-  }, [selectedMonth, selectedYear]);
+
+    // Append to history
+    setReminderHistory(prev => {
+      const existing = prev[key] || [];
+      const updated = { ...prev, [key]: [...existing, now] };
+      saveHistory(updated);
+      return updated;
+    });
+  }, [historyKey]);
 
   const unreportedVehicles = useMemo(
     () => vehicles.filter(v => !hasReported(v, selectedYear, selectedMonth)),
@@ -191,7 +273,6 @@ export function DriverRemindersPage({
     setTimeout(() => setSendAllStatus('idle'), 3000);
   }, [filtered, isOnCooldown, sendReminder]);
 
-  const sentCount = Object.values(sendStatuses).filter(s => s === 'sent').length;
   const cooldownCount = filtered.filter(v => isOnCooldown(v.id)).length;
   const totalVehicles = vehicles.length;
 
@@ -224,8 +305,8 @@ export function DriverRemindersPage({
             <div className="w-10 h-10 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center mb-4">
               <Send className="w-5 h-5 text-[#007AFF]" />
             </div>
-            <span className="text-3xl font-extrabold text-[#1d1d1f]">{sentCount}</span>
-            <p className="text-sm text-[#86868b] mt-1">תזכורות נשלחו</p>
+            <span className="text-3xl font-extrabold text-[#1d1d1f]">{totalMonthlyReminders}</span>
+            <p className="text-sm text-[#86868b] mt-1">תזכורות ידניות החודש</p>
           </div>
         </motion.div>
 
@@ -346,6 +427,8 @@ export function DriverRemindersPage({
                 {filtered.map((vehicle) => {
                   const status = sendStatuses[vehicle.id] || 'idle';
                   const onCooldown = isOnCooldown(vehicle.id);
+                  const monthlyCount = getMonthlyCount(vehicle.id);
+                  const lastSent = getLastSentDate(vehicle.id);
                   return (
                     <motion.tr
                       key={vehicle.id}
@@ -379,6 +462,8 @@ export function DriverRemindersPage({
                           hasPhone={!!vehicle.phone}
                           onCooldown={onCooldown}
                           cooldownLabel={cooldownRemaining(vehicle.id)}
+                          monthlyCount={monthlyCount}
+                          lastSentLabel={lastSent ? `תזכורת אחרונה: ${formatDateTime(lastSent)}` : undefined}
                           onClick={() => sendReminder(vehicle)}
                         />
                       </td>
@@ -402,7 +487,7 @@ export function DriverRemindersPage({
 
         {filtered.length > 0 && (
           <div className="px-6 py-3 border-t border-white/30 text-xs text-[#86868b]">
-            מציג {filtered.length} נהגים • {sentCount + cooldownCount} תזכורות נשלחו • {cooldownCount > 0 ? `${cooldownCount} בהמתנת 48 שעות` : ''}
+            מציג {filtered.length} נהגים • {totalMonthlyReminders} תזכורות ידניות החודש{cooldownCount > 0 ? ` • ${cooldownCount} בהמתנת 48 שעות` : ''}
           </div>
         )}
       </motion.div>
@@ -423,28 +508,36 @@ function ReminderButton({
   hasPhone,
   onCooldown,
   cooldownLabel,
+  monthlyCount,
+  lastSentLabel,
   onClick,
 }: {
   status: SendStatus;
   hasPhone: boolean;
   onCooldown: boolean;
   cooldownLabel: string;
+  monthlyCount: number;
+  lastSentLabel?: string;
   onClick: () => void;
 }) {
+  const tooltipText = lastSentLabel || (hasPhone ? 'שלח תזכורת בוואטסאפ' : 'אין מספר טלפון');
+
   if (onCooldown && status !== 'sending') {
     return (
-      <span className="inline-flex items-center gap-1 text-[#ff9500] text-xs font-medium" title={`ניתן לשלוח שוב בעוד ${cooldownLabel}`}>
+      <span className="relative inline-flex items-center gap-1 text-[#ff9500] text-xs font-medium" title={`${lastSentLabel || ''}\nניתן לשלוח שוב בעוד ${cooldownLabel}`}>
         <Clock className="w-3.5 h-3.5" />
         עוד {cooldownLabel}
+        {monthlyCount > 0 && <CountBadge count={monthlyCount} title={tooltipText} />}
       </span>
     );
   }
 
   if (status === 'sent') {
     return (
-      <span className="inline-flex items-center gap-1 text-[#34c759] text-xs font-bold">
+      <span className="relative inline-flex items-center gap-1 text-[#34c759] text-xs font-bold" title={tooltipText}>
         <CheckCircle className="w-4 h-4" />
         נשלח
+        {monthlyCount > 0 && <CountBadge count={monthlyCount} title={tooltipText} />}
       </span>
     );
   }
@@ -468,18 +561,32 @@ function ReminderButton({
   }
 
   return (
-    <button
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
-      disabled={!hasPhone}
-      title={hasPhone ? 'שלח תזכורת בוואטסאפ' : 'אין מספר טלפון'}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-        hasPhone
-          ? 'bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white'
-          : 'bg-black/5 text-[#c7c7cc] cursor-not-allowed'
-      }`}
+    <div className="relative inline-flex">
+      <button
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        disabled={!hasPhone}
+        title={tooltipText}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+          hasPhone
+            ? 'bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white'
+            : 'bg-black/5 text-[#c7c7cc] cursor-not-allowed'
+        }`}
+      >
+        <WhatsAppSmall />
+        {hasPhone ? 'שלח' : 'אין טלפון'}
+      </button>
+      {monthlyCount > 0 && <CountBadge count={monthlyCount} title={tooltipText} />}
+    </div>
+  );
+}
+
+function CountBadge({ count, title }: { count: number; title: string }) {
+  return (
+    <span
+      title={title}
+      className="absolute -top-2 -left-2 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[#ff9500] text-white text-[10px] font-bold px-1 shadow-sm cursor-default"
     >
-      <WhatsAppSmall />
-      {hasPhone ? 'שלח' : 'אין טלפון'}
-    </button>
+      {count}
+    </span>
   );
 }

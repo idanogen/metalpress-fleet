@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetalPress Fleet — סיכום פרויקט</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --primary: #1B3A5C;
+      --primary-light: #2A5580;
+      --primary-dark: #122840;
+      --accent: #E8A838;
+      --accent-light: #F0C060;
+      --accent-dark: #D09020;
+      --text: #2D3748;
+      --text-light: #718096;
+      --bg: #FFFFFF;
+      --bg-light: #F7F9FC;
+      --bg-warm: #FFFBF5;
+      --border: #E2E8F0;
+      --success: #48BB78;
+      --warning: #ED8936;
+      --danger: #F56565;
+      --info: #4299E1;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      color: var(--text);
+      background: var(--bg-light);
+      line-height: 1.8;
+      font-size: 16px;
+      direction: rtl;
+    }
+
+    .project-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 40px;
+      position: relative;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .project-name { font-size: 2.5em; font-weight: 800; margin-bottom: 4px; }
+    .project-client { font-size: 1.1em; opacity: 0.8; font-weight: 300; }
+    .project-oneliner { font-size: 1.2em; font-weight: 300; opacity: 0.9; margin: 16px 0 24px; max-width: 700px; }
+    .status-badge { display: inline-block; padding: 6px 20px; border-radius: 20px; font-weight: 600; font-size: 0.9em; }
+    .status-active { background: var(--success); color: white; }
+    .header-meta { display: flex; gap: 24px; margin-top: 20px; font-size: 0.9em; opacity: 0.7; }
+    .ogen-logo { font-size: 0.85em; opacity: 0.5; text-align: left; margin-top: 20px; }
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+    .tech-pill { display: inline-block; padding: 4px 14px; border-radius: 16px; font-size: 0.85em; font-weight: 500; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.2); }
+    .quick-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .quick-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm); color: white; text-decoration: none; font-size: 0.9em; transition: background 0.2s; }
+    .quick-link:hover { background: rgba(255,255,255,0.2); }
+
+    .content { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+
+    .section { background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 24px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .section-header { display: flex; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .section-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: 14px; font-size: 1.1em; flex-shrink: 0; }
+    .section-icon.orange { background: var(--accent); color: var(--primary-dark); }
+    .section-icon.green { background: var(--success); }
+    .section-icon.blue { background: var(--info); }
+    .section-icon.red { background: var(--danger); }
+    .section-title { font-size: 1.3em; font-weight: 700; color: var(--primary); }
+    .section-body { padding: 24px; }
+
+    .subsection { margin-bottom: 28px; }
+    .subsection:last-child { margin-bottom: 0; }
+    .subsection-title { font-size: 1.1em; font-weight: 600; color: var(--primary); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); display: inline-block; }
+
+    .file-tree { background: #1a202c; color: #e2e8f0; padding: 20px 24px; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.85em; line-height: 1.8; direction: ltr; text-align: left; overflow-x: auto; white-space: pre; }
+    .file-tree .folder { color: var(--accent); }
+    .file-tree .file { color: #a0aec0; }
+    .file-tree .comment { color: #718096; font-style: italic; }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+    .data-table th { background: var(--bg-light); padding: 10px 14px; text-align: right; font-weight: 600; color: var(--primary); border-bottom: 2px solid var(--border); }
+    .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+    .data-table tr:hover td { background: var(--bg-light); }
+
+    .code-block { background: #1a202c; color: #e2e8f0; padding: 16px 20px; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.85em; line-height: 1.7; direction: ltr; text-align: left; overflow-x: auto; white-space: pre; }
+
+    .note-box { padding: 16px 20px; border-radius: var(--radius-sm); margin: 16px 0; font-size: 0.95em; }
+    .note-box.warning { background: #FFFBF5; border: 1px solid var(--accent-light); border-right: 4px solid var(--accent); }
+    .note-box.danger { background: #FFF5F5; border: 1px solid #FED7D7; border-right: 4px solid var(--danger); }
+    .note-box.info { background: #EBF8FF; border: 1px solid #BEE3F8; border-right: 4px solid var(--info); }
+    .note-box-title { font-weight: 600; margin-bottom: 4px; }
+
+    .env-var { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--accent-dark); background: var(--bg-warm); padding: 1px 6px; border-radius: 3px; }
+
+    .flow-diagram { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin: 20px 0; padding: 20px; background: var(--bg-light); border-radius: var(--radius-sm); direction: ltr; }
+    .flow-node { padding: 10px 20px; border-radius: 8px; font-weight: 500; font-size: 0.9em; text-align: center; }
+    .flow-node.frontend { background: #BEE3F8; color: #2A4365; }
+    .flow-node.api { background: #C6F6D5; color: #22543D; }
+    .flow-node.db { background: #E9D8FD; color: #44337A; }
+    .flow-node.external { background: #FEFCBF; color: #744210; }
+    .flow-node.automation { background: #FED7E2; color: #702459; }
+    .flow-arrow { font-size: 1.3em; color: var(--text-light); }
+
+    .process-step { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+    .process-num { width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9em; flex-shrink: 0; margin-top: 2px; }
+    .process-text { flex: 1; }
+
+    .route-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.95em; }
+    .route-item:last-child { border-bottom: none; }
+    .route-path { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--primary); direction: ltr; }
+    .route-desc { color: var(--text-light); font-size: 0.9em; }
+
+    details { margin: 12px 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+    summary { padding: 12px 16px; background: var(--bg-light); cursor: pointer; font-weight: 500; color: var(--primary); user-select: none; }
+    summary:hover { background: #EDF2F7; }
+    details[open] summary { border-bottom: 1px solid var(--border); }
+    details .detail-content { padding: 16px; }
+
+    @media print {
+      body { background: white; }
+      .section { box-shadow: none; break-inside: avoid; }
+      .project-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+    @media (max-width: 768px) {
+      .project-header { padding: 24px; }
+      .project-name { font-size: 1.8em; }
+      .content { padding: 20px 12px; }
+      .section-body { padding: 16px; }
+      .header-top { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="project-header">
+    <div class="header-top">
+      <div>
+        <h1 class="project-name">MetalPress Fleet</h1>
+        <p class="project-client">לקוח: MetalPress</p>
+      </div>
+      <div>
+        <span class="status-badge status-active">פעיל</span>
+      </div>
+    </div>
+
+    <p class="project-oneliner">דשבורד ניהול צי רכב — מעקב ק"מ חודשי, חריגות דלק, תזכורות WhatsApp, ניתוח הוצאות, ודוחות Excel. נתונים מ-Make Data Store.</p>
+
+    <div class="tech-stack">
+      <span class="tech-pill">React 19</span>
+      <span class="tech-pill">TypeScript</span>
+      <span class="tech-pill">Vite 8</span>
+      <span class="tech-pill">Tailwind CSS 4</span>
+      <span class="tech-pill">React Query v5</span>
+      <span class="tech-pill">Recharts</span>
+      <span class="tech-pill">Framer Motion</span>
+      <span class="tech-pill">ExcelJS</span>
+      <span class="tech-pill">Make Data Store</span>
+      <span class="tech-pill">Vercel</span>
+    </div>
+
+    <div class="quick-links">
+      <a href="file:///Users/idanogen/antigravity/metalpress-fleet" class="quick-link">📁 תיקיית פרויקט</a>
+      <a href="https://metalpress-fleet.vercel.app" class="quick-link">🌐 Production</a>
+    </div>
+
+    <div class="header-meta">
+      <span>עודכן: מרץ 2026</span>
+      <span>תיקייה: ~/antigravity/metalpress-fleet</span>
+    </div>
+
+    <div class="ogen-logo">Ogen Solutions</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ARCHITECTURE -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon">🏗️</div>
+        <h2 class="section-title">ארכיטקטורה</h2>
+      </div>
+      <div class="section-body">
+
+        <div class="flow-diagram">
+          <div class="flow-node frontend">React Frontend<br><small>Vite + TailwindCSS</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node api">Vite Proxy<br><small>/api/make</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node db">Make Data Store<br><small>ID: 83526</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node automation">Make Webhook<br><small>WhatsApp Reminders</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node external">Green API<br><small>WhatsApp Messages</small></div>
+        </div>
+
+        <div class="note-box info">
+          <div class="note-box-title">ניווט State-Based</div>
+          <p>אין React Router. הניווט מבוסס על <code>currentView</code> state ב-App.tsx. ה-Sidebar שולט על ה-View הנוכחי דרך <code>ViewType</code> enum.</p>
+        </div>
+
+        <div class="note-box info">
+          <div class="note-box-title">Apple Glass Design</div>
+          <p>כל הכרטיסים עם <code>bg-white/40 backdrop-blur-[25px] border-white/60 rounded-[24px]</code>. הסיידבר בצד ימין (RTL), קבוע ב-desktop, drawer במובייל.</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">מבנה הפרויקט</h3>
+          <div class="file-tree"><span class="folder">src/</span>
+├── <span class="file">api/fleet.ts</span>              <span class="comment"># Make Data Store fetching + mapping</span>
+├── <span class="file">hooks/useFleetData.ts</span>     <span class="comment"># React Query hook + analytics</span>
+├── <span class="file">types/fleet.ts</span>            <span class="comment"># TypeScript interfaces</span>
+├── <span class="folder">lib/</span>
+│   ├── <span class="file">analytics.ts</span>          <span class="comment"># Fleet stats, anomaly detection</span>
+│   ├── <span class="file">fleetDates.ts</span>         <span class="comment"># Expiration date logic</span>
+│   ├── <span class="file">vehicleImages.ts</span>      <span class="comment"># Hebrew→English brand mapping + CDN</span>
+│   ├── <span class="file">excelExport.ts</span>        <span class="comment"># Excel workbook generation (ExcelJS)</span>
+│   └── <span class="file">utils.ts</span>              <span class="comment"># cn() class merge utility</span>
+├── <span class="file">data/vehicles.ts</span>          <span class="comment"># Static fallback data (103 vehicles)</span>
+├── <span class="folder">components/</span>
+│   ├── <span class="folder">layout/</span>
+│   │   ├── <span class="file">Sidebar.tsx</span>       <span class="comment"># Navigation + view selection</span>
+│   │   └── <span class="file">Header.tsx</span>        <span class="comment"># Month/year selectors + sync status</span>
+│   ├── <span class="folder">dashboard/</span>
+│   │   ├── <span class="file">KpiCards.tsx</span>      <span class="comment"># 5 KPI cards</span>
+│   │   ├── <span class="file">ReportStatus.tsx</span>  <span class="comment"># Reported/unreported tabs</span>
+│   │   ├── <span class="file">AnomalyAlerts.tsx</span> <span class="comment"># Spike/drop/chronic alerts</span>
+│   │   ├── <span class="file">FleetCharts.tsx</span>   <span class="comment"># 4 charts (trend, top10, pie, bar)</span>
+│   │   ├── <span class="file">FleetTable.tsx</span>    <span class="comment"># Sortable vehicles table</span>
+│   │   └── <span class="file">DriverDetail.tsx</span>  <span class="comment"># Right-side drawer per driver</span>
+│   ├── <span class="folder">fleet-management/</span>
+│   │   └── <span class="file">FleetManagementPage.tsx</span> <span class="comment"># Lease/License/Inventory</span>
+│   ├── <span class="folder">driver-reminders/</span>
+│   │   └── <span class="file">DriverRemindersPage.tsx</span> <span class="comment"># WhatsApp integration</span>
+│   ├── <span class="folder">drivers-detail/</span>
+│   │   └── <span class="file">DriversDetailPage.tsx</span>  <span class="comment"># 12-month accordion + charts</span>
+│   ├── <span class="folder">fuel-expenses/</span>
+│   │   └── <span class="file">FuelExpensesPage.tsx</span>   <span class="comment"># Fuel analytics by company</span>
+│   ├── <span class="folder">reports/</span>
+│   │   └── <span class="file">ReportsPage.tsx</span>        <span class="comment"># Excel export (4 report types)</span>
+│   ├── <span class="folder">settings/</span>
+│   │   └── <span class="file">SettingsPage.tsx</span>       <span class="comment"># Threshold + company settings</span>
+│   └── <span class="folder">ui/</span>                      <span class="comment"># shadcn/ui components</span>
+├── <span class="file">App.tsx</span>                   <span class="comment"># Main layout + view routing</span>
+├── <span class="file">main.tsx</span>                  <span class="comment"># React Query setup + render</span>
+└── <span class="file">index.css</span>                 <span class="comment"># Tailwind + custom glass-card</span></div>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">משתני סביבה</h3>
+          <table class="data-table">
+            <thead><tr><th>משתנה</th><th>תיאור</th></tr></thead>
+            <tbody>
+              <tr><td><span class="env-var">VITE_MAKE_API_TOKEN</span></td><td>API Token לגישה ל-Make Data Store</td></tr>
+              <tr><td><span class="env-var">VITE_MAKE_DATA_STORE_ID</span></td><td>מזהה ה-Data Store (83526)</td></tr>
+            </tbody>
+          </table>
+          <div class="note-box warning">
+            <div class="note-box-title">Proxy בפיתוח</div>
+            <p>Vite מגדיר proxy כדי לעקוף CORS: <code>/api/make</code> → <code>https://us1.make.com/api/v2</code>. ב-Production אין proxy — הקריאות ישירות ל-Make API.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA MODEL -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon orange">🗄️</div>
+        <h2 class="section-title">מודל נתונים</h2>
+      </div>
+      <div class="section-body">
+        <p style="margin-bottom:16px;">הנתונים מגיעים מ-Make Data Store (לא SQL database). כל רשומה מייצגת רכב אחד עם היסטוריית 12+ חודשים.</p>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Vehicle — רכב</h3>
+          <table class="data-table">
+            <thead><tr><th>שדה</th><th>סוג</th><th>תיאור</th></tr></thead>
+            <tbody>
+              <tr><td><code>id</code></td><td>number</td><td>מזהה ייחודי (equipmentId)</td></tr>
+              <tr><td><code>driverName</code></td><td>string</td><td>שם הנהג ("מלאי" = רכב ללא נהג)</td></tr>
+              <tr><td><code>phone</code></td><td>string</td><td>טלפון הנהג</td></tr>
+              <tr><td><code>model</code></td><td>string</td><td>יצרן + דגם (עברית)</td></tr>
+              <tr><td><code>plateNumber</code></td><td>string</td><td>מספר לוחית</td></tr>
+              <tr><td><code>company</code></td><td>string</td><td>חברה (מטלפרס בת)</td></tr>
+              <tr><td><code>ownershipType</code></td><td>string</td><td>ליסינג / חברה / פרטית / השכרה</td></tr>
+              <tr><td><code>supplier</code></td><td>string</td><td>ספק ליסינג</td></tr>
+              <tr><td><code>leaseEndDate</code></td><td>string (ISO)</td><td>תאריך סיום ליסינג</td></tr>
+              <tr><td><code>licenseEndDate</code></td><td>string (ISO)</td><td>תאריך סיום רישיון</td></tr>
+              <tr><td><code>monthlyUsage</code></td><td>MonthlyUsage[]</td><td>מערך דיווחים חודשיים</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">MonthlyUsage — דיווח חודשי</h3>
+          <table class="data-table">
+            <thead><tr><th>שדה</th><th>סוג</th><th>תיאור</th></tr></thead>
+            <tbody>
+              <tr><td><code>year</code></td><td>string</td><td>שנה</td></tr>
+              <tr><td><code>monthNum</code></td><td>number</td><td>חודש (1-12)</td></tr>
+              <tr><td><code>monthName</code></td><td>string</td><td>שם חודש בעברית ("ינו", "פבר"...)</td></tr>
+              <tr><td><code>mileage</code></td><td>number</td><td>ק"מ חודשי (0 = לא דווח)</td></tr>
+              <tr><td><code>fuelConsumption</code></td><td>number</td><td>ליטרי דלק</td></tr>
+              <tr><td><code>fuelCost</code></td><td>number</td><td>עלות דלק בש"ח</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details>
+          <summary>סוגים נוספים — FleetStats, DriverAnomaly, ExpirationItem</summary>
+          <div class="detail-content">
+            <div class="code-block">interface FleetStats {
+  totalVehicles: number
+  reportedThisMonth: number
+  notReportedThisMonth: number
+  reportPercentage: number
+  avgMonthlyKm: number
+  anomalyCount: number
+}
+
+interface DriverAnomaly {
+  vehicle: Vehicle
+  type: "spike" | "drop" | "chronic_no_report"
+  currentValue: number
+  average: number
+  deviation: number    // percentage
+}
+
+interface ExpirationItem {
+  vehicle: Vehicle
+  dateType: "lease" | "license"
+  daysUntil: number
+  urgencyLevel: "expired" | "critical" | "warning" | "soon" | "ok"
+}</div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- VIEWS & PAGES -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon blue">🗺️</div>
+        <h2 class="section-title">דפים (Views)</h2>
+      </div>
+      <div class="section-body">
+        <p style="margin-bottom:12px;">אין React Router — ניווט לפי state. כל View הוא ערך ב-enum <code>ViewType</code>.</p>
+        <table class="data-table">
+          <thead><tr><th>View</th><th>קומפוננטה</th><th>תיאור</th></tr></thead>
+          <tbody>
+            <tr><td><code>dashboard</code></td><td>KpiCards, ReportStatus, AnomalyAlerts, FleetCharts, FleetTable</td><td>דשבורד ראשי — KPIs, סטטוס דיווח, חריגות, גרפים, טבלת צי</td></tr>
+            <tr><td><code>fleet-management</code></td><td>FleetManagementPage</td><td>מעקב תוקף ליסינג/רישוי עם tabs (ליסינג / רישוי / מלאי)</td></tr>
+            <tr><td><code>driver-reminders</code></td><td>DriverRemindersPage</td><td>שליחת תזכורות WhatsApp לנהגים שלא דיווחו</td></tr>
+            <tr><td><code>drivers-detail</code></td><td>DriversDetailPage</td><td>היסטוריית 12 חודשים לכל נהג — אקורדיון עם גרפים</td></tr>
+            <tr><td><code>fuel-expenses</code></td><td>FuelExpensesPage</td><td>ניתוח הוצאות דלק לפי חברה ושנה</td></tr>
+            <tr><td><code>reports</code></td><td>ReportsPage</td><td>הורדת דוחות Excel — 4 סוגים</td></tr>
+            <tr><td><code>settings</code></td><td>SettingsPage</td><td>סף חריגות, צבעי חברות, שמות מקוצרים</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- API & INTEGRATIONS -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon green">🔌</div>
+        <h2 class="section-title">API ואינטגרציות</h2>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <h3 class="subsection-title">Make Data Store API</h3>
+          <div class="code-block">Endpoint: https://us1.make.com/api/v2/data-stores/83526/data
+Headers:  Authorization: Token {VITE_MAKE_API_TOKEN}
+Params:   pg[limit]=100 &amp; pg[offset]=0 (pagination)
+
+Response: { records: [{ key, data: { driverName, phone, model, monthlyUsage: "JSON string", ... } }], count, pg }</div>
+          <p style="margin-top:12px;">Pagination: 100 רשומות בכל קריאה, fetching כל הדפים עד שנגמר.</p>
+          <p>React Query cache: <code>staleTime: 5 דקות</code>. Fallback לנתונים סטטיים מ-<code>src/data/vehicles.ts</code> (103 רכבים).</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">WhatsApp Webhook</h3>
+          <div class="code-block">URL:     https://hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl
+Method:  POST
+Format:  { action, timestamp, reportMonth, reportYear, driver: { id, name, phone, whatsappId } }
+
+Phone format: 0523694547 → 972523694547@c.us (Green API)</div>
+          <p style="margin-top:12px;">Cooldown: 48 שעות per vehicle per month-year combo. נשמר ב-localStorage (מפתח: <code>fleet-reminder-timestamps</code>).</p>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Vehicle Images CDN</h3>
+          <p>תמונות רכב מ-<code>imagin.studio</code> עם מיפוי עברית→אנגלית (26+ מותגים). Cache ב-memory Map. Fallback לאייקון אפור.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEY PROCESSES -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon orange">⚡</div>
+        <h2 class="section-title">תהליכים עסקיים</h2>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <h3 class="subsection-title">דיווח ק"מ חודשי</h3>
+          <div class="process-step">
+            <div class="process-num">1</div>
+            <div class="process-text">נהגים מדווחים ק"מ בחודש הנוכחי עבור החודש הקודם (דרך Priority / טופס חיצוני)</div>
+          </div>
+          <div class="process-step">
+            <div class="process-num">2</div>
+            <div class="process-text">הנתונים נכנסים ל-Make Data Store (רשומה אחת לרכב, כולל מערך monthlyUsage)</div>
+          </div>
+          <div class="process-step">
+            <div class="process-num">3</div>
+            <div class="process-text">הדשבורד שואב את הנתונים ומחשב: מי דיווח, מי לא, חריגות</div>
+          </div>
+          <div class="process-step">
+            <div class="process-num">4</div>
+            <div class="process-text">איריס (מנהלת צי) שולחת תזכורות WhatsApp לנהגים שלא דיווחו</div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">זיהוי חריגות (Anomaly Detection)</h3>
+          <div class="process-step">
+            <div class="process-num">1</div>
+            <div class="process-text">לכל נהג — מחושב ממוצע ק"מ חודשי (מתוך חודשים שדווחו, לא כולל חודש נוכחי)</div>
+          </div>
+          <div class="process-step">
+            <div class="process-num">2</div>
+            <div class="process-text">אם הק"מ החודשי חורג ב-X% מהממוצע (ברירת מחדל: 30%) → מסומן כחריגה</div>
+          </div>
+          <div class="process-step">
+            <div class="process-num">3</div>
+            <div class="process-text">סוגים: <strong>spike</strong> (מעל), <strong>drop</strong> (מתחת), <strong>chronic_no_report</strong> (3+ חודשים רצופים ללא דיווח)</div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">מעקב תוקף ליסינג / רישוי</h3>
+          <div class="process-step">
+            <div class="process-num">1</div>
+            <div class="process-text">לכל רכב — מחשב ימים עד תפוגה של ליסינג ורישיון</div>
+          </div>
+          <div class="process-step">
+            <div class="process-num">2</div>
+            <div class="process-text">דחיפות: <span style="color:#F56565">פג תוקף</span> (שלילי) → <span style="color:#F56565">קריטי</span> (≤30 יום) → <span style="color:#ED8936">אזהרה</span> (≤60) → <span style="color:#4299E1">בקרוב</span> (≤90) → <span style="color:#48BB78">תקין</span> (>90)</div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">דוחות Excel</h3>
+          <p>4 סוגי דוחות:</p>
+          <table class="data-table">
+            <thead><tr><th>דוח</th><th>חתך</th><th>עמודות</th></tr></thead>
+            <tbody>
+              <tr><td>דוח דלק</td><td>שנה + חברה</td><td>חברה, רכבים, ליטרים, עלות, ממוצע/רכב</td></tr>
+              <tr><td>דוח ק"מ</td><td>חודש + שנה</td><td>נהג, דגם, לוחית, חברה, ק"מ, סטטוס</td></tr>
+              <tr><td>דוח חריגות</td><td>חודש + שנה</td><td>נהג, דגם, סוג חריגה, ק"מ, ממוצע, %סטייה</td></tr>
+              <tr><td>דוח צי מלא</td><td>snapshot נוכחי</td><td>נהג, דגם, לוחית, חברה, ספק, בעלות, ק"מ נוכחי</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPECIAL NOTES -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon red">⚠️</div>
+        <h2 class="section-title">הערות חשובות</h2>
+      </div>
+      <div class="section-body">
+        <div class="note-box danger">
+          <div class="note-box-title">לוגיקת חודשים — חשוב!</div>
+          <p>ברירת מחדל: <strong>חודש קודם</strong>. נהגים מדווחים בחודש הנוכחי עבור החודש שעבר. לעולם לא להציג חודש נוכחי כ"לא דווח" — הוא עדיין לא נגמר. חישוב: <code>getMonth()</code> הוא 0-based, מרץ=2, חודש קודם=פברואר=2.</p>
+        </div>
+
+        <div class="note-box warning">
+          <div class="note-box-title">monthlyUsage מגיע כ-string</div>
+          <p>השדה <code>monthlyUsage</code> מגיע מ-Make Data Store כ-JSON string, לא כאובייקט. צריך <code>JSON.parse()</code> בשכבת ה-API.</p>
+        </div>
+
+        <div class="note-box warning">
+          <div class="note-box-title">נתונים סטטיים = fallback</div>
+          <p><code>src/data/vehicles.ts</code> מכיל 103 רכבים — משמש רק כשאין חיבור ל-Make API. אל תערוך אותו ידנית בייצור.</p>
+        </div>
+
+        <div class="note-box info">
+          <div class="note-box-title">רכב "מלאי"</div>
+          <p>רכב עם <code>driverName = "מלאי"</code> הוא רכב ללא נהג מוקצה. מופיע רק בטאב "מלאי" של ניהול צי, לא בדשבורד.</p>
+        </div>
+
+        <div class="note-box info">
+          <div class="note-box-title">Cooldown WhatsApp</div>
+          <p>48 שעות per vehicle per month-year combo. מפתח localStorage: <code>{vehicleId}-{month}-{year}</code>. ניקוי אוטומטי של timestamps ישנים.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STYLING -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon blue">🎨</div>
+        <h2 class="section-title">עיצוב וסטייל</h2>
+      </div>
+      <div class="section-body">
+        <div class="subsection">
+          <h3 class="subsection-title">פלטת צבעים</h3>
+          <table class="data-table">
+            <thead><tr><th>צבע</th><th>קוד</th><th>שימוש</th></tr></thead>
+            <tbody>
+              <tr><td style="color:#007AFF;font-weight:700;">■ כחול</td><td><code>#007AFF</code></td><td>Primary — כפתורים, קישורים, מסומנים</td></tr>
+              <tr><td style="color:#34c759;font-weight:700;">■ ירוק</td><td><code>#34c759</code></td><td>Success — דיווח, תקין</td></tr>
+              <tr><td style="color:#ff9500;font-weight:700;">■ כתום</td><td><code>#ff9500</code></td><td>Warning — חריגות, אזהרה</td></tr>
+              <tr><td style="color:#ff3b30;font-weight:700;">■ אדום</td><td><code>#ff3b30</code></td><td>Danger — פג תוקף, קריטי</td></tr>
+              <tr><td style="color:#5856D6;font-weight:700;">■ סגול</td><td><code>#5856D6</code></td><td>Secondary — דוח צי מלא</td></tr>
+              <tr><td style="color:#86868b;font-weight:700;">■ אפור</td><td><code>#86868b</code></td><td>Text — טקסטים משניים</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <h3 class="subsection-title">Layout</h3>
+          <p><strong>Sidebar:</strong> <code>fixed right-5 w-[260px]</code> (desktop), slide-out drawer (mobile)</p>
+          <p><strong>Header:</strong> <code>fixed right-[300px] top-5</code> — month/year dropdowns + sync status</p>
+          <p><strong>Main:</strong> <code>lg:mr-[300px] pt-[80px] lg:pt-[110px]</code></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS & PERSISTENCE -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon">⚙️</div>
+        <h2 class="section-title">הגדרות ו-Persistence</h2>
+      </div>
+      <div class="section-body">
+        <p style="margin-bottom:16px;">כל ההגדרות נשמרות ב-localStorage:</p>
+        <table class="data-table">
+          <thead><tr><th>מפתח</th><th>תוכן</th></tr></thead>
+          <tbody>
+            <tr><td><code>fleet-settings</code></td><td>סף חריגות (%), צבעי חברות, שמות מקוצרים</td></tr>
+            <tr><td><code>fleet-reminder-timestamps</code></td><td>cooldown timestamps לתזכורות WhatsApp</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box info">
+          <div class="note-box-title">7 חברות MetalPress</div>
+          <p>המערכת תומכת בחברות-בת של MetalPress. כל חברה יכולה לקבל צבע מותאם ושם מקוצר (למשל "מטלפרס פתרונות חכמים בע"מ" → "פתרונות").</p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MAKE.COM AUTOMATIONS -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon orange">&#9881;&#65039;</div>
+        <h2 class="section-title">Make.com &#8212; &#1488;&#1493;&#1496;&#1493;&#1502;&#1510;&#1497;&#1493;&#1514;</h2>
+      </div>
+      <div class="section-body">
+        <p style="margin-bottom:16px;"><strong>&#1488;&#1512;&#1490;&#1493;&#1503;:</strong> &#1506;&#1493;&#1490;&#1503; &#1492;&#1494;&#1492;&#1512; (org 195344, us1.make.com) &nbsp;|&nbsp; <strong>Team ID:</strong> 77940 &nbsp;|&nbsp; <strong>&#1514;&#1497;&#1511;&#1497;&#1497;&#1492;:</strong> 310958</p>
+        <p style="margin-bottom:16px;"><strong>Priority API:</strong> <code>https://prio.metalpress.co.il/odata/Priority/tabula.ini/sales/METL_EMPLOYEECARS</code> (Basic Auth: METALPRESSAPI)</p>
+        <p style="margin-bottom:24px;"><strong>Green API Connection:</strong> MetalPress (7103541320 - 972549437750@c.us)</p>
+
+        <!-- Scenario 1 -->
+        <div class="subsection">
+          <h3 class="subsection-title">1. &#1511;&#1489;&#1500;&#1514; &#1492;&#1493;&#1491;&#1506;&#1493;&#1514; &#1502;&#1493;&#1493;&#1510;&#1488;&#1508; (ID: 4602610)</h3>
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:120px;font-weight:600;">&#1505;&#1496;&#1496;&#1493;&#1505;</td><td><span style="color:#48BB78;font-weight:600;">&#9679; &#1508;&#1506;&#1497;&#1500;</span></td></tr>
+              <tr><td style="font-weight:600;">&#1496;&#1512;&#1497;&#1490;&#1512;</td><td>Green API Webhook &#8212; &#1492;&#1493;&#1491;&#1506;&#1514; WhatsApp &#1504;&#1499;&#1504;&#1505;&#1514;</td></tr>
+              <tr><td style="font-weight:600;">&#1502;&#1492; &#1506;&#1493;&#1513;&#1492;</td><td>&#1504;&#1492;&#1490; &#1513;&#1493;&#1500;&#1495; &#1502;&#1505;&#1508;&#1512; &#1511;"&#1502; &#1489;&#1493;&#1493;&#1488;&#1510;&#1488;&#1508; &rarr; &#1492;&#1505;&#1510;&#1504;&#1512;&#1497;&#1493; &#1502;&#1494;&#1492;&#1492; &#1488;&#1514; &#1492;&#1504;&#1492;&#1490; &#1500;&#1508;&#1497; &#1496;&#1500;&#1508;&#1493;&#1503;, &#1502;&#1493;&#1493;&#1491;&#1488; &#1513;&#1492;&#1502;&#1505;&#1508;&#1512; &#1492;&#1490;&#1497;&#1493;&#1504;&#1497; (&#1490;&#1489;&#1493;&#1492; &#1502;&#1492;&#1511;&#1493;&#1491;&#1501;), &#1502;&#1506;&#1491;&#1499;&#1503; &#1488;&#1514; &#1492;-Data Store, &#1493;&#1513;&#1493;&#1500;&#1495; &#1488;&#1497;&#1513;&#1493;&#1512;/&#1513;&#1490;&#1497;&#1488;&#1492; &#1489;&#1495;&#1494;&#1512;&#1492;</td></tr>
+            </tbody>
+          </table>
+          <div class="flow-diagram" style="margin-top:12px;">
+            <div class="flow-node external">WhatsApp &#1504;&#1499;&#1504;&#1505;</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node api">&#1494;&#1497;&#1492;&#1493;&#1497; &#1504;&#1492;&#1490;</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node db">&#1489;&#1491;&#1497;&#1511;&#1514; &#1514;&#1511;&#1497;&#1504;&#1493;&#1514;</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node automation">&#1506;&#1491;&#1499;&#1493;&#1503; Data Store</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node frontend">&#1488;&#1497;&#1513;&#1493;&#1512; &#1500;&#1504;&#1492;&#1490;</div>
+          </div>
+        </div>
+
+        <!-- Scenario 2 -->
+        <div class="subsection">
+          <h3 class="subsection-title">2. &#1513;&#1500;&#1497;&#1495;&#1514; &#1514;&#1494;&#1499;&#1493;&#1512;&#1514; &#1514;&#1495;&#1497;&#1500;&#1514; &#1495;&#1493;&#1491;&#1513; (ID: 4615781)</h3>
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:120px;font-weight:600;">&#1505;&#1496;&#1496;&#1493;&#1505;</td><td><span style="color:#718096;font-weight:600;">&#9679; &#1500;&#1488; &#1508;&#1506;&#1497;&#1500;</span></td></tr>
+              <tr><td style="font-weight:600;">&#1496;&#1512;&#1497;&#1490;&#1512;</td><td>Scheduled (&#1499;&#1500; 15 &#1491;&#1511;&#1493;&#1514;, &#1499;&#1489;&#1493;&#1497;)</td></tr>
+              <tr><td style="font-weight:600;">&#1502;&#1492; &#1506;&#1493;&#1513;&#1492;</td><td>&#1513;&#1493;&#1500;&#1507; &#1488;&#1514; &#1499;&#1500; &#1492;&#1512;&#1499;&#1489;&#1497;&#1501; &#1502;-Priority &rarr; &#1513;&#1493;&#1500;&#1495; &#1500;&#1499;&#1500; &#1504;&#1492;&#1490; &#1492;&#1493;&#1491;&#1506;&#1514; WhatsApp "&#1497;&#1513; &#1500;&#1513;&#1500;&#1493;&#1495; &#1488;&#1514; &#1492;&#1511;&#1497;&#1500;&#1493;&#1502;&#1496;&#1512;&#1494; &#1513;&#1500; &#1492;&#1512;&#1499;&#1489;"</td></tr>
+              <tr><td style="font-weight:600;">Priority API</td><td><code>METL_EMPLOYEECARS?$expand=METL_CARUSAGE_SUBFORM</code></td></tr>
+            </tbody>
+          </table>
+          <div class="note-box info" style="margin-top:8px;">
+            <div class="note-box-title">&#1492;&#1493;&#1491;&#1506;&#1492; &#1500;&#1504;&#1492;&#1490;</div>
+            <p>"&#1513;&#1500;&#1493;&#1501; {&#1513;&#1501;}, &#1497;&#1513; &#1500;&#1513;&#1500;&#1493;&#1495; &#1489;&#1492;&#1493;&#1491;&#1506;&#1492; &#1495;&#1493;&#1494;&#1512;&#1514; &#1488;&#1514; &#1492;&#1511;&#1497;&#1500;&#1493;&#1502;&#1496;&#1512;&#1494; &#1513;&#1500; &#1492;&#1512;&#1499;&#1489; &#127950; &#1497;&#1493;&#1501; &#1496;&#1493;&#1489;, &#1502;&#1495;&#1500;&#1511;&#1514; &#1500;&#1493;&#1490;&#1497;&#1505;&#1496;&#1497;&#1511;&#1492;, &#1495;&#1489;&#1512;&#1514; MetalPress (&#1489;&#1489;&#1511;&#1513;&#1492; &#1500;&#1513;&#1500;&#1493;&#1495; &#1512;&#1511; &#1502;&#1505;&#1508;&#1512;)"</p>
+          </div>
+        </div>
+
+        <!-- Scenario 3 -->
+        <div class="subsection">
+          <h3 class="subsection-title">3. Dashboard Webhook (ID: 4626788)</h3>
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:120px;font-weight:600;">&#1505;&#1496;&#1496;&#1493;&#1505;</td><td><span style="color:#718096;font-weight:600;">&#9679; &#1500;&#1488; &#1508;&#1506;&#1497;&#1500;</span></td></tr>
+              <tr><td style="font-weight:600;">&#1496;&#1512;&#1497;&#1490;&#1512;</td><td>Custom Webhook</td></tr>
+              <tr><td style="font-weight:600;">&#1502;&#1492; &#1506;&#1493;&#1513;&#1492;</td><td>&#1502;&#1511;&#1489;&#1500; &#1511;&#1512;&#1497;&#1488;&#1492; &#1502;&#1492;&#1491;&#1513;&#1489;&#1493;&#1512;&#1491; &rarr; &#1513;&#1493;&#1500;&#1507; &#1504;&#1514;&#1493;&#1504;&#1497;&#1501; &#1502;&#1492;-Data Store &rarr; &#1502;&#1495;&#1494;&#1497;&#1512; JSON (&#1500;&#1488; &#1489;&#1513;&#1497;&#1502;&#1493;&#1513; &#8212; &#1492;&#1491;&#1513;&#1489;&#1493;&#1512;&#1491; &#1511;&#1493;&#1512;&#1488; &#1497;&#1513;&#1497;&#1512;&#1493;&#1514; &#1502;-Make API)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Scenario 4 -->
+        <div class="subsection">
+          <h3 class="subsection-title">4. Sync Priority &rarr; Data Store (ID: 4626827)</h3>
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:120px;font-weight:600;">&#1505;&#1496;&#1496;&#1493;&#1505;</td><td><span style="color:#718096;font-weight:600;">&#9679; &#1500;&#1488; &#1508;&#1506;&#1497;&#1500;</span></td></tr>
+              <tr><td style="font-weight:600;">&#1496;&#1512;&#1497;&#1490;&#1512;</td><td>Monthly (31 &#1489;&#1499;&#1500; &#1495;&#1493;&#1491;&#1513; &#1489;-08:00)</td></tr>
+              <tr><td style="font-weight:600;">&#1502;&#1492; &#1506;&#1493;&#1513;&#1492;</td><td>&#1505;&#1504;&#1499;&#1512;&#1493;&#1503; &#1502;&#1500;&#1488; &#8212; &#1513;&#1493;&#1500;&#1507; &#1488;&#1514; &#1499;&#1500; &#1492;&#1512;&#1499;&#1489;&#1497;&#1501; &#1502;-Priority (&#1499;&#1493;&#1500;&#1500; monthlyUsage) &rarr; Iterator &rarr; &#1502;&#1506;&#1491;&#1499;&#1503;/&#1502;&#1493;&#1505;&#1497;&#1507; &#1499;&#1500; &#1512;&#1513;&#1493;&#1502;&#1492; &#1489;-Data Store (overwrite)</td></tr>
+              <tr><td style="font-weight:600;">&#1502;&#1497;&#1508;&#1493;&#1497;</td><td>SNAME&rarr;driverName, MODEL&rarr;model, VEHICLENUMCH&rarr;plateNumber, DNAMETITLE&rarr;company, METL_CARUSAGE_SUBFORM&rarr;monthlyUsage</td></tr>
+            </tbody>
+          </table>
+          <div class="flow-diagram" style="margin-top:12px;">
+            <div class="flow-node external">Priority ERP</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node api">Iterator</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node db">Data Store (83526)</div>
+          </div>
+        </div>
+
+        <!-- Scenario 5 -->
+        <div class="subsection">
+          <h3 class="subsection-title">5. &#1514;&#1494;&#1499;&#1493;&#1512;&#1514; &#1504;&#1492;&#1490; &#1497;&#1491;&#1504;&#1497;&#1514; &#1502;&#1492;&#1491;&#1513;&#1489;&#1493;&#1512;&#1491; (ID: 4627015)</h3>
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:120px;font-weight:600;">&#1505;&#1496;&#1496;&#1493;&#1505;</td><td><span style="color:#48BB78;font-weight:600;">&#9679; &#1508;&#1506;&#1497;&#1500;</span></td></tr>
+              <tr><td style="font-weight:600;">&#1496;&#1512;&#1497;&#1490;&#1512;</td><td>Custom Webhook (&#1504;&#1511;&#1512;&#1488; &#1502;&#1492;&#1491;&#1513;&#1489;&#1493;&#1512;&#1491;)</td></tr>
+              <tr><td style="font-weight:600;">Webhook URL</td><td><code>https://hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl</code></td></tr>
+              <tr><td style="font-weight:600;">&#1502;&#1492; &#1506;&#1493;&#1513;&#1492;</td><td>&#1492;&#1491;&#1513;&#1489;&#1493;&#1512;&#1491; &#1513;&#1493;&#1500;&#1495; &#1508;&#1512;&#1496;&#1497; &#1504;&#1492;&#1490; &rarr; &#1513;&#1500;&#1497;&#1495;&#1514; &#1492;&#1493;&#1491;&#1506;&#1514; WhatsApp &#1488;&#1497;&#1513;&#1497;&#1514; &#1506;&#1501; &#1513;&#1501; &#1492;&#1504;&#1492;&#1490; &#1493;&#1500;&#1493;&#1495;&#1497;&#1514;</td></tr>
+              <tr><td style="font-weight:600;">Payload</td><td><code>{ action, timestamp, reportMonth, reportYear, driver: { id, name, phone, whatsappId }, vehicle: { plateNumber, ... } }</code></td></tr>
+            </tbody>
+          </table>
+          <div class="note-box info" style="margin-top:8px;">
+            <div class="note-box-title">&#1492;&#1493;&#1491;&#1506;&#1492; &#1500;&#1504;&#1492;&#1490;</div>
+            <p>"&#1513;&#1500;&#1493;&#1501; {&#1513;&#1501;} &#128075; &#1496;&#1512;&#1501; &#1511;&#1497;&#1489;&#1500;&#1504;&#1493; &#1488;&#1514; &#1491;&#1497;&#1493;&#1493;&#1495; &#1492;&#1511;&#1497;&#1500;&#1493;&#1502;&#1496;&#1512;&#1494;' &#1513;&#1500;&#1498; &#1500;&#1495;&#1493;&#1491;&#1513; {&#1495;&#1493;&#1491;&#1513;}. &#1504;&#1488; &#1500;&#1513;&#1500;&#1493;&#1495; &#1488;&#1514; &#1502;&#1505;&#1508;&#1512; &#1492;&#1511;"&#1502; &#1492;&#1504;&#1493;&#1499;&#1495;&#1497; &#1513;&#1502;&#1493;&#1508;&#1497;&#1506; &#1489;&#1502;&#1491;-&#1488;&#1493;&#1491; &#1513;&#1500; &#1492;&#1512;&#1499;&#1489; {&#1500;&#1493;&#1495;&#1497;&#1514;}. &#1514;&#1493;&#1491;&#1492;, &#1510;&#1493;&#1493;&#1514; &#1502;&#1496;&#1500;&#1508;&#1512;&#1505;"</p>
+          </div>
+        </div>
+
+        <!-- Scenario 6 -->
+        <div class="subsection">
+          <h3 class="subsection-title">6. &#1506;&#1491;&#1499;&#1493;&#1503; &#1512;&#1499;&#1489;&#1497;&#1501; &#1495;&#1491;&#1513;&#1497;&#1501; &#1502;&#1492;&#1508;&#1512;&#1497;&#1493;&#1512;&#1497;&#1496;&#1497; (ID: 4636689)</h3>
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:120px;font-weight:600;">&#1505;&#1496;&#1496;&#1493;&#1505;</td><td><span style="color:#48BB78;font-weight:600;">&#9679; &#1508;&#1506;&#1497;&#1500;</span></td></tr>
+              <tr><td style="font-weight:600;">&#1496;&#1512;&#1497;&#1490;&#1512;</td><td>Daily &#1489;-21:00</td></tr>
+              <tr><td style="font-weight:600;">&#1502;&#1492; &#1506;&#1493;&#1513;&#1492;</td><td>&#1513;&#1493;&#1500;&#1507; &#1488;&#1514; &#1499;&#1500; &#1492;&#1512;&#1499;&#1489;&#1497;&#1501; &#1502;-Priority + &#1488;&#1514; &#1499;&#1500; &#1492;&#1500;&#1493;&#1495;&#1497;&#1493;&#1514; &#1492;&#1511;&#1497;&#1497;&#1502;&#1493;&#1514; &#1489;-Data Store &rarr; &#1502;&#1505;&#1504;&#1503; &#1512;&#1511; &#1512;&#1499;&#1489;&#1497;&#1501; &#1513;&#1492;&#1500;&#1493;&#1495;&#1497;&#1514; &#1513;&#1500;&#1492;&#1501; &#1500;&#1488; &#1511;&#1497;&#1497;&#1502;&#1514; &#1506;&#1491;&#1497;&#1497;&#1503; &rarr; &#1502;&#1493;&#1505;&#1497;&#1507; &#1488;&#1493;&#1514;&#1501; &#1500;-Data Store</td></tr>
+            </tbody>
+          </table>
+          <div class="flow-diagram" style="margin-top:12px;">
+            <div class="flow-node external">Priority (&#1499;&#1500; &#1492;&#1512;&#1499;&#1489;&#1497;&#1501;)</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node db">Data Store (&#1500;&#1493;&#1495;&#1497;&#1493;&#1514; &#1511;&#1497;&#1497;&#1502;&#1493;&#1514;)</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node api">&#1505;&#1497;&#1504;&#1493;&#1503; &#1495;&#1491;&#1513;&#1497;&#1501;</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node automation">&#1492;&#1493;&#1505;&#1508;&#1492; &#1500;-Data Store</div>
+          </div>
+          <div class="note-box warning" style="margin-top:8px;">
+            <div class="note-box-title">&#1513;&#1497;&#1501; &#1500;&#1489;</div>
+            <p>&#1505;&#1510;&#1504;&#1512;&#1497;&#1493; &#1494;&#1492; &#1502;&#1493;&#1505;&#1497;&#1507; &#1512;&#1511; &#1512;&#1499;&#1489;&#1497;&#1501; <strong>&#1495;&#1491;&#1513;&#1497;&#1501;</strong> (&#1500;&#1508;&#1497; &#1500;&#1493;&#1495;&#1497;&#1514;). &#1492;&#1493;&#1488; &#1500;&#1488; &#1502;&#1506;&#1491;&#1499;&#1503; &#1504;&#1514;&#1493;&#1504;&#1497;&#1501; &#1513;&#1500; &#1512;&#1499;&#1489;&#1497;&#1501; &#1511;&#1497;&#1497;&#1502;&#1497;&#1501; &#1493;&#1500;&#1488; &#1502;&#1505;&#1504;&#1499;&#1512;&#1503; monthlyUsage. &#1500;&#1505;&#1504;&#1499;&#1512;&#1493;&#1503; &#1502;&#1500;&#1488; &#1492;&#1513;&#1514;&#1502;&#1513; &#1489;&#1505;&#1510;&#1504;&#1512;&#1497;&#1493; 4 (Sync Priority &rarr; Data Store).</p>
+          </div>
+        </div>
+
+        <!-- Priority API Reference -->
+        <details>
+          <summary>Priority API &#8212; &#1502;&#1497;&#1508;&#1493;&#1497; &#1513;&#1491;&#1493;&#1514;</summary>
+          <div class="detail-content">
+            <table class="data-table">
+              <thead><tr><th>Priority</th><th>Data Store</th><th>&#1514;&#1497;&#1488;&#1493;&#1512;</th></tr></thead>
+              <tbody>
+                <tr><td><code>EQUIPMENT_ID</code></td><td><code>equipmentId</code> (+ key)</td><td>&#1502;&#1494;&#1492;&#1492; &#1497;&#1497;&#1495;&#1493;&#1491;&#1497;</td></tr>
+                <tr><td><code>SNAME</code></td><td><code>driverName</code></td><td>&#1513;&#1501; &#1504;&#1492;&#1490;</td></tr>
+                <tr><td><code>EDPE_CELLPHONE</code></td><td><code>phone</code></td><td>&#1496;&#1500;&#1508;&#1493;&#1503;</td></tr>
+                <tr><td><code>MODEL</code></td><td><code>model</code></td><td>&#1497;&#1510;&#1512;&#1503; + &#1491;&#1490;&#1501;</td></tr>
+                <tr><td><code>VEHICLENUMCH</code></td><td><code>plateNumber</code></td><td>&#1502;&#1505;&#1508;&#1512; &#1500;&#1493;&#1495;&#1497;&#1514;</td></tr>
+                <tr><td><code>DNAMETITLE</code></td><td><code>company</code></td><td>&#1495;&#1489;&#1512;&#1514;-&#1489;&#1514;</td></tr>
+                <tr><td><code>OWNERSHIPTYPE</code></td><td><code>ownershipType</code></td><td>&#1505;&#1493;&#1490; &#1489;&#1506;&#1500;&#1493;&#1514;</td></tr>
+                <tr><td><code>SUPPLIER</code></td><td><code>supplier</code></td><td>&#1505;&#1508;&#1511;</td></tr>
+                <tr><td><code>MILEAGE</code></td><td><code>currentMileage</code></td><td>&#1511;"&#1502; &#1504;&#1493;&#1499;&#1495;&#1497;</td></tr>
+                <tr><td><code>RENTVALUE</code></td><td><code>rentValue</code></td><td>&#1506;&#1500;&#1493;&#1514; &#1500;&#1497;&#1505;&#1497;&#1504;&#1490;</td></tr>
+                <tr><td><code>LICENSEENDDATE</code></td><td><code>licenseEndDate</code></td><td>&#1514;&#1493;&#1511;&#1507; &#1512;&#1497;&#1513;&#1497;&#1493;&#1503;</td></tr>
+                <tr><td><code>RENTENDDATE</code></td><td><code>leaseEndDate</code></td><td>&#1514;&#1493;&#1511;&#1507; &#1500;&#1497;&#1505;&#1497;&#1504;&#1490;</td></tr>
+                <tr><td><code>METL_CARUSAGE_SUBFORM</code></td><td><code>monthlyUsage</code> (JSON string)</td><td>&#1491;&#1497;&#1493;&#1493;&#1495;&#1497;&#1501; &#1495;&#1493;&#1491;&#1513;&#1497;&#1497;&#1501;</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+      </div>
+    </div>
+
+    <!-- DEPLOYMENT -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon blue">🚀</div>
+        <h2 class="section-title">Deployment</h2>
+      </div>
+      <div class="section-body">
+        <table class="data-table">
+          <thead><tr><th>פרט</th><th>ערך</th></tr></thead>
+          <tbody>
+            <tr><td>פלטפורמה</td><td>Vercel</td></tr>
+            <tr><td>פריסה</td><td><code>npx vercel deploy --prod --yes</code></td></tr>
+            <tr><td>Build</td><td><code>tsc -b && vite build</code></td></tr>
+            <tr><td>Dev</td><td><code>npm run dev</code> (port 5173)</td></tr>
+            <tr><td>Node</td><td>18.x+</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box warning">
+          <div class="note-box-title">Environment Variables ב-Vercel</div>
+          <p>צריך להגדיר <code>VITE_MAKE_API_TOKEN</code> ו-<code>VITE_MAKE_DATA_STORE_ID</code> בהגדרות הפרויקט ב-Vercel.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

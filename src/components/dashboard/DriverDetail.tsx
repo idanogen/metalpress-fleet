@@ -2,7 +2,7 @@ import { X, Phone, Car, Calendar, Gauge } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import type { Vehicle } from '@/types/fleet';
-import { getDriverAvgUsage } from '@/lib/analytics';
+import { getDriverAvgUsage, getMonthlyDeltas } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 
 interface DriverDetailProps {
@@ -14,6 +14,7 @@ export function DriverDetail({ vehicle, onClose }: DriverDetailProps) {
   if (!vehicle) return null;
 
   const avg = getDriverAvgUsage(vehicle);
+  const allDeltas = getMonthlyDeltas(vehicle);
   const last12 = [...vehicle.monthlyUsage]
     .sort((a, b) => {
       if (a.year !== b.year) return a.year.localeCompare(b.year);
@@ -21,17 +22,20 @@ export function DriverDetail({ vehicle, onClose }: DriverDetailProps) {
     })
     .slice(-12);
 
-  const chartData = last12.map(m => ({
-    month: `${m.monthName} ${m.year.slice(2)}`,
-    km: m.mileage,
-    reported: m.mileage > 0,
-  }));
+  const chartData = last12.map(m => {
+    const delta = allDeltas.find(d => d.year === m.year && d.monthNum === m.monthNum);
+    return {
+      month: `${m.monthName} ${m.year.slice(2)}`,
+      km: delta?.km || 0,
+      reported: m.mileage > 0,
+    };
+  });
 
-  const totalKm = vehicle.monthlyUsage.reduce((sum, m) => sum + m.mileage, 0);
-  const maxKm = Math.max(...vehicle.monthlyUsage.map(m => m.mileage));
-  const minKm = Math.min(...vehicle.monthlyUsage.filter(m => m.mileage > 0).map(m => m.mileage));
-  const monthsWithData = vehicle.monthlyUsage.filter(m => m.mileage > 0).length;
+  const totalKm = allDeltas.reduce((sum, d) => sum + d.km, 0);
+  const maxKm = allDeltas.length > 0 ? Math.max(...allDeltas.map(d => d.km)) : 0;
+  const minKm = allDeltas.length > 0 ? Math.min(...allDeltas.map(d => d.km)) : 0;
   const reportedMonths = vehicle.monthlyUsage.filter(m => m.mileage > 0).length;
+  const monthsWithData = reportedMonths;
 
   return (
     <AnimatePresence>

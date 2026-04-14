@@ -10,29 +10,59 @@ export function hasReported(vehicle: Vehicle, year: string, monthNum: number): b
   return !!month && month.mileage > 0;
 }
 
-export function getDriverAvgUsage(vehicle: Vehicle, excludeYear?: string, excludeMonth?: number): number {
+// mileage is cumulative odometer — compute monthly driving distance as deltas
+export function getMonthlyDeltas(vehicle: Vehicle): { year: string; monthName: string; monthNum: number; km: number }[] {
   const usage = Array.isArray(vehicle.monthlyUsage) ? vehicle.monthlyUsage : [];
-  const months = usage.filter(m => {
-    if (m.mileage <= 0) return false;
-    if (excludeYear && excludeMonth && m.year === excludeYear && m.monthNum === excludeMonth) return false;
-    return true;
-  });
-  if (months.length === 0) return 0;
-  return months.reduce((sum, m) => sum + m.mileage, 0) / months.length;
+  const sorted = [...usage]
+    .filter(m => m.mileage > 0)
+    .sort((a, b) => {
+      if (a.year !== b.year) return a.year.localeCompare(b.year);
+      return a.monthNum - b.monthNum;
+    });
+
+  const deltas: { year: string; monthName: string; monthNum: number; km: number }[] = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const delta = sorted[i].mileage - sorted[i - 1].mileage;
+    if (delta > 0) {
+      deltas.push({
+        year: sorted[i].year,
+        monthName: sorted[i].monthName,
+        monthNum: sorted[i].monthNum,
+        km: delta,
+      });
+    }
+  }
+  return deltas;
 }
 
-export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: number): FleetStats {
+export function getMonthDelta(vehicle: Vehicle, year: string, monthNum: number): number {
+  const deltas = getMonthlyDeltas(vehicle);
+  const found = deltas.find(d => d.year === year && d.monthNum === monthNum);
+  return found?.km || 0;
+}
+
+export function getDriverAvgUsage(vehicle: Vehicle, excludeYear?: string, excludeMonth?: number): number {
+  const deltas = getMonthlyDeltas(vehicle);
+  const filtered = deltas.filter(d => {
+    if (excludeYear && excludeMonth && d.year === excludeYear && d.monthNum === excludeMonth) return false;
+    return true;
+  });
+  if (filtered.length === 0) return 0;
+  return filtered.reduce((sum, d) => sum + d.km, 0) / filtered.length;
+}
+
+export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: number, anomalyThreshold = 30): FleetStats {
   const reported = vehicles.filter(v => hasReported(v, year, monthNum));
   const notReported = vehicles.filter(v => !hasReported(v, year, monthNum));
 
-  const monthUsages = vehicles
-    .map(v => getMonthData(v, year, monthNum))
-    .filter((m): m is MonthlyUsage => !!m && m.mileage > 0);
+  const monthDeltas = vehicles
+    .map(v => getMonthDelta(v, year, monthNum))
+    .filter(km => km > 0);
 
-  const totalKm = monthUsages.reduce((sum, m) => sum + m.mileage, 0);
-  const avgKm = monthUsages.length > 0 ? totalKm / monthUsages.length : 0;
+  const totalKm = monthDeltas.reduce((sum, km) => sum + km, 0);
+  const avgKm = monthDeltas.length > 0 ? totalKm / monthDeltas.length : 0;
 
-  const anomalies = detectAnomalies(vehicles, year, monthNum);
+  const anomalies = detectAnomalies(vehicles, year, monthNum, anomalyThreshold);
 
   return {
     totalVehicles: vehicles.length,
@@ -46,22 +76,22 @@ export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: numbe
   };
 }
 
-export function detectAnomalies(vehicles: Vehicle[], year: string, monthNum: number): DriverAnomaly[] {
+export function detectAnomalies(vehicles: Vehicle[], year: string, monthNum: number, threshold = 30): DriverAnomaly[] {
   const anomalies: DriverAnomaly[] = [];
 
   for (const vehicle of vehicles) {
     const monthData = getMonthData(vehicle, year, monthNum);
     if (!monthData) continue;
 
+    const currentUsage = getMonthDelta(vehicle, year, monthNum);
+    if (currentUsage <= 0) continue;
+
     const avg = getDriverAvgUsage(vehicle, year, monthNum);
     if (avg <= 0) continue;
 
-    const currentUsage = monthData.mileage;
-    if (currentUsage <= 0) continue;
-
     const deviation = ((currentUsage - avg) / avg) * 100;
 
-    if (deviation > 30) {
+    if (deviation > threshold) {
       anomalies.push({
         vehicle,
         type: 'spike',
@@ -71,7 +101,7 @@ export function detectAnomalies(vehicles: Vehicle[], year: string, monthNum: num
         monthName: monthData.monthName,
         year,
       });
-    } else if (deviation < -30) {
+    } else if (deviation < -threshold) {
       anomalies.push({
         vehicle,
         type: 'drop',
@@ -157,29 +187,25 @@ export function getSupplierBreakdown(vehicles: Vehicle[]): { name: string; value
 
 export function getTopDriversByUsage(vehicles: Vehicle[], year: string, monthNum: number, limit = 10): { name: string; km: number; model: string }[] {
   return vehicles
-    .map(v => {
-      const month = getMonthData(v, year, monthNum);
-      return {
-        name: v.driverName,
-        km: month?.mileage || 0,
-        model: v.model,
-      };
-    })
+    .map(v => ({
+      name: v.driverName,
+      km: getMonthDelta(v, year, monthNum),
+      model: v.model,
+    }))
     .filter(d => d.km > 0)
     .sort((a, b) => b.km - a.km)
     .slice(0, limit);
 }
 
 export function getMonthlyTrend(vehicles: Vehicle[], months = 12): { month: string; totalKm: number; avgKm: number; count: number }[] {
-  // Get all unique year-month combos, sorted
   const allMonths = new Map<string, { totalKm: number; count: number }>();
 
   for (const v of vehicles) {
-    for (const m of v.monthlyUsage) {
-      if (m.mileage <= 0) continue;
-      const key = `${m.year}-${String(m.monthNum).padStart(2, '0')}`;
+    const deltas = getMonthlyDeltas(v);
+    for (const d of deltas) {
+      const key = `${d.year}-${String(d.monthNum).padStart(2, '0')}`;
       const existing = allMonths.get(key) || { totalKm: 0, count: 0 };
-      existing.totalKm += m.mileage;
+      existing.totalKm += d.km;
       existing.count += 1;
       allMonths.set(key, existing);
     }

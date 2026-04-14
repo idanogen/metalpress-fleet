@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Vehicle } from '@/types/fleet';
-import { getDriverAvgUsage, getMonthData } from '@/lib/analytics';
+import { getDriverAvgUsage, getMonthData, getMonthDelta } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 
 interface FleetTableProps {
@@ -26,7 +26,7 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
       const avg = getDriverAvgUsage(v);
       return {
         vehicle: v,
-        mileage: monthData?.mileage || 0,
+        mileage: getMonthDelta(v, selectedYear, selectedMonth),
         avg: Math.round(avg),
         reported: (monthData?.mileage || 0) > 0,
       };
@@ -108,7 +108,7 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
 
       <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
         <table className="w-full text-sm min-w-[700px]">
-          <thead>
+          <thead className="sticky top-0 z-10 bg-white/80 backdrop-blur-md">
             <tr className="border-b border-white/30">
               {[
                 { field: 'driverName' as SortField, label: 'נהג' },

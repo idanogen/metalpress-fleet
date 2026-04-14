@@ -8,8 +8,13 @@ import { FleetCharts } from '@/components/dashboard/FleetCharts';
 import { FleetTable } from '@/components/dashboard/FleetTable';
 import { DriverDetail } from '@/components/dashboard/DriverDetail';
 import { FleetManagementPage } from '@/components/fleet-management/FleetManagementPage';
+import { InventoryPage } from '@/components/inventory/InventoryPage';
+import { FuelExpensesPage } from '@/components/fuel-expenses/FuelExpensesPage';
 import { DriverRemindersPage } from '@/components/driver-reminders/DriverRemindersPage';
+import { SendFirstMessagePage } from '@/components/send-first-message/SendFirstMessagePage';
 import { DriversDetailPage } from '@/components/drivers-detail/DriversDetailPage';
+import { SettingsPage } from '@/components/settings/SettingsPage';
+import { ReportsPage } from '@/components/reports/ReportsPage';
 import { useFleetData } from '@/hooks/useFleetData';
 import type { Vehicle } from '@/types/fleet';
 
@@ -50,6 +55,7 @@ export default function App() {
         onMonthChange={fleet.setSelectedMonth}
         lastUpdated={fleet.lastUpdated}
         isLoading={fleet.isLoading}
+        hideControls={currentView === 'fuel-expenses'}
       />
 
       {/* Loading State */}
@@ -61,7 +67,7 @@ export default function App() {
           {currentView === 'dashboard' && (
             <>
               {/* KPI Cards */}
-              <KpiCards stats={fleet.stats} />
+              <KpiCards stats={fleet.stats} inventoryCount={fleet.inventoryCount} />
 
               {/* Report Status + Anomalies */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -98,8 +104,22 @@ export default function App() {
 
           {currentView === 'fleet-management' && (
             <FleetManagementPage
-              vehicles={fleet.vehicles}
+              vehicles={fleet.allVehicles}
               onSelectVehicle={setSelectedVehicle}
+            />
+          )}
+
+          {currentView === 'inventory' && (
+            <InventoryPage
+              vehicles={fleet.inventoryVehicles}
+              onSelectVehicle={setSelectedVehicle}
+            />
+          )}
+
+          {currentView === 'fuel-expenses' && (
+            <FuelExpensesPage
+              vehicles={fleet.allVehicles}
+              selectedYear={fleet.selectedYear}
             />
           )}
 
@@ -111,8 +131,30 @@ export default function App() {
             />
           )}
 
+          {currentView === 'send-first-message' && (
+            <SendFirstMessagePage
+              vehicles={fleet.vehicles}
+              selectedYear={fleet.selectedYear}
+              selectedMonth={fleet.selectedMonth}
+            />
+          )}
+
           {currentView === 'drivers-detail' && (
             <DriversDetailPage vehicles={fleet.vehicles} />
+          )}
+
+          {currentView === 'reports' && (
+            <ReportsPage
+              vehicles={fleet.vehicles}
+              selectedYear={fleet.selectedYear}
+              selectedMonth={fleet.selectedMonth}
+            />
+          )}
+
+          {currentView === 'settings' && (
+            <SettingsPage
+              allVehicles={fleet.allVehicles}
+            />
           )}
         </main>
       )}

@@ -1,0 +1,142 @@
+{
+  "name": "Priority → Data Store: Sync New Vehicles",
+  "flow": [
+    {
+      "id": 1,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {},
+      "mapper": {
+        "url": "https://prio.metalpress.co.il/odata/Priority/tabula.ini/sales/METL_EMPLOYEECARS?$select=VEHICLENUM,EQUIPMENT_ID,SNAME,MODEL,OWNERSHIPTYPE,SUPPLIER,MILEAGE,STARTDATE,ENDDATE,RENTVALUE,DNAMETITLE",
+        "method": "GET",
+        "headers": [],
+        "qs": [],
+        "bodyType": "",
+        "parseResponse": true,
+        "authUser": "",
+        "authPass": "",
+        "followRedirect": true,
+        "followAllRedirects": false,
+        "rejectUnauthorized": true,
+        "timeout": 30
+      },
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "expect": [
+          { "name": "url", "type": "url", "label": "URL", "required": true },
+          { "name": "method", "type": "select", "label": "Method", "required": true }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "datastore:SearchRecords",
+      "version": 1,
+      "parameters": {
+        "datastore": 83526
+      },
+      "mapper": {
+        "limit": 500
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 }
+      }
+    },
+    {
+      "id": 3,
+      "module": "util:SetVariable2",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "name": "existingIds",
+        "scope": "roundtrip",
+        "value": "{{map(2.records; \"data.equipmentId\")}}"
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 }
+      }
+    },
+    {
+      "id": 4,
+      "module": "builtin:BasicIterator",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "array": "{{1.data.value}}"
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 }
+      }
+    },
+    {
+      "id": 5,
+      "module": "builtin:BasicFilter",
+      "version": 1,
+      "parameters": {},
+      "filter": {
+        "name": "Not in Data Store",
+        "conditions": [
+          [
+            {
+              "a": "{{4.EQUIPMENT_ID}}",
+              "b": "{{3.existingIds}}",
+              "o": "array:notContains"
+            }
+          ]
+        ]
+      },
+      "metadata": {
+        "designer": { "x": 1200, "y": 0 }
+      }
+    },
+    {
+      "id": 6,
+      "module": "datastore:AddRecord",
+      "version": 1,
+      "parameters": {
+        "datastore": 83526
+      },
+      "mapper": {
+        "key": "{{4.EQUIPMENT_ID}}",
+        "data": {
+          "equipmentId": "{{4.EQUIPMENT_ID}}",
+          "driverName": "{{4.SNAME}}",
+          "model": "{{4.MODEL}}",
+          "plateNumber": "{{4.VEHICLENUM}}",
+          "ownershipType": "{{4.OWNERSHIPTYPE}}",
+          "supplier": "{{4.SUPPLIER}}",
+          "company": "{{4.DNAMETITLE}}",
+          "currentMileage": "{{4.MILEAGE}}",
+          "rentValue": "{{4.RENTVALUE}}",
+          "startDate": "{{4.STARTDATE}}",
+          "endDate": "{{4.ENDDATE}}",
+          "phone": "",
+          "monthlyUsage": "[]",
+          "lastReportYear": "",
+          "lastReportMonth": "",
+          "leaseEndDate": "",
+          "licenseEndDate": ""
+        }
+      },
+      "metadata": {
+        "designer": { "x": 1500, "y": 0 }
+      }
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

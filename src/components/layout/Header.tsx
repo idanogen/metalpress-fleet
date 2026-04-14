@@ -10,6 +10,7 @@ interface HeaderProps {
   onMonthChange: (month: number) => void;
   lastUpdated?: Date | null;
   isLoading?: boolean;
+  hideControls?: boolean;
 }
 
 interface GlassDropdownProps {
@@ -93,7 +94,7 @@ function GlassDropdown({ value, options, onChange, width = 120 }: GlassDropdownP
   );
 }
 
-export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChange, lastUpdated, isLoading }: HeaderProps) {
+export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChange, lastUpdated, isLoading, hideControls }: HeaderProps) {
   const now = new Date();
   const currentYear = String(now.getFullYear());
   const currentMonth = now.getMonth() + 1;
@@ -126,19 +127,23 @@ export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChang
       </div>
 
       <div className="flex items-center gap-2 lg:gap-3">
-        <GlassDropdown
-          value={String(selectedMonth)}
-          options={monthOptions}
-          onChange={(v) => onMonthChange(Number(v))}
-          width={90}
-        />
+        {!hideControls && (
+          <>
+            <GlassDropdown
+              value={String(selectedMonth)}
+              options={monthOptions}
+              onChange={(v) => onMonthChange(Number(v))}
+              width={90}
+            />
 
-        <GlassDropdown
-          value={selectedYear}
-          options={yearOptions}
-          onChange={onYearChange}
-          width={75}
-        />
+            <GlassDropdown
+              value={selectedYear}
+              options={yearOptions}
+              onChange={onYearChange}
+              width={75}
+            />
+          </>
+        )}
 
         <div className="text-xs text-[#86868b] hidden lg:block">
           {lastUpdated

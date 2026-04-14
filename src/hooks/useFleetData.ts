@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { vehiclesData } from '@/data/vehicles';
 import { fetchFleetData } from '@/api/fleet';
 import { getFleetStats, detectAnomalies, hasReported, getMonthData } from '@/lib/analytics';
+import { loadSettings } from '@/components/settings/SettingsPage';
 import type { Vehicle } from '@/types/fleet';
 
 // Default to previous month — drivers report in current month for last month
@@ -14,21 +15,28 @@ export function useFleetData() {
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
 
-  const { data: vehicles = vehiclesData, isLoading, error, dataUpdatedAt } = useQuery({
+  const { data: allVehicles = vehiclesData, isLoading, error, dataUpdatedAt } = useQuery({
     queryKey: ['fleet-data'],
     queryFn: fetchFleetData,
     staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: vehiclesData,
   });
 
+  // Separate inventory from active fleet — inventory vehicles don't count in stats
+  const vehicles = useMemo(() => allVehicles.filter(v => v.driverName !== 'מלאי'), [allVehicles]);
+  const inventoryVehicles = useMemo(() => allVehicles.filter(v => v.driverName === 'מלאי'), [allVehicles]);
+  const inventoryCount = inventoryVehicles.length;
+
+  const anomalyThreshold = loadSettings().anomalyThreshold;
+
   const stats = useMemo(
-    () => getFleetStats(vehicles, selectedYear, selectedMonth),
-    [vehicles, selectedYear, selectedMonth]
+    () => getFleetStats(vehicles, selectedYear, selectedMonth, anomalyThreshold),
+    [vehicles, selectedYear, selectedMonth, anomalyThreshold]
   );
 
   const anomalies = useMemo(
-    () => detectAnomalies(vehicles, selectedYear, selectedMonth),
-    [vehicles, selectedYear, selectedMonth]
+    () => detectAnomalies(vehicles, selectedYear, selectedMonth, anomalyThreshold),
+    [vehicles, selectedYear, selectedMonth, anomalyThreshold]
   );
 
   const reportedVehicles = useMemo(
@@ -46,6 +54,9 @@ export function useFleetData() {
 
   return {
     vehicles,
+    allVehicles,
+    inventoryVehicles,
+    inventoryCount,
     stats,
     anomalies,
     reportedVehicles,

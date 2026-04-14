@@ -82,11 +82,12 @@ export function FleetCharts({ vehicles, selectedYear, selectedMonth }: FleetChar
       >
         <h3 className="text-lg font-bold text-[#1d1d1f] mb-1">דירוג נהגים</h3>
         <p className="text-sm text-[#86868b] mb-4">ק"מ חודשי</p>
+        <div dir="ltr" style={{ overflow: 'visible' }}>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={topDrivers} layout="vertical" margin={{ right: 10 }}>
+          <BarChart data={topDrivers} layout="vertical" margin={{ left: 10, right: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
             <XAxis type="number" tick={{ fill: '#86868b', fontSize: 11 }} />
-            <YAxis dataKey="name" type="category" width={80} tick={{ fill: '#424245', fontSize: 11 }} />
+            <YAxis dataKey="name" type="category" width={130} tick={{ fill: '#424245', fontSize: 12 }} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="km" name="ק״מ" radius={[0, 8, 8, 0]}>
               {topDrivers.map((_, i) => (
@@ -95,6 +96,7 @@ export function FleetCharts({ vehicles, selectedYear, selectedMonth }: FleetChar
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </motion.div>
 
       {/* Ownership Pie */}
