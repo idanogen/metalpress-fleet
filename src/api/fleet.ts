@@ -26,7 +26,10 @@ interface MakeVehicleRecord {
   lastReportYear: string;
   lastReportMonth: string;
   monthlyUsage: string;
+  lastSyncedAt?: string;
 }
+
+const STALE_DAYS = 14;
 
 interface MakeDataStoreResponse {
   records: { key: string; data: MakeVehicleRecord }[];
@@ -137,8 +140,15 @@ export async function fetchFleetData(): Promise<Vehicle[]> {
       return vehiclesData;
     }
 
-    const vehicles = allRecords.map(mapMakeRecordToVehicle);
-    console.log(`[Fleet API] Loaded ${vehicles.length} vehicles from Make Data Store`);
+    const staleThresholdMs = Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000;
+    const fresh = allRecords.filter(r => {
+      if (!r.lastSyncedAt) return true;
+      const t = Date.parse(r.lastSyncedAt);
+      return isNaN(t) ? true : t >= staleThresholdMs;
+    });
+    const skipped = allRecords.length - fresh.length;
+    const vehicles = fresh.map(mapMakeRecordToVehicle);
+    console.log(`[Fleet API] Loaded ${vehicles.length} vehicles${skipped ? ` (filtered ${skipped} stale, not synced for ${STALE_DAYS}+ days)` : ''}`);
     return vehicles;
   } catch (error) {
     console.error('[Fleet API] Failed to fetch from Make, using static fallback:', error);
