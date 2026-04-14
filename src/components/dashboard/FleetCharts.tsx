@@ -54,8 +54,9 @@ export function FleetCharts({ vehicles, selectedYear, selectedMonth }: FleetChar
       >
         <h3 className="text-lg font-bold text-[#1d1d1f] mb-1">מגמת ק"מ חודשית</h3>
         <p className="text-sm text-[#86868b] mb-4">ממוצע לנהג</p>
+        <div dir="ltr">
         <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={trend}>
+          <LineChart data={trend} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
             <XAxis dataKey="month" tick={{ fill: '#86868b', fontSize: 11 }} />
             <YAxis tick={{ fill: '#86868b', fontSize: 11 }} />
@@ -71,6 +72,7 @@ export function FleetCharts({ vehicles, selectedYear, selectedMonth }: FleetChar
             />
           </LineChart>
         </ResponsiveContainer>
+        </div>
       </motion.div>
 
       {/* Top Drivers Bar */}
@@ -140,8 +142,9 @@ export function FleetCharts({ vehicles, selectedYear, selectedMonth }: FleetChar
       >
         <h3 className="text-lg font-bold text-[#1d1d1f] mb-1">פילוח ספקים</h3>
         <p className="text-sm text-[#86868b] mb-4">מספר רכבים</p>
+        <div dir="ltr">
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={supplierData}>
+          <BarChart data={supplierData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
             <XAxis dataKey="name" tick={{ fill: '#424245', fontSize: 11 }} />
             <YAxis tick={{ fill: '#86868b', fontSize: 11 }} />
@@ -153,6 +156,7 @@ export function FleetCharts({ vehicles, selectedYear, selectedMonth }: FleetChar
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </motion.div>
     </div>
   );
