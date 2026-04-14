@@ -137,8 +137,11 @@ export async function fetchFleetData(): Promise<Vehicle[]> {
       return vehiclesData;
     }
 
-    const vehicles = allRecords.map(mapMakeRecordToVehicle);
-    console.log(`[Fleet API] Loaded ${vehicles.length} vehicles from Make Data Store`);
+    const INACTIVE_DRIVER_NAMES = ['מושבת', 'מלאי'];
+    const vehicles = allRecords
+      .filter(r => !INACTIVE_DRIVER_NAMES.includes((r.driverName || '').trim()))
+      .map(mapMakeRecordToVehicle);
+    console.log(`[Fleet API] Loaded ${vehicles.length} active vehicles (filtered ${allRecords.length - vehicles.length} inactive/inventory)`);
     return vehicles;
   } catch (error) {
     console.error('[Fleet API] Failed to fetch from Make, using static fallback:', error);
