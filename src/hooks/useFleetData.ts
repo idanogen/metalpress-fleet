@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { vehiclesData } from '@/data/vehicles';
 import { fetchFleetData } from '@/api/fleet';
 import { getFleetStats, detectAnomalies, hasReported, getMonthData } from '@/lib/analytics';
 import { loadSettings } from '@/components/settings/SettingsPage';
@@ -15,11 +14,10 @@ export function useFleetData() {
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
 
-  const { data: allVehicles = vehiclesData, isLoading, error, dataUpdatedAt } = useQuery({
+  const { data: allVehicles = [], isLoading, error, dataUpdatedAt } = useQuery<Vehicle[]>({
     queryKey: ['fleet-data'],
     queryFn: fetchFleetData,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    placeholderData: vehiclesData,
   });
 
   // Separate inventory from active fleet — inventory vehicles don't count in stats

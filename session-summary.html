@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>סיכום שיחה — איפה אנחנו עומדים?</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --ink: #1d2026;
+      --muted: #6b7280;
+      --line: #e4e6ec;
+      --blue: #007AFF;
+      --green: #34c759;
+      --orange: #ff9500;
+      --red: #ff3b30;
+      --purple: #af52de;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+                 font-family: -apple-system, "Heebo", "Segoe UI", system-ui, sans-serif; }
+    body { padding: 24px 16px 80px; }
+    main { max-width: 820px; margin: 0 auto; }
+    h1 { font-size: 30px; margin: 0 0 6px; }
+    h2 { font-size: 22px; margin: 32px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--line); }
+    h3 { font-size: 17px; margin: 18px 0 8px; }
+    p, li { line-height: 1.75; }
+    .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 15px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin: 14px 0;
+    }
+    .card.done { border-right: 4px solid var(--green); }
+    .card.next { border-right: 4px solid var(--blue); }
+    .card.lesson { border-right: 4px solid var(--orange); }
+    .card.alert { border-right: 4px solid var(--red); }
+
+    code, .mono {
+      direction: ltr;
+      unicode-bidi: bidi-override;
+      display: inline-block;
+      font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+      background: #f1f3f6;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    pre {
+      direction: ltr;
+      text-align: left;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px 16px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      margin: 8px 0 14px;
+    }
+
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin: 10px 0;
+    }
+    .step .num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .step.next .num { background: var(--blue); }
+    .step.warn .num { background: var(--orange); }
+    .step.fail .num { background: var(--red); }
+
+    .flow {
+      background: #fafbff;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 12px 0;
+    }
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+    .flow-step {
+      background: white;
+      border: 2px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .flow-step.blue { border-color: var(--blue); color: var(--blue); }
+    .flow-step.green { border-color: var(--green); color: #1c7c3a; }
+    .flow-step.dim { color: var(--muted); }
+    .flow-step.strike { text-decoration: line-through; color: var(--red); border-color: var(--red); }
+    .flow-arrow { color: var(--muted); font-size: 18px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 14px; }
+    th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: right; }
+    th { background: #fafbff; font-weight: 600; }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill.green { background: #e8f9ed; color: #186833; }
+    .pill.blue { background: #e6f0ff; color: var(--blue); }
+    .pill.orange { background: #fff2dd; color: #b3680d; }
+    .pill.red { background: #ffe2e0; color: #b3271e; }
+
+    .note { background: #fff8e1; border: 1px solid #ffe082; padding: 12px 16px;
+            border-radius: 10px; margin: 12px 0; color: #6a4f00; font-size: 14px; }
+    .ok { background: #e8f9ed; border: 1px solid #b6e3c2; padding: 12px 16px;
+          border-radius: 10px; margin: 12px 0; color: #186833; font-size: 14px; }
+    .danger { background: #ffe2e0; border: 1px solid #ffb4ac; padding: 12px 16px;
+              border-radius: 10px; margin: 12px 0; color: #7a1208; font-size: 14px; }
+  </style>
+</head>
+<body>
+<main>
+
+<h1>📊 איפה אנחנו עומדים?</h1>
+<p class="subtitle">סיכום מעודכן — 19/05/2026, 20:55. ניסינו A, גילינו שהוא לא יציב, עברנו ל-B.</p>
+
+<!-- ============ סטטוס נוכחי ============ -->
+<h2>🎯 הסטטוס הנוכחי</h2>
+
+<div class="card next">
+  <h3 style="margin-top: 0;">איפה אנחנו עכשיו: באמצע מעבר מ-A ל-B</h3>
+  <p><strong>בקוד (Vercel):</strong> נפרס מצב B — ה-webhook מטפל בהכל (וולידציה + שליחת WhatsApp לנהג + עדכון Supabase/heyy/Priority).</p>
+  <p><strong>ב-heyy:</strong> צריך לעדכן את ה-flow — להסיר את עובד AI מהתזרים, ולחבר את "שלח תבנית" ישירות ל-API node.</p>
+</div>
+
+<!-- ============ מה למדנו ============ -->
+<h2>📚 מה למדנו מהניסיון עם ארכיטקטורה A</h2>
+
+<div class="card lesson">
+  <p>ניסינו 3 גרסאות של פרומפט ועוד תיאור מותאם של "Conversation Resolution". בכל פעם, ה-AI הפעיל Conversation Resolution גם על תגובות שגיאה (למרות שהפרומפט אמר "רק על הצלחה"). פעולה זו סוגרת את ה-flow לחלוטין, וכל הודעה שהנהג שלח אחרי זה נופלת מחוץ לאוטומציה.</p>
+  <div class="note">
+    <strong>המסקנה:</strong> heyy AI Employees הם conversational by design. אי אפשר לסמוך עליהם להחליט באופן עקבי מתי לסיים את ה-flow. כל עוד יש LLM בנתיב הקריטי — יש סיכון.
+  </div>
+</div>
+
+<!-- ============ ארכיטקטורה B החדשה ============ -->
+<h2>🅱️ הארכיטקטורה החדשה — ארכיטקטורה B</h2>
+
+<div class="card">
+  <h3 style="margin-top: 0;">תזרים ב-heyy</h3>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-step blue">שלח תבנית</div>
+      <span class="flow-arrow">←</span>
+      <span class="dim">שומר ב-<code>rawUserReply</code></span>
+    </div>
+    <div class="flow-row" style="margin-right: 30px;"><span class="flow-arrow">↓</span></div>
+    <div class="flow-row">
+      <div class="flow-step strike">עובד AI</div>
+      <span class="flow-arrow">←</span>
+      <span class="dim">להסיר! (אפשר להשאיר צף בצד)</span>
+    </div>
+    <div class="flow-row" style="margin-right: 30px;"><span class="flow-arrow">↓</span></div>
+    <div class="flow-row">
+      <div class="flow-step green">קריאת API</div>
+      <span class="flow-arrow">←</span>
+      <span class="dim">POST ל-webhook — מטפל בהכל</span>
+    </div>
+    <div class="flow-row" style="margin-right: 30px;"><span class="flow-arrow">↓</span></div>
+    <div class="flow-row">
+      <div class="flow-step dim">סוף</div>
+    </div>
+  </div>
+
+  <h3>מי עושה מה</h3>
+  <table>
+    <thead>
+      <tr><th>שלב</th><th>מה הוא עושה</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>שלח תבנית</strong></td>
+        <td>שולח את ההודעה הראשונית, ממתין לתגובה, שומר ב-<code>rawUserReply</code></td>
+      </tr>
+      <tr>
+        <td><strong>קריאת API → webhook</strong></td>
+        <td>
+          <strong>זה לב המערכת.</strong> ה-webhook בודק שרת-צד (לא LLM):
+          <ul style="margin: 6px 0; padding-right: 18px;">
+            <li>יש מספר? בטווח? גדול מהקודם? פער סביר?</li>
+            <li>אם תקין → שומר ל-Supabase, מעדכן kilo, שולח ל-Priority דרך Make, ושולח לנהג WhatsApp "תודה ✅ נרשם X ק"מ לרכב <em>plateNumber</em>"</li>
+            <li>אם שגיאה → שולח לנהג WhatsApp עם הסבר ("המספר נמוך..." / "לא זיהיתי..." / "גבוהה משמעותית...")</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ הוראות ב-heyy ============ -->
+<h2>🚀 מה צריך לעשות עכשיו ב-heyy</h2>
+
+<div class="card next">
+  <div class="step next">
+    <div class="num">1</div>
+    <div>
+      <h3 style="margin-top: 0;">לפתוח את האוטומציה "מילוי קלימוטרז חודשי"</h3>
+    </div>
+  </div>
+
+  <div class="step next">
+    <div class="num">2</div>
+    <div>
+      <h3 style="margin-top: 0;">לנתק את "עובד AI" מהתזרים</h3>
+      <ul>
+        <li>למחוק את הקו שמחבר מ-"שלח תבנית" → "עובד AI"</li>
+        <li>למחוק את הקו שמחבר מ-"עובד AI" → "API"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step next">
+    <div class="num">3</div>
+    <div>
+      <h3 style="margin-top: 0;">לחבר ישירות "שלח תבנית" → "API"</h3>
+      <p>מחבר את הפלט של "שלח תבנית" שכתוב "לאחר תגובת טקסט/קובץ" — ישירות ל-"API". כך שאחרי שהנהג מגיב, ה-flow קופץ ישר לקריאת ה-webhook.</p>
+    </div>
+  </div>
+
+  <div class="step next">
+    <div class="num">4</div>
+    <div>
+      <h3 style="margin-top: 0;">לוודא שה-Body של ה-API node נכון</h3>
+      <pre>{
+  "from": "{{contact.phoneNumber}}",
+  "text": "{{automation.rawUserReply}}"
+}</pre>
+      <p class="ok"><strong>הערה:</strong> <code>{{contact.phoneNumber}}</code> כן עובד — ראינו את זה ב-payload האחרון (<code>+972523694547</code>). אל תשנה.</p>
+    </div>
+  </div>
+
+  <div class="step next">
+    <div class="num">5</div>
+    <div>
+      <h3 style="margin-top: 0;">לשמור (כפתור "שמור" / "פרסם" בראש המסך)</h3>
+    </div>
+  </div>
+</div>
+
+<!-- ============ בדיקה ============ -->
+<h2>✅ בדיקה אחרי השינוי</h2>
+
+<div class="card">
+  <p><strong>kilo נוכחי:</strong> 100 (אאפס אחרי שתאשר שמוכן)</p>
+
+  <table>
+    <thead>
+      <tr><th>בדיקה</th><th>מה לשלוח</th><th>צפי WhatsApp לנהג</th><th>צפי kilo</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><code>היי</code></td>
+        <td>"לא הצלחתי לזהות מספר..."</td>
+        <td>100 (לא משתנה)</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><code>50</code></td>
+        <td>"נמוך או שווה לקריאה האחרונה (100)..."</td>
+        <td>100 (לא משתנה)</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><code>150</code></td>
+        <td>"תודה עידן ✅ נרשם 150 ק"מ לרכב 11223466."</td>
+        <td>150 (התעדכן!)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>חשוב:</strong> כל בדיקה דורשת לחיצה חדשה על "טריגר ידני" באוטומציה (כי כל ריצה היא flow חדש). אם תרצה בדיקת רצף — שלח רק את "150" אחרי לחיצה אחת על הטריגר.
+  </div>
+</div>
+
+<!-- ============ מה בעתיד ============ -->
+<h2>🔮 דברים שניתן לשפר בעתיד</h2>
+
+<div class="card lesson">
+  <ul>
+    <li>
+      <strong>שיחה רב-תורית:</strong> כרגע אם נהג שולח "היי" → "50" → "150" באותה שיחה — רק ההודעה הראשונה תיכנס לאוטומציה. הפתרון הוא להגדיר ב-heyy "Channel Webhook" ש-heyy שולח לנו על כל הודעה נכנסת — ככה ה-webhook תמיד שם, לא רק במסגרת אוטומציה.
+    </li>
+    <li>
+      <strong>Delta sync מפריורטי לסופאבייס:</strong> כרגע סנריו 4646251 שולח שבועית ל-Make Data Store. צריך להחליף ל-Supabase.
+    </li>
+    <li>
+      <strong>ניקוי:</strong> סנריו 4602610 (בוט WhatsApp הישן עם Green API) — אפשר לכבות עכשיו.
+    </li>
+  </ul>
+</div>
+
+</main>
+</body>
+</html>
