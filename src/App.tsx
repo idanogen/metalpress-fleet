@@ -11,7 +11,6 @@ import { FleetManagementPage } from '@/components/fleet-management/FleetManageme
 import { InventoryPage } from '@/components/inventory/InventoryPage';
 import { FuelExpensesPage } from '@/components/fuel-expenses/FuelExpensesPage';
 import { DriverRemindersPage } from '@/components/driver-reminders/DriverRemindersPage';
-import { SendFirstMessagePage } from '@/components/send-first-message/SendFirstMessagePage';
 import { DriversDetailPage } from '@/components/drivers-detail/DriversDetailPage';
 import { SettingsPage } from '@/components/settings/SettingsPage';
 import { ReportsPage } from '@/components/reports/ReportsPage';
@@ -125,14 +124,6 @@ export default function App() {
 
           {currentView === 'driver-reminders' && (
             <DriverRemindersPage
-              vehicles={fleet.vehicles}
-              selectedYear={fleet.selectedYear}
-              selectedMonth={fleet.selectedMonth}
-            />
-          )}
-
-          {currentView === 'send-first-message' && (
-            <SendFirstMessagePage
               vehicles={fleet.vehicles}
               selectedYear={fleet.selectedYear}
               selectedMonth={fleet.selectedMonth}

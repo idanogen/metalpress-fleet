@@ -1,7 +1,7 @@
-import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, MessageCircle, Package } from 'lucide-react';
+import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'driver-reminders' | 'send-first-message' | 'drivers-detail' | 'reports' | 'settings';
+export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'driver-reminders' | 'drivers-detail' | 'reports' | 'settings';
 
 // WhatsApp icon as inline SVG for accurate branding
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -23,7 +23,6 @@ const mainNavItems: NavItemDef[] = [
   { icon: LayoutDashboard, label: 'דאשבורד', view: 'dashboard' },
   { icon: Truck, label: 'ניהול צי', view: 'fleet-management' },
   { icon: WhatsAppIcon, label: 'תזכורת לנהגים', view: 'driver-reminders', customIcon: true },
-  { icon: MessageCircle, label: 'הודעה ראשונה', view: 'send-first-message' },
   { icon: Users, label: 'נהגים מפורט', view: 'drivers-detail' },
   { icon: Package, label: 'רכבי מלאי', view: 'inventory' },
 ];
