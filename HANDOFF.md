@@ -6,140 +6,189 @@
 
 ## 🎯 הקונטקסט
 
-מערכת ניהול צי רכב של MetalPress עברה מ-Make Data Store → Supabase, וה-WhatsApp bot עבר מ-Green API → heyy.io. הסיבה: data model נקי + ניהול הודעות אחיד. **הזרימה המלאה עובדת end-to-end, כולל הסנכרון השבועי מפריורטי שהתבסס היום.**
+מערכת ניהול צי רכב של MetalPress. הסטאק:
+- **Frontend:** Vite + React + Supabase JS, פרוס ב-Vercel (https://metalpress-fleet.vercel.app)
+- **DB:** Supabase project `mbodppnsdnmlejdldztp`, schema `fleet`
+- **WhatsApp:** heyy.io (WhatsApp Business API רשמי) — channel "Metalpress"
+- **Priority bridge:** Make.com — Priority חוסם IPs לא רשומים, אז Make משמש כ-proxy
+
+**מצב היום:** end-to-end עובד. WhatsApp inbound + outbound, סנכרון יומי לרכבים חדשים, סנכרון חודשי מלא, monitoring, חסימת דיווחים כפולים, template מאושר ע"י Meta לכפתור הידני.
 
 ---
 
-## ✅ מצב נוכחי — הכל עובד
+## ✅ זרימות פעילות
 
-### זרימת WhatsApp (מלאה)
+### A. דיווח נכנס מנהג (WhatsApp → Supabase + Priority)
 ```
-נהג שולח WhatsApp לערוץ Metalpress של heyy
+נהג שולח מספר ק"מ ל-WhatsApp Metalpress
         ↓
 heyy Channel Webhook → POST https://metalpress-fleet.vercel.app/api/heyy-webhook
         ↓
 ה-webhook:
-  • מאמת (מספר תקין? גדול מ-current? פער ≤ 5000?)
-  • חוסם דיווח כפול (existing row in monthly_reports for vehicle+year+month, any source)
-  • אם תקין: שומר ל-Supabase (monthly_reports + vehicles.current_mileage)
-                  ↓
-              מעדכן kilo ב-heyy contact
-                  ↓
-              שולח ל-Make scenario 4738680 → Priority
-                  ↓
-              שולח WhatsApp לנהג: "תודה ✅ נרשם <N> ק"מ לרכב <plateNumber>"
-  • אם שגיאה: שולח WhatsApp עם הסבר ("נמוך" / "לא זיהיתי" / "גבוהה מדי" / "כבר קיבלנו דיווח")
-  • Idempotent: בקריאות חוזרות עם אותו provider_message_id — מדלג
-  • תמיד מחזיר 200 כדי שהוואץ לא יחזור על קריאות
+  • מאמת מספר תקין, > current_mileage, פער ≤ 5000
+  • חוסם דיווח כפול: אם קיים monthly_report ל-(vehicle, year, month) — שולח "כבר קיבלנו"
+  • שומר ל-fleet.monthly_reports + מעדכן vehicles.current_mileage
+  • מעדכן heyy contact attribute "kilo"
+  • שולח ל-Make 4738680 → Priority METL_CARUSAGE_SUBFORM
+  • עונה לנהג ב-heyy: "תודה ✅ נרשם N ק"מ"
+  • idempotent (provider_message_id ב-fleet.inbound_messages)
+  • מחזיר 200 תמיד כדי שלא יהיו רטריים
 ```
 
-### זרימת סנכרון שבועי Priority → Supabase (חדש 2026-05-21)
+### B. סנכרון יומי לרכבים חדשים (Make scenario 4636689, יום-יום 21:00)
 ```
-Make scenario 4646251 (Sunday 23:00 IL)
-        ↓
-M1: HTTP GET METL_EMPLOYEECARS?$expand=METL_CARUSAGE_SUBFORM (keychain 85308)
-        ↓
-M2: Iterator על {{1.data.value}}
-        ↓
-M3: json:TransformToJSON עם field map מפורש לכל רכב
-    (כולל METL_CARUSAGE_SUBFORM כ-array reference)
-        ↓
-M4: supabase:makeAnApiCall
-    POST /rest/v1/rpc/sync_vehicle_from_priority
-    Content-Type: application/x-www-form-urlencoded
-    body: p_payload={{encodeURL(3.json)}}
-        ↓
-RPC public.sync_vehicle_from_priority(p_payload jsonb):
-  • phone normalization (regex 972XXXXXXXXX → 0XXXXXXXXX)
-  • upsert driver by phone (ON CONFLICT DO NOTHING)
-  • upsert vehicle by id — חדש: insert מלא | קיים: UPDATE רק על מטא-דאטה + current_driver_id
-    (לא נוגע ב-current_mileage, is_active, is_inventory, last_report_*)
-  • iterate METL_CARUSAGE_SUBFORM, INSERT monthly_reports עם
-    source='priority' ON CONFLICT (vehicle_id,year,month) DO NOTHING
-        ↓
-Supabase fleet.*
+M1: GET Priority METL_EMPLOYEECARS?$expand=METL_CARUSAGE_SUBFORM
+M2: POST Supabase /rpc/get_existing_vehicle_ids → מערך [1,2,3,...]
+M4: Iterator על רכבי Priority
+  M5: Filter — contains(2.body; EQUIPMENT_ID)=false → רק רכבים חדשים
+  M6: Supabase RPC sync_vehicle_from_priority
+M7: Aggregator
+M8: אם length>0 → POST /api/sync-drivers-to-heyy (עם onerror email)
+M9: אם length>0 → Gmail summary "🆕 X רכבים חדשים נוספו"
 ```
-**אומת ב-21/05:** 152/152 רכבים נסנכרנו, כולל כל המקרים עם `"` ב-`בע"מ` ו-`ארה"ב`.
+**Ops צפויים:** ~4-9/יום (בד"כ 0 חדשים → 4 ops)
 
-### Database — Supabase
-- **Project:** `mbodppnsdnmlejdldztp` (metalpress-crm, EU-Central, Postgres 17)
-- **Schema:** `fleet` (מבודד מ-`public.professional_*` של ה-CRM)
-- **טבלאות:**
-  - `fleet.drivers` (110 רשומות)
-  - `fleet.vehicles` (152)
-  - `fleet.monthly_reports` (1,085+ דיווחים היסטוריים)
-  - `fleet.reminder_log`
-  - `fleet.inbound_messages` (audit של webhooks מ-heyy)
-  - `fleet.sync_log`
-- **פונקציות:**
-  - `public.sync_vehicle_from_priority(p_payload jsonb)` — RPC עבור הסנכרון השבועי (SECURITY DEFINER, פועלת על fleet.*)
+### C. סנכרון חודשי מלא (Make scenario 4646251, 1 לחודש 23:00)
+```
+M1: GET Priority METL_EMPLOYEECARS?$expand=METL_CARUSAGE_SUBFORM
+M2: Iterator על 152 רכבים
+  M3: TransformToJSON
+  M4: Supabase RPC sync_vehicle_from_priority (לכל רכב)
+M5: Aggregator
+M6: POST /api/sync-drivers-to-heyy (עם onerror email)
+M7: Gmail summary "✅ סנכרון הושלם" עם סטטיסטיקות
+```
+**Ops צפויים:** ~310/חודש
 
-### Frontend — Vercel
-- **URL:** https://metalpress-fleet.vercel.app
-- **קוד:** Vite + React + Supabase JS client (`@supabase/supabase-js`)
-- **קורא ישירות מ-Supabase** (`db: { schema: 'fleet' }`)
+### D. כפתור "תזכורות לנהגים" (Make 4627015 + template)
+```
+Dashboard ← לחיצה "שלח" על נהג ספציפי
+        ↓ webhook hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl
+Make 4627015:
+  M1: webhook
+  M20: TransformToJSON
+       { phoneNumber, type:"TEMPLATE",
+         messageTemplateId:"9224835e-e2a8-4818-b7ff-18250db2fac0",
+         variables:[{name:"first_name", value:driver.name}] }
+  M21: POST heyy /whatsapp_messages/send עם Bearer
+        ↓
+WhatsApp → נהג
+```
+**עובד גם לנהגים חדשים** (template מאושר ע"י Meta, לא תלוי בחלון 24h)
 
-### Vercel Endpoints
-- `api/heyy-webhook.ts` — בוט WhatsApp (פעיל, קריטי)
-- `api/priority-sync.ts` — endpoint שהוקם לסנכרון מפריורטי אבל **בסופו של דבר לא בשימוש** (Make מדבר ישירות עם Supabase RPC).
-  אפשר למחוק או להשאיר כ-fallback.
+### E. תחילת חודש אוטומטי
+**לא Make!** קמפיין ב-heyy עצמו (Settings → Campaigns) שולח את אותו template ב-1 לחודש לכל ה-contacts. heyy סוגרת הכל בעצמה.
 
-**Vercel env vars (production):**
+### F. סנכרון נהגים Supabase → heyy
+endpoint `api/sync-drivers-to-heyy.ts` ב-Vercel:
+- POST פותח, idempotent
+- קורא את כל הנהגים הפעילים מ-`fleet.vehicles`
+- Dedupe לפי טלפון
+- עבור כל אחד: create אם לא קיים ב-heyy, update אם מטא-דאטה שונה, skip אחרת
+- retry-on-429 שמכבד את `X-RateLimit-Reset`
+- מוגן רק בידי מי שיודע את ה-URL (אין secret מוגדר)
+- נקרא מ-4636689 וגם מ-4646251
+
+---
+
+## 🟢 מצב סנריו ב-Make
+
+### פעילים (4)
+| ID | שם | תפקיד |
+|---|---|---|
+| 4738680 | MetalPress — Priority Write Mileage | webhook ק"מ → Priority |
+| 4636689 | MetalPress — רכבים חדשים יומי | יומי 21:00 — חדשים בלבד |
+| 4646251 | MetalPress — סנכרון חודשי מלא מפריורטי | חודשי 1 ב-23:00 — מלא + monitoring |
+| 4627015 | תזכורת ידנית heyy (TEMPLATE) | webhook מדשבורד → heyy |
+
+### מושבתים — מוכנים למחיקה (5)
+- 4626788 — MetalPress Dashboard Webhook (ישן)
+- 4626827 — MetalPress Sync Priority → Data Store (הוחלף ב-4646251)
+- 4602610 — מטלפרס קבלת הודעות מווצאפ (Green API, הוחלף ב-heyy webhook)
+- 4615781 — מטלפרס שליחת הודעות תחילת חודש (Green API, הוחלף בקמפיין heyy)
+- 4646471 — שליחת הודעה ידנית תחילת חודש (Green, הוחלף בקמפיין heyy + הסרת הדף מהדשבורד)
+
+---
+
+## 💾 Database
+
+**Project:** `mbodppnsdnmlejdldztp` (metalpress-crm, EU-Central, Postgres 17)
+**Schema:** `fleet` (מבודד מ-`public.professional_*` של ה-CRM)
+
+### טבלאות
+- `fleet.drivers` (110 רשומות)
+- `fleet.vehicles` (152)
+- `fleet.monthly_reports` (1,085+ דיווחים)
+- `fleet.reminder_log`
+- `fleet.inbound_messages` (audit של webhooks מ-heyy)
+- `fleet.sync_log`
+
+### פונקציות (Public RPCs)
+- `public.sync_vehicle_from_priority(p_payload jsonb)` — upsert vehicle + monthly_reports
+- `public.get_existing_vehicle_ids()` — `int[]` של IDs קיימים (לסנון רכבים חדשים)
+- `public.get_existing_vehicle_ids_csv()` — `text` (לא בשימוש כרגע — שאריות מ-debug)
+
+---
+
+## 🔌 Vercel
+
+**Project:** `prj_ZvE5Jd7cKv0F4dNpn04K9iyt5J3D`
+**URL:** https://metalpress-fleet.vercel.app
+
+### Endpoints (קבצים ב-`api/`)
+- `api/heyy-webhook.ts` — בוט WhatsApp (קריטי)
+- `api/sync-drivers-to-heyy.ts` — סנכרון Supabase → heyy
+
+### Env vars (production)
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 - `HEYY_API_KEY`, `HEYY_BASE_URL`, `HEYY_CHANNEL_ID`
 - `MAKE_PRIORITY_WRITE_WEBHOOK`
-- `PRIORITY_SYNC_SECRET` — (נוצר היום, לא בשימוש כעת)
 
-### heyy.io
-- **Channel:** Metalpress (WhatsApp), id `61171b95-b182-43a9-8ad0-aac17785ac8d`
-- **Workspace tenant id:** `af9f313b-34d0-4152-b143-ca19c4dcc4cb`
-- **Contacts:** 94 נהגים סונכרנו דרך `scripts/sync-drivers-to-heyy.mjs`
+---
+
+## 📱 heyy.io
+
+- **Channel:** Metalpress (id `61171b95-b182-43a9-8ad0-aac17785ac8d`)
+- **Tenant:** `af9f313b-34d0-4152-b143-ca19c4dcc4cb`
+- **Contacts:** ~96 פעילים, מסונכרנים אוטומטית מ-Supabase
 - **Custom attributes:** `kilo`, `vehicleId`, `plateNumber`, `vehicleModel`
-- **AI Employee:** Julie — **לא בשימוש בזרימה הנוכחית** (קיים אבל מנותק)
-- **Channel Webhook (Settings → Webhooks):** מוגדר ל-`https://metalpress-fleet.vercel.app/api/heyy-webhook` עם event `WhatsApp Message Received`
-- **אוטומציה "מילוי קלימוטרז חודשי":** משמשת רק לשליחת הודעה ראשונית בתחילת חודש. **לא מחכה לתגובה, לא קוראת ל-API.**
-
-### Make.com — bridge ל-Priority
-- **Priority חוסם IPs לא רשומים** → קוראים דרך Make כ-proxy
-- **סנריו 4738680 — `MetalPress — Priority Write Mileage`** (פעיל)
-  - Webhook: `https://hook.us1.make.com/owt4lw57buvry3575yu6vnuk8efgqe3f`
-  - כותב ל-`METL_EMPLOYEECARS({vehicleId})/METL_CARUSAGE_SUBFORM`
-  - הופעל ע"י `api/heyy-webhook.ts` בסיום דיווח WhatsApp
-- **סנריו 4646251 — `MetalPress — סנכרון שבועי מפריורטי`** (פעיל, נכתב מחדש 21/05)
-  - 4 modules: GET Priority → Iterator → TransformToJSON → Supabase makeAnApiCall (form-encoded)
-  - Cron: ראשון 23:00 IL
-  - Connection: 4778142 ("metalpress DB") עם service_role key
-- **סנריו 4602610 — בוט WhatsApp הישן עם Green API** (עדיין פעיל אך לא בשימוש — לכבות בבוא העת)
+- **Template:** `תזכורת` (id `9224835e-e2a8-4818-b7ff-18250db2fac0`) — מאושר ע"י Meta, פעיל
+- **קמפיין חודשי:** מטריגר אוטומטי ב-1 לחודש לכל ה-contacts עם ה-template הזה
+- **AI Employee "Julie":** קיים אבל מנותק מהזרימה הנוכחית
 
 ---
 
 ## 📋 מה השלמנו ב-2026-05-21
 
-1. ✅ **חסימת דיווחים כפולים** ב-`api/heyy-webhook.ts`: אם יש כבר רשומת monthly_report לאותו (vehicle, year, month) — שולח "כבר קיבלנו" ולא דורס
-2. ✅ **בניית סנכרון מפריורטי ל-Supabase** — סנריו 4646251 שוכתב מאפס, פעיל
-3. ✅ **RPC `public.sync_vehicle_from_priority`** ב-Postgres עם SECURITY DEFINER — חוצה schemas, מטפל בכל הלוגיקה
-4. ✅ **152/152 רכבים נסנכרנו** בריצה הידנית הראשונה, כולל edge cases (`בע"מ`, `ארה"ב`)
-5. ✅ **שדות מוגנים** (`current_mileage`, `is_active`, `is_inventory`, `last_report_*`) — לא נדרסים בסנכרון
-6. ✅ **מדיניות חסימת דיווחים קיימים** — מקור לא משנה, אם יש דיווח לחודש זה נעול
-7. ✅ **תיעוד** — HANDOFF.md, memory files חדשים (`project_priority_sync.md`, `reference_make_quirks.md`, `feedback_quality_bar.md`)
+1. ✅ **מעבר מ-Green API ל-heyy** לכל ההודעות היוצאות (סנריו 4627015)
+2. ✅ **endpoint חדש `api/sync-drivers-to-heyy.ts`** עם retry-on-429
+3. ✅ **שינוי 4646251 משבועי לחודשי** (לחיסכון ב-ops)
+4. ✅ **שכתוב 4636689** מ-Data Store הישן ל-Supabase + heyy sync + monitoring
+5. ✅ **Monitoring** ב-4646251 — מייל הצלחה + מייל ספציפי בכשל
+6. ✅ **RPC `get_existing_vehicle_ids()`** ב-Postgres ל-filter יומי
+7. ✅ **Template `תזכורת`** הוטמע בסנריו הדשבורד — עובד גם לנהגים חדשים
+8. ✅ **הסרת דף "הודעה ראשונה"** מהדשבורד (כפילות עם קמפיין heyy)
+9. ✅ **כיבוי 4 סנריו ישנים** (4602610, 4615781, 4626788, 4626827, 4646471)
+10. ✅ **ניקוי קוד מת** — `api/priority-sync.ts`, סקריפטי Data Store, `data/professionals/`, scratch HTML
+11. ✅ **תיעוד הגוצ'ה** — `supabase:makeAnApiCall` חושף את ה-response ב-`{{N.body}}` ולא ב-`{{N.data}}`
 
 ---
 
-## 🔮 מה נשאר לעתיד
+## 🔮 משימות פתוחות
 
 ### בעדיפות גבוהה
-1. **טריגר manual** של האוטומציה ל-94 הנהגים — חודש 5/2026
-2. לעקוב אחרי `fleet.inbound_messages` ב-Supabase לראות שכל הדיווחים נכנסים
+- **בדיקה ידנית של הכפתור הידני** — לחיצה על איריס שרביט רז (driver_id 109? אחר) מהדשבורד, לוודא ש-template מגיע
+- **לעדכן HANDOFF.md** ← בדיוק זה, הסשן הזה
 
 ### בעדיפות בינונית
-3. **לכבות סנריו 4602610** (בוט WhatsApp הישן עם Green API) — כבר לא בשימוש
-4. **לכבות Make Data Store 83526** אחרי שבוע יציבות
-5. למחוק `api/priority-sync.ts` ו-`PRIORITY_SYNC_SECRET` env var (לא בשימוש, רק מבלבל)
+- **למחוק 5 סנריו מושבתים** ב-Make (היגיינה)
+- **לנקות `whatsappId: @c.us`** מ-`DriverRemindersPage.tsx` (dead field, Make לא קורא אותו)
+- **לכבות Make Data Store 83526** — שבוע יציבות מסתיים 28/05/2026
+- **לוודא שהקמפיין ב-heyy** מצביע על template `9224835e-e2a8-4818-b7ff-18250db2fac0`
 
 ### ניקוי
-- `data/professionals/` — 10 קבצי JSON dumps מפריורטי, אפשר למחוק (כפילות עם `public.professionals`)
-- שלב סופי: לבדוק שכל הנהגים קיבלו הודעה ב-5/2026 וה-current_mileage התעדכן
+- `data/` — קבצי seed מ-2026-05-18 (לא ב-git, רק בדיסק המקומי): `fleet-seed-*.sql`, `make-snapshot.json`, `reports-arr-*.json`
 
 ---
 
@@ -148,52 +197,57 @@ Supabase fleet.*
 | מה | איפה / מה |
 |---|---|
 | Production URL | https://metalpress-fleet.vercel.app |
-| Webhook URL | https://metalpress-fleet.vercel.app/api/heyy-webhook |
-| Supabase project | `mbodppnsdnmlejdldztp` (metalpress-crm) |
+| Webhook (inbound WhatsApp) | https://metalpress-fleet.vercel.app/api/heyy-webhook |
+| Sync drivers endpoint | https://metalpress-fleet.vercel.app/api/sync-drivers-to-heyy |
+| Supabase project | `mbodppnsdnmlejdldztp` |
 | Vercel project | `prj_ZvE5Jd7cKv0F4dNpn04K9iyt5J3D` |
-| Make team | 77940 ("My Team") |
+| Make team | 77940 (My Team) |
 | Make folder | 310958 (MetalPress) |
-| Make scenario — Priority write (WhatsApp → Priority) | 4738680 (active) |
-| Make scenario — Sync Priority → Supabase | 4646251 (active, weekly) |
-| Make webhook — Priority write | https://hook.us1.make.com/owt4lw57buvry3575yu6vnuk8efgqe3f |
+| Make 4738680 — Priority Write Mileage | https://hook.us1.make.com/owt4lw57buvry3575yu6vnuk8efgqe3f |
+| Make 4627015 — Dashboard manual reminder | https://hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl |
+| Make 4636689 — Daily new vehicles | cron 21:00 IL |
+| Make 4646251 — Monthly full sync | cron 1st of month 23:00 IL |
 | Make keychain — Priority creds | 85308 (METALPRESSAPI) |
-| Make connection — metalpress DB (Supabase) | 4778142 |
-| Postgres RPC for sync | `public.sync_vehicle_from_priority(p_payload jsonb)` |
-| Priority OData base | https://prio.metalpress.co.il/odata/Priority/tabula.ini/sales |
+| Make connection — Supabase | 4778142 ("metalpress DB") |
+| Make connection — Gmail | 4509533 / 4660042 |
 | heyy channel id | 61171b95-b182-43a9-8ad0-aac17785ac8d |
 | heyy tenant id | af9f313b-34d0-4152-b143-ca19c4dcc4cb |
-| Test driver (Supabase) | driver_id 109, vehicle 130, phone 0523694547 |
-| Test heyy contact id | b062a7fc-ac71-4a02-aa82-6589a1f1d93a |
+| heyy template id (תזכורת) | 9224835e-e2a8-4818-b7ff-18250db2fac0 |
+| Priority OData base | https://prio.metalpress.co.il/odata/Priority/tabula.ini/sales |
+| Test driver | driver_id 109, vehicle 130, phone 0523694547 |
 
 ---
 
-## ⚠️ הערות חשובות
+## ⚠️ הערות חשובות / לקחים
 
-1. **המשתמש מעדיף הסברים בעברית פשוטה עם הפרדה ויזואלית.** לפלואו מורכב — עדיף קובץ HTML עם diagrams.
-2. **לא לשתף סיסמאות בצ'אט.** כיוון לעדכון ישירות ב-Vercel env vars.
-3. **Priority IP whitelist הוא חסם קשיח.** אל תקרא ישירות — תמיד דרך Make scenario 4738680 או 4646251.
-4. **heyy AI Employees הם conversational** — לא לסמוך עליהם להחליט מתי לסיים flow. הפיתרון הוא ארכיטקטורה B (webhook לבד).
+1. **WhatsApp Template חובה לנהג מחוץ ל-24h** — Meta חוסם טקסט חופשי. הזרימה הנכנסת מהבוט (תוך 24h של דיווח) יכולה לענות חופשי. כל הודעה ראשונה לנהג שלא דיווח לאחרונה — חייבת template.
+2. **Priority IP whitelist** — אסור לקרוא ישירות. תמיד דרך Make scenarios 4738680 / 4636689 / 4646251.
+3. **`supabase:makeAnApiCall` חושף את ה-response ב-`{{N.body}}` ולא ב-`{{N.data}}`** — שונה מ-http:ActionSendData. גוצ'ה ששורף ~600 ops לזהות.
+4. **Supabase Make module pinned ל-public schema** — לקריאת נתונים מ-`fleet.*` חייב RPC ציבורי שעוטף.
 5. **זה מוצר ללקוח** — אסור לדלג על שדות בעייתיים או רכבים. הפתרון תמיד צריך לתמוך ב-100% מהנתונים.
 6. **דברים שלא לעשות:**
    - לא לגעת ב-`public.professional_*` של ה-CRM
-   - לא לכבות סנריואים ישנים ב-Make בלי אישור
-   - לא למחוק Make Data Store 83526 עד שבוע יציבות
+   - לא לכבות סנריואים פעילים ב-Make בלי אישור
    - לא לשנות את ה-RPC `sync_vehicle_from_priority` בלי הבנת הלוגיקה של "אל תדרוס" (current_mileage וכו')
+   - אסור לשלוח טקסט חופשי לנהגים חדשים — חייב template
 
 ---
 
-## 🔧 איך לתחזק את הסנכרון
+## 🔧 איך לתחזק
 
-**אם הסנריו 4646251 כושל:**
-1. בדוק את Make execution log לראות איזה module
-2. אם זה M4 (Supabase API Call) עם 400 — בדוק את ה-body שנשלח: `p_payload=...`. URL-decode וודא שהוא JSON תקין
-3. אם זה M3 (TransformToJSON) — בדוק שהאובייקט מקבל את כל השדות. אסור ש-`{{2}}` יחזור כ-number
-4. RPC עצמה — בדוק `fleet.sync_log` או הרץ ידנית ב-SQL editor:
+### אם 4636689 כושל (יומי)
+1. Make execution log → איזה module
+2. אם M5+ — בדוק שה-RPC `get_existing_vehicle_ids` עובד: `SELECT public.get_existing_vehicle_ids();`
+3. אם M8 (HTTP heyy sync) — הוא ידידותי לכשלים, יישלח מייל
+
+### אם 4646251 כושל (חודשי)
+1. בדוק M4 (Supabase RPC) — אם 400 → בדוק ב-`fleet.sync_log` או הרץ SQL ידני:
    ```sql
    SELECT public.sync_vehicle_from_priority('{"EQUIPMENT_ID":1,"VEHICLENUMCH":"TEST",...}'::jsonb);
    ```
+2. אם M6 (heyy sync) — מייל אוטומטי יישלח עם פרטים
 
-**להוסיף שדה חדש מפריורטי:**
+### להוסיף שדה חדש מ-Priority
 1. ודא שהשדה ב-METL_CARUSAGE_SUBFORM או ב-METL_EMPLOYEECARS
-2. בעריכת M3 (TransformToJSON), הוסף שדה חדש למפה: `"NEWFIELD": "{{2.NEWFIELD}}"`
-3. ערוך את RPC ב-Postgres להוצאת השדה מ-p_payload ולהכנסתו לטבלה הרצויה
+2. בעריכת M3 (TransformToJSON) של 4646251 ושל 4636689, הוסף שדה: `"NEWFIELD": "{{2.NEWFIELD}}"`
+3. ערוך את RPC `sync_vehicle_from_priority` להוצאת השדה מ-`p_payload`
