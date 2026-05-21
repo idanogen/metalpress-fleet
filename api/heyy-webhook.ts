@@ -245,6 +245,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const vehicle = vehicles[0];
   const mileage = parseMileage(rawText);
+  const { year, month } = previousMonth();
 
   const e164 = '+972' + phone.replace(/^0/, '');
   const firstName = driver.name.split(/\s+/)[0];
@@ -261,6 +262,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       processed_at: new Date().toISOString(),
     });
     return res.status(200).json({ ok: false, validation: 'could not parse mileage' });
+  }
+
+  // Block unsolicited follow-up reports: if a report already exists for this
+  // (vehicle, year, month) — regardless of source — refuse the new value and
+  // route corrections through a human, so we never silently overwrite history.
+  const { data: existingReport } = await supabase
+    .from('monthly_reports')
+    .select('mileage, source')
+    .eq('vehicle_id', vehicle.id)
+    .eq('report_year', year)
+    .eq('report_month', month)
+    .maybeSingle();
+
+  if (existingReport) {
+    await sendHeyyWhatsAppText(e164,
+      `${firstName}, כבר קיבלנו ממך דיווח לחודש ${month}/${year}: ${Number(existingReport.mileage).toLocaleString('he-IL')} ק"מ.\nאם נדרש תיקון, נא לפנות למנהל הצי.`);
+    await supabase.from('inbound_messages').insert({
+      ...inboundBase,
+      matched_driver_id: driver.id,
+      matched_vehicle_id: vehicle.id,
+      parsed_mileage: mileage,
+      parsed_year: year,
+      parsed_month: month,
+      status: 'blocked',
+      error: `report already exists for ${month}/${year} (existing ${existingReport.mileage}, source ${existingReport.source})`,
+      processed_at: new Date().toISOString(),
+    });
+    return res.status(200).json({ ok: false, validation: 'already reported', existing: existingReport.mileage, reported: mileage });
   }
 
   if (mileage <= vehicle.current_mileage && vehicle.current_mileage > 0) {
@@ -292,8 +321,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     return res.status(200).json({ ok: false, validation: 'mileage jump too large', current: vehicle.current_mileage, reported: mileage });
   }
-
-  const { year, month } = previousMonth();
 
   // Upsert the report
   const { error: reportError } = await supabase
