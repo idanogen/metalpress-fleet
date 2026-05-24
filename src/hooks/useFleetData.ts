@@ -14,13 +14,29 @@ export function useFleetData() {
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
 
-  const { data: allVehicles = [], isLoading, error, dataUpdatedAt } = useQuery<Vehicle[]>({
+  const { data: rawData = [], isLoading, error, dataUpdatedAt } = useQuery<Vehicle[]>({
     queryKey: ['fleet-data'],
     queryFn: fetchFleetData,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    // "מושבת" = inactive in Priority — never display anywhere
+    select: (data) => data.filter(v => v.driverName !== 'מושבת'),
   });
 
-  // Separate inventory from active fleet — inventory vehicles don't count in stats
+  // model='שוטף' = fictitious overhead accounts (one per company) for expenses
+  // that don't belong to a specific vehicle — Pango subscriptions, fines on company
+  // level, etc. Excluded from main fleet listings, shown in dedicated overhead page.
+  const overheadAccounts = useMemo(
+    () => rawData.filter(v => v.model === 'שוטף'),
+    [rawData]
+  );
+
+  // All real vehicles (excludes overhead accounts).
+  const allVehicles = useMemo(
+    () => rawData.filter(v => v.model !== 'שוטף'),
+    [rawData]
+  );
+
+  // Separate inventory from active fleet — inventory vehicles don't count in stats.
   const vehicles = useMemo(() => allVehicles.filter(v => v.driverName !== 'מלאי'), [allVehicles]);
   const inventoryVehicles = useMemo(() => allVehicles.filter(v => v.driverName === 'מלאי'), [allVehicles]);
   const inventoryCount = inventoryVehicles.length;
@@ -58,6 +74,7 @@ export function useFleetData() {
     allVehicles,
     inventoryVehicles,
     inventoryCount,
+    overheadAccounts,
     stats,
     anomalies,
     reportedVehicles,

@@ -1,10 +1,45 @@
 import { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronUp, Phone, Car, Calendar, Gauge, Fuel, DollarSign, TrendingUp } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Phone, Car, Calendar, Gauge, Fuel, DollarSign, TrendingUp, Building2, FileText, CreditCard, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import type { Vehicle } from '@/types/fleet';
 import { getDriverAvgUsage, getMonthlyDeltas } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
+
+function formatDateShort(iso: string): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${m}/${d.getFullYear()}`;
+}
+
+function formatDateFull(iso: string): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${day}/${m}/${d.getFullYear()}`;
+}
+
+function daysUntil(iso: string): number | null {
+  if (!iso) return null;
+  const target = new Date(iso);
+  if (Number.isNaN(target.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function sourceLabel(source: string): { label: string; color: string } {
+  switch (source) {
+    case 'priority': return { label: 'פריוריטי', color: 'text-[#007AFF]' };
+    case 'heyy': return { label: 'וואטסאפ', color: 'text-[#25D366]' };
+    case 'manual': return { label: 'ידני', color: 'text-[#86868b]' };
+    default: return { label: '—', color: 'text-[#c7c7cc]' };
+  }
+}
 
 interface DriversDetailPageProps {
   vehicles: Vehicle[];
@@ -108,19 +143,40 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 space-y-4">
-              {/* Info cards */}
-              <div className={`grid gap-3 ${hasFuelData ? 'grid-cols-2 lg:grid-cols-6' : 'grid-cols-2 lg:grid-cols-4'}`}>
+              {/* Identity + Contact */}
+              <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 <InfoMini icon={Car} label="לוחית" value={vehicle.plateNumber} />
                 <InfoMini icon={Phone} label="טלפון" value={vehicle.phone || '—'} isPhone={!!vehicle.phone} />
                 <InfoMini icon={Calendar} label="ספק" value={vehicle.supplier || '—'} />
                 <InfoMini icon={Gauge} label="מד אוזר" value={vehicle.currentMileage > 0 ? `${vehicle.currentMileage.toLocaleString()}` : '—'} />
-                {hasFuelData && (
-                  <>
-                    <InfoMini icon={Fuel} label="ממוצע דלק/חודש" value={`${avgFuel.toFixed(0)} ליטר`} highlight="orange" />
-                    <InfoMini icon={DollarSign} label="ממוצע עלות/חודש" value={`₪${avgCost.toFixed(0)}`} highlight="green" />
-                  </>
-                )}
               </div>
+
+              {/* Contract details */}
+              <div className="rounded-2xl bg-white/30 border border-white/40 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-3.5 h-3.5 text-[#86868b]" />
+                  <span className="text-xs font-bold text-[#86868b] uppercase tracking-wider">פרטי חוזה ורישוי</span>
+                </div>
+                <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                  <InfoMini icon={FileText} label="סוג בעלות" value={vehicle.ownershipType || '—'} />
+                  <InfoMini icon={Building2} label="חברה" value={vehicle.company || '—'} />
+                  <InfoMini
+                    icon={CreditCard}
+                    label="דמי שכירות חודשי"
+                    value={vehicle.rentValue > 0 ? `₪${vehicle.rentValue.toLocaleString()}` : '—'}
+                  />
+                  <LeaseInfo startDate={vehicle.startDate} endDate={vehicle.leaseEndDate || vehicle.endDate} />
+                  <LicenseInfo licenseEndDate={vehicle.licenseEndDate} />
+                </div>
+              </div>
+
+              {/* Fuel summary cards */}
+              {hasFuelData && (
+                <div className="grid gap-3 grid-cols-2 lg:grid-cols-2">
+                  <InfoMini icon={Fuel} label="ממוצע דלק/חודש" value={`${avgFuel.toFixed(0)} ליטר`} highlight="orange" />
+                  <InfoMini icon={DollarSign} label="ממוצע עלות/חודש" value={`₪${avgCost.toFixed(0)}`} highlight="green" />
+                </div>
+              )}
 
               {/* Chart with tabs */}
               {chartData.length > 0 && (
@@ -263,18 +319,20 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
 
               {/* Monthly breakdown table */}
               <div className="rounded-2xl bg-white/30 border border-white/40 overflow-x-auto">
-                <table className="w-full text-xs min-w-[400px]">
+                <table className="w-full text-xs min-w-[520px]">
                   <thead>
                     <tr className="border-b border-white/30">
                       <th className="px-3 py-2 text-right text-[#86868b] font-bold">חודש</th>
                       <th className="px-3 py-2 text-right text-[#86868b] font-bold">ק״מ חודשי</th>
                       <th className="px-3 py-2 text-right text-[#86868b] font-bold">מד אוזר</th>
+                      <th className="px-3 py-2 text-right text-[#86868b] font-bold">ימים</th>
                       {hasFuelData && (
                         <>
                           <th className="px-3 py-2 text-right text-[#86868b] font-bold">דלק (ליטר)</th>
                           <th className="px-3 py-2 text-right text-[#86868b] font-bold">עלות (₪)</th>
                         </>
                       )}
+                      <th className="px-3 py-2 text-right text-[#86868b] font-bold">מקור</th>
                       <th className="px-3 py-2 text-right text-[#86868b] font-bold">סטטוס</th>
                     </tr>
                   </thead>
@@ -283,6 +341,7 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
                       const delta = allDeltas.find(d => d.year === m.year && d.monthNum === m.monthNum);
                       const deltaKm = delta?.km || 0;
                       const deviation = avg > 0 && deltaKm > 0 ? ((deltaKm - avg) / avg) * 100 : 0;
+                      const src = sourceLabel(m.source);
                       return (
                         <tr key={i} className="border-b border-black/[0.02]">
                           <td className="px-3 py-2 text-[#1d1d1f] font-medium">
@@ -307,6 +366,9 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
                           <td className="px-3 py-2 text-[#86868b] font-mono">
                             {m.mileage > 0 ? m.mileage.toLocaleString() : '—'}
                           </td>
+                          <td className="px-3 py-2 text-[#86868b]">
+                            {m.days > 0 ? m.days : <span className="text-[#c7c7cc]">—</span>}
+                          </td>
                           {hasFuelData && (
                             <>
                               <td className="px-3 py-2">
@@ -325,6 +387,9 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
                               </td>
                             </>
                           )}
+                          <td className="px-3 py-2">
+                            <span className={`text-[11px] font-medium ${src.color}`}>{src.label}</span>
+                          </td>
                           <td className="px-3 py-2">
                             {m.mileage > 0 ? (
                               <span className="inline-block w-2 h-2 rounded-full bg-[#34c759]" title="דווח" />
@@ -358,12 +423,44 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
   );
 }
 
-function InfoMini({ icon: Icon, label, value, isPhone, highlight }: { icon: typeof Car; label: string; value: string; isPhone?: boolean; highlight?: 'orange' | 'green' }) {
+function LeaseInfo({ startDate, endDate }: { startDate: string; endDate: string }) {
+  const hasAny = !!startDate || !!endDate;
+  if (!hasAny) {
+    return <InfoMini icon={Calendar} label="תקופת ליסינג" value="—" />;
+  }
+  const days = daysUntil(endDate);
+  const expired = days !== null && days < 0;
+  const soon = days !== null && days >= 0 && days <= 60;
+  const highlight = expired ? 'red' : soon ? 'orange' : undefined;
+  const value = `${formatDateShort(startDate)} → ${formatDateShort(endDate)}`;
+  return <InfoMini icon={Calendar} label="תקופת ליסינג" value={value} highlight={highlight} />;
+}
+
+function LicenseInfo({ licenseEndDate }: { licenseEndDate: string }) {
+  if (!licenseEndDate) {
+    return <InfoMini icon={Clock} label="תוקף רישוי" value="—" />;
+  }
+  const days = daysUntil(licenseEndDate);
+  const expired = days !== null && days < 0;
+  const soon = days !== null && days >= 0 && days <= 60;
+  const highlight = expired ? 'red' : soon ? 'orange' : undefined;
+  const suffix = days !== null
+    ? expired
+      ? ` (פג לפני ${Math.abs(days)} ימים)`
+      : days <= 90
+        ? ` (בעוד ${days} ימים)`
+        : ''
+    : '';
+  return <InfoMini icon={Clock} label="תוקף רישוי" value={`${formatDateFull(licenseEndDate)}${suffix}`} highlight={highlight} />;
+}
+
+function InfoMini({ icon: Icon, label, value, isPhone, highlight }: { icon: typeof Car; label: string; value: string; isPhone?: boolean; highlight?: 'orange' | 'green' | 'red' }) {
   const highlightColors = {
     orange: 'bg-[#ff9500]/10 border-[#ff9500]/20',
     green: 'bg-[#34c759]/10 border-[#34c759]/20',
+    red: 'bg-[#ff3b30]/10 border-[#ff3b30]/20',
   };
-  const textColor = highlight === 'orange' ? 'text-[#ff9500]' : highlight === 'green' ? 'text-[#34c759]' : 'text-[#1d1d1f]';
+  const textColor = highlight === 'orange' ? 'text-[#ff9500]' : highlight === 'green' ? 'text-[#34c759]' : highlight === 'red' ? 'text-[#ff3b30]' : 'text-[#1d1d1f]';
   const bgClass = highlight ? highlightColors[highlight] : 'bg-white/30 border-white/40';
 
   const inner = (

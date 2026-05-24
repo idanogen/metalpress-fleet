@@ -11,6 +11,8 @@ import { DriverDetail } from '@/components/dashboard/DriverDetail';
 import { FleetManagementPage } from '@/components/fleet-management/FleetManagementPage';
 import { InventoryPage } from '@/components/inventory/InventoryPage';
 import { FuelExpensesPage } from '@/components/fuel-expenses/FuelExpensesPage';
+import { FleetExpensesPage } from '@/components/fleet-expenses/FleetExpensesPage';
+import { OverheadExpensesPage } from '@/components/overhead-expenses/OverheadExpensesPage';
 import { DriverRemindersPage } from '@/components/driver-reminders/DriverRemindersPage';
 import { DriversDetailPage } from '@/components/drivers-detail/DriversDetailPage';
 import { AnomaliesReviewPage } from '@/components/anomalies-review/AnomaliesReviewPage';
@@ -134,6 +136,22 @@ export default function App() {
             <FuelExpensesPage
               vehicles={fleet.allVehicles}
               selectedYear={fleet.selectedYear}
+            />
+          )}
+
+          {currentView === 'fleet-expenses' && (
+            <FleetExpensesPage
+              vehicles={fleet.vehicles}
+              selectedYear={fleet.selectedYear}
+              selectedMonth={fleet.selectedMonth}
+            />
+          )}
+
+          {currentView === 'overhead-expenses' && (
+            <OverheadExpensesPage
+              overheadAccounts={fleet.overheadAccounts}
+              selectedYear={fleet.selectedYear}
+              selectedMonth={fleet.selectedMonth}
             />
           )}
 

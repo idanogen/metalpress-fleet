@@ -36,6 +36,20 @@ interface DbReport {
   fuel_consumption: number | null;
   fuel_cost: number | null;
   priority_row_id: number | null;
+  source: string | null;
+  road6_cost: number | null;
+  road6_north_cost: number | null;
+  pango_cost: number | null;
+  carmel_cost: number | null;
+  reports_cost: number | null;
+  maintenance_cost: number | null;
+  insurance_cost: number | null;
+  license_cost: number | null;
+  ituran_cost: number | null;
+  carwash_cost: number | null;
+  tires_cost: number | null;
+  rental_cost: number | null;
+  electric_cost: number | null;
 }
 
 function toIsoStart(d: string | null): string {
@@ -51,9 +65,23 @@ function mapReport(r: DbReport): MonthlyUsage {
     endDate: toIsoStart(r.end_date),
     days: r.days ?? 0,
     mileage: r.mileage,
-    fuelConsumption: r.fuel_consumption ?? 0,
-    fuelCost: r.fuel_cost ?? 0,
+    fuelConsumption: Number(r.fuel_consumption ?? 0),
+    fuelCost: Number(r.fuel_cost ?? 0),
     carUsage: r.priority_row_id ?? 0,
+    source: r.source ?? '',
+    road6Cost: Number(r.road6_cost ?? 0),
+    road6NorthCost: Number(r.road6_north_cost ?? 0),
+    pangoCost: Number(r.pango_cost ?? 0),
+    carmelCost: Number(r.carmel_cost ?? 0),
+    reportsCost: Number(r.reports_cost ?? 0),
+    maintenanceCost: Number(r.maintenance_cost ?? 0),
+    insuranceCost: Number(r.insurance_cost ?? 0),
+    licenseCost: Number(r.license_cost ?? 0),
+    ituranCost: Number(r.ituran_cost ?? 0),
+    carwashCost: Number(r.carwash_cost ?? 0),
+    tiresCost: Number(r.tires_cost ?? 0),
+    rentalCost: Number(r.rental_cost ?? 0),
+    electricCost: Number(r.electric_cost ?? 0),
   };
 }
 
@@ -100,7 +128,10 @@ export async function fetchFleetData(): Promise<Vehicle[]> {
       monthly_reports(
         report_year, report_month, mileage,
         start_date, end_date, days,
-        fuel_consumption, fuel_cost, priority_row_id
+        fuel_consumption, fuel_cost, priority_row_id, source,
+        road6_cost, road6_north_cost, pango_cost, carmel_cost, reports_cost,
+        maintenance_cost, insurance_cost, license_cost, ituran_cost,
+        carwash_cost, tires_cost, rental_cost, electric_cost
       )
     `)
     .eq('is_active', true)

@@ -1,7 +1,7 @@
-import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, Package, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, Package, Wallet, AlertTriangle, Briefcase } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'driver-reminders' | 'drivers-detail' | 'anomalies-review' | 'reports' | 'settings';
+export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'fleet-expenses' | 'overhead-expenses' | 'driver-reminders' | 'drivers-detail' | 'anomalies-review' | 'reports' | 'settings';
 
 // WhatsApp icon as inline SVG for accurate branding
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -30,6 +30,8 @@ const mainNavItems: NavItemDef[] = [
 
 const reportNavItems: NavItemDef[] = [
   { icon: FileBarChart, label: 'דוחות', view: 'reports' },
+  { icon: Wallet, label: 'הוצאות צי', view: 'fleet-expenses' },
+  { icon: Briefcase, label: 'הוצאות כלליות', view: 'overhead-expenses' },
   { icon: Fuel, label: 'הוצאות דלק', view: 'fuel-expenses' },
 ];
 
