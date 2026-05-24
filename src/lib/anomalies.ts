@@ -24,7 +24,17 @@ export async function fetchPendingAnomalies(): Promise<PendingAnomaly[]> {
     .order('received_at', { ascending: false });
 
   if (error) throw new Error(`Supabase pending_review read: ${error.message}`);
-  return (data ?? []) as unknown as PendingAnomaly[];
+  const rows = (data ?? []) as unknown as PendingAnomaly[];
+
+  // Dedup: same (vehicle, year, month) → keep only the most recent (rows already ordered desc).
+  // Older duplicates will be auto-resolved as 'duplicate' when admin resolves the visible row.
+  const seen = new Set<string>();
+  return rows.filter(row => {
+    const key = `${row.vehicle?.id ?? 'x'}-${row.parsed_year}-${row.parsed_month}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export interface ResolveResult {

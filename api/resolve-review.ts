@@ -150,6 +150,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     processed_at: new Date().toISOString(),
   }).eq('id', id);
 
+  // Auto-resolve duplicates (same vehicle+year+month, still pending_review) so they don't linger.
+  await supabase.from('inbound_messages').update({
+    status: 'duplicate',
+    processed_at: new Date().toISOString(),
+  })
+    .eq('status', 'pending_review')
+    .eq('matched_vehicle_id', vehicleId)
+    .eq('parsed_year', year)
+    .eq('parsed_month', month);
+
   return res.status(200).json({
     ok: true,
     action,

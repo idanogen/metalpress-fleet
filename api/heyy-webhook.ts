@@ -294,7 +294,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (mileage <= vehicle.current_mileage && vehicle.current_mileage > 0) {
     await sendHeyyWhatsAppText(e164,
-      `${firstName}, המספר ששלחת (${mileage.toLocaleString('he-IL')}) נמוך או שווה לקריאה האחרונה (${vehicle.current_mileage.toLocaleString('he-IL')}).\nנא לבדוק ולשלוח שוב.`);
+      `${firstName}, המספר ששלחת (${mileage.toLocaleString('he-IL')}) נמוך או שווה לקריאה האחרונה (${vehicle.current_mileage.toLocaleString('he-IL')}).\nנא לבדוק ולשלוח שוב — רק את המספר, בלי טקסט נוסף.`);
     await supabase.from('inbound_messages').insert({
       ...inboundBase,
       matched_driver_id: driver.id,
@@ -310,7 +310,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (vehicle.current_mileage > 0 && mileage - vehicle.current_mileage > 10000) {
     await sendHeyyWhatsAppText(e164,
-      `${firstName}, הקריאה (${mileage.toLocaleString('he-IL')}) גבוהה משמעותית מהקודמת (${vehicle.current_mileage.toLocaleString('he-IL')}).\nנא לוודא שלא נוספה ספרה בטעות ולשלוח שוב.`);
+      `${firstName}, הקריאה (${mileage.toLocaleString('he-IL')}) גבוהה משמעותית מהקודמת (${vehicle.current_mileage.toLocaleString('he-IL')}).\nנא לוודא שלא נוספה ספרה בטעות ולשלוח שוב — רק את המספר, בלי טקסט נוסף.`);
     await supabase.from('inbound_messages').insert({
       ...inboundBase,
       matched_driver_id: driver.id,
