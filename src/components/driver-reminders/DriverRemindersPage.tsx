@@ -1,14 +1,14 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Search, Send, CheckCircle, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Vehicle } from '@/types/fleet';
 import { hasReported } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
+import { fetchReminders, insertReminder, type ReminderLogRow } from '@/lib/reminderLog';
 
 const WEBHOOK_URL = 'https://hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl';
 const COOLDOWN_MS = 48 * 60 * 60 * 1000; // 48 hours
-const STORAGE_KEY = 'fleet-reminder-timestamps';
-const HISTORY_KEY = 'fleet-reminder-history';
 
 /** Convert Israeli phone like "0523694547" → "972523694547@c.us" for Green API */
 function formatWhatsAppId(phone: string): string {
@@ -16,62 +16,6 @@ function formatWhatsAppId(phone: string): string {
   const clean = phone.replace(/[\s\-()]/g, '');
   const intl = clean.startsWith('0') ? '972' + clean.slice(1) : clean;
   return intl + '@c.us';
-}
-
-/** Load sent timestamps from localStorage (for cooldown) */
-function loadTimestamps(): Record<string, number> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const data = JSON.parse(raw) as Record<string, number>;
-    const now = Date.now();
-    const clean: Record<string, number> = {};
-    for (const [key, ts] of Object.entries(data)) {
-      if (now - ts < COOLDOWN_MS) clean[key] = ts;
-    }
-    return clean;
-  } catch {
-    return {};
-  }
-}
-
-function saveTimestamps(timestamps: Record<string, number>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(timestamps));
-}
-
-/** Load reminder history — array of timestamps per vehicle/month */
-function loadHistory(): Record<string, number[]> {
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    const history: Record<string, number[]> = raw ? JSON.parse(raw) : {};
-
-    // Migrate: copy entries from old timestamps that aren't in history yet
-    const tsRaw = localStorage.getItem(STORAGE_KEY);
-    if (tsRaw) {
-      const timestamps = JSON.parse(tsRaw) as Record<string, number>;
-      let migrated = false;
-      for (const [key, ts] of Object.entries(timestamps)) {
-        if (!history[key]) {
-          history[key] = [ts];
-          migrated = true;
-        } else if (!history[key].includes(ts)) {
-          history[key].push(ts);
-          migrated = true;
-        }
-      }
-      if (migrated) {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-      }
-    }
-
-    return history;
-  } catch {
-    return {};
-  }
-}
-
-function saveHistory(history: Record<string, number[]>) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
 /** Get remaining cooldown time as readable Hebrew string */
@@ -111,83 +55,81 @@ export function DriverRemindersPage({
   selectedYear,
   selectedMonth,
 }: DriverRemindersPageProps) {
+  const queryClient = useQueryClient();
+  const yearNum = Number(selectedYear);
+  const reminderQueryKey = useMemo(
+    () => ['reminder-log', yearNum, selectedMonth] as const,
+    [yearNum, selectedMonth],
+  );
+
   const [search, setSearch] = useState('');
   const [sendStatuses, setSendStatuses] = useState<Record<number, SendStatus>>({});
   const [sendAllStatus, setSendAllStatus] = useState<'idle' | 'sending' | 'done'>('idle');
-  const [sentTimestamps, setSentTimestamps] = useState<Record<string, number>>(loadTimestamps);
-  const [reminderHistory, setReminderHistory] = useState<Record<string, number[]>>(loadHistory);
 
-  // Refresh cooldown display every minute
+  const { data: reminderRows = [], isLoading: remindersLoading } = useQuery<ReminderLogRow[]>({
+    queryKey: reminderQueryKey,
+    queryFn: () => fetchReminders(yearNum, selectedMonth),
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
+
+  // Refresh cooldown display every minute (re-render so labels tick down)
   const [, setTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60_000);
     return () => clearInterval(interval);
   }, []);
 
-  /** Get history key for a vehicle in the selected month */
-  const historyKey = useCallback((vehicleId: number) =>
-    `${vehicleId}-${selectedMonth}-${selectedYear}`,
-    [selectedMonth, selectedYear]
-  );
+  /** Group reminder rows by vehicle_id, sorted by sent_at ascending */
+  const remindersByVehicle = useMemo(() => {
+    const map: Record<number, number[]> = {};
+    for (const row of reminderRows) {
+      const ts = new Date(row.sent_at).getTime();
+      if (!map[row.vehicle_id]) map[row.vehicle_id] = [];
+      map[row.vehicle_id].push(ts);
+    }
+    for (const id in map) map[id].sort((a, b) => a - b);
+    return map;
+  }, [reminderRows]);
 
   /** Get monthly manual reminder count for a vehicle */
   const getMonthlyCount = useCallback((vehicleId: number): number => {
-    return (reminderHistory[historyKey(vehicleId)] || []).length;
-  }, [reminderHistory, historyKey]);
+    return remindersByVehicle[vehicleId]?.length ?? 0;
+  }, [remindersByVehicle]);
 
   /** Get last sent date for a vehicle */
   const getLastSentDate = useCallback((vehicleId: number): number | null => {
-    const entries = reminderHistory[historyKey(vehicleId)];
+    const entries = remindersByVehicle[vehicleId];
     if (!entries || entries.length === 0) return null;
     return entries[entries.length - 1];
-  }, [reminderHistory, historyKey]);
+  }, [remindersByVehicle]);
 
   /** Total manual reminders sent this month across all vehicles */
-  const totalMonthlyReminders = useMemo(() => {
-    let total = 0;
-    const suffix = `-${selectedMonth}-${selectedYear}`;
-    for (const [key, timestamps] of Object.entries(reminderHistory)) {
-      if (key.endsWith(suffix)) total += timestamps.length;
-    }
-    return total;
-  }, [reminderHistory, selectedMonth, selectedYear]);
+  const totalMonthlyReminders = reminderRows.length;
 
   /** Check if a vehicle is on cooldown */
   const isOnCooldown = useCallback((vehicleId: number): boolean => {
-    const key = historyKey(vehicleId);
-    const ts = sentTimestamps[key];
-    if (!ts) return false;
-    return Date.now() - ts < COOLDOWN_MS;
-  }, [sentTimestamps, historyKey]);
+    const last = getLastSentDate(vehicleId);
+    if (last === null) return false;
+    return Date.now() - last < COOLDOWN_MS;
+  }, [getLastSentDate]);
 
   /** Get cooldown remaining label */
   const cooldownRemaining = useCallback((vehicleId: number): string => {
-    const key = historyKey(vehicleId);
-    const ts = sentTimestamps[key];
-    if (!ts) return '';
-    return getCooldownLabel(ts);
-  }, [sentTimestamps, historyKey]);
+    const last = getLastSentDate(vehicleId);
+    if (last === null) return '';
+    return getCooldownLabel(last);
+  }, [getLastSentDate]);
 
-  /** Mark vehicle as sent in persistent storage (cooldown + history) */
-  const markSent = useCallback((vehicleId: number) => {
-    const key = historyKey(vehicleId);
-    const now = Date.now();
-
-    // Update cooldown timestamps
-    setSentTimestamps(prev => {
-      const updated = { ...prev, [key]: now };
-      saveTimestamps(updated);
-      return updated;
-    });
-
-    // Append to history
-    setReminderHistory(prev => {
-      const existing = prev[key] || [];
-      const updated = { ...prev, [key]: [...existing, now] };
-      saveHistory(updated);
-      return updated;
-    });
-  }, [historyKey]);
+  /** Persist a sent reminder to Supabase, then refresh the query */
+  const markSent = useCallback(async (vehicleId: number) => {
+    try {
+      await insertReminder(vehicleId, yearNum, selectedMonth);
+    } catch (err) {
+      console.error('Failed to log reminder to Supabase:', err);
+    }
+    queryClient.invalidateQueries({ queryKey: reminderQueryKey });
+  }, [queryClient, reminderQueryKey, yearNum, selectedMonth]);
 
   const unreportedVehicles = useMemo(
     () => vehicles.filter(v => !hasReported(v, selectedYear, selectedMonth)),
@@ -237,7 +179,7 @@ export function DriverRemindersPage({
   }), [selectedMonth, selectedYear]);
 
   const sendReminder = useCallback(async (vehicle: Vehicle) => {
-    if (isOnCooldown(vehicle.id)) return;
+    if (remindersLoading || isOnCooldown(vehicle.id)) return;
     setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'sending' }));
     try {
       const response = await fetch(WEBHOOK_URL, {
@@ -247,7 +189,7 @@ export function DriverRemindersPage({
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'sent' }));
-      markSent(vehicle.id);
+      await markSent(vehicle.id);
     } catch (err) {
       console.error(`Failed to send reminder for ${vehicle.driverName}:`, err);
       setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'error' }));
@@ -255,7 +197,7 @@ export function DriverRemindersPage({
         setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'idle' }));
       }, 3000);
     }
-  }, [buildPayload, isOnCooldown, markSent]);
+  }, [buildPayload, isOnCooldown, markSent, remindersLoading]);
 
   const sendableCount = useMemo(
     () => filtered.filter(v => !isOnCooldown(v.id) && !!v.phone).length,
@@ -361,11 +303,11 @@ export function DriverRemindersPage({
           {/* Send All Button */}
           <button
             onClick={sendAll}
-            disabled={sendAllStatus === 'sending' || sendableCount === 0}
+            disabled={sendAllStatus === 'sending' || sendableCount === 0 || remindersLoading}
             className={`mr-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
               sendAllStatus === 'done'
                 ? 'bg-[#34c759] text-white'
-                : sendAllStatus === 'sending'
+                : sendAllStatus === 'sending' || remindersLoading
                   ? 'bg-[#25D366]/50 text-white cursor-wait'
                   : sendableCount === 0
                     ? 'bg-black/10 text-[#86868b] cursor-not-allowed'
@@ -376,6 +318,11 @@ export function DriverRemindersPage({
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 שולח...
+              </>
+            ) : remindersLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                טוען היסטוריה...
               </>
             ) : sendAllStatus === 'done' ? (
               <>
