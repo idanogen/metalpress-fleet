@@ -366,7 +366,7 @@ export function FleetExpensesPage({ vehicles, selectedYear, selectedMonth }: Fle
         >
           <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">פילוח לפי קטגוריה</h3>
           {pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={260}>
+            <div dir="ltr"><ResponsiveContainer width="100%" height={260}>
               <PieChart>
                 <Pie
                   data={pieData}
@@ -395,7 +395,7 @@ export function FleetExpensesPage({ vehicles, selectedYear, selectedMonth }: Fle
                   }}
                 />
               </PieChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer></div>
           ) : (
             <div className="h-[260px] flex items-center justify-center text-[#86868b] text-sm">
               אין הוצאות לחודש זה
@@ -412,7 +412,7 @@ export function FleetExpensesPage({ vehicles, selectedYear, selectedMonth }: Fle
         >
           <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">מגמת הוצאות — 12 חודשים אחרונים</h3>
           {trendData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={260}>
+            <div dir="ltr"><ResponsiveContainer width="100%" height={260}>
               <BarChart data={trendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                 <XAxis dataKey="label" tick={{ fill: '#86868b', fontSize: 10 }} />
@@ -450,7 +450,7 @@ export function FleetExpensesPage({ vehicles, selectedYear, selectedMonth }: Fle
                     />
                   ))}
               </BarChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer></div>
           ) : (
             <div className="h-[260px] flex items-center justify-center text-[#86868b] text-sm">
               אין נתונים להצגה

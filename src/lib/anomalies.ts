@@ -51,9 +51,13 @@ export async function resolveAnomaly(
   action: 'approve' | 'reject',
   correctedMileage?: number,
 ): Promise<ResolveResult> {
+  const adminSecret = import.meta.env.VITE_ADMIN_SECRET;
   const r = await fetch('/api/resolve-review', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(adminSecret ? { 'x-admin-secret': adminSecret } : {}),
+    },
     body: JSON.stringify({ id, action, corrected_mileage: correctedMileage }),
   });
   const body = await r.json();

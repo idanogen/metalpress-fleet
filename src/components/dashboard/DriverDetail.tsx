@@ -34,8 +34,8 @@ export function DriverDetail({ vehicle, onClose }: DriverDetailProps) {
   const totalKm = allDeltas.reduce((sum, d) => sum + d.km, 0);
   const maxKm = allDeltas.length > 0 ? Math.max(...allDeltas.map(d => d.km)) : 0;
   const minKm = allDeltas.length > 0 ? Math.min(...allDeltas.map(d => d.km)) : 0;
-  const reportedMonths = vehicle.monthlyUsage.filter(m => m.mileage > 0).length;
-  const monthsWithData = reportedMonths;
+  const reportedMonths = last12.filter(m => m.mileage > 0).length;
+  const monthsWithData = last12.length;
 
   return (
     <AnimatePresence>

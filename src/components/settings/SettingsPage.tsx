@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SlidersHorizontal, Palette, Check } from 'lucide-react';
 import type { Vehicle } from '@/types/fleet';
@@ -6,6 +6,7 @@ import type { Vehicle } from '@/types/fleet';
 // ── Persisted settings via localStorage ──
 
 const SETTINGS_KEY = 'fleet-settings';
+const SETTINGS_CHANGE_EVENT = 'fleet-settings-change';
 
 export interface FleetSettings {
   anomalyThreshold: number; // percentage deviation to flag as anomaly (default 30)
@@ -45,6 +46,21 @@ export function loadSettings(): FleetSettings {
 
 export function saveSettings(settings: FleetSettings) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  window.dispatchEvent(new Event(SETTINGS_CHANGE_EVENT));
+}
+
+export function useSettings(): FleetSettings {
+  const [settings, setSettings] = useState<FleetSettings>(loadSettings);
+  useEffect(() => {
+    const handler = () => setSettings(loadSettings());
+    window.addEventListener(SETTINGS_CHANGE_EVENT, handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener(SETTINGS_CHANGE_EVENT, handler);
+      window.removeEventListener('storage', handler);
+    };
+  }, []);
+  return settings;
 }
 
 // ── Component ──

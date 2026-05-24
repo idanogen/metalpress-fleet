@@ -115,7 +115,9 @@ function AnomalyCard({
         type: 'success',
         text: `${action} (${result.mileage.toLocaleString('he-IL')} ק"מ) — ${priorityMsg}`,
       });
-      setTimeout(() => onResolved(), 1500);
+      // Invalidate immediately so the row disappears as soon as the refetch returns;
+      // the success toast remains visible on the card until then via local state.
+      onResolved();
     },
     onError: (err) => {
       setFeedback({ type: 'error', text: `שגיאה: ${String(err)}` });

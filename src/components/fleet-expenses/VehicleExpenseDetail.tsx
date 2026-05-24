@@ -179,7 +179,7 @@ export function VehicleExpenseDetail({ vehicle, activeCategories, onClose }: Veh
             <div className="glass-card p-4">
               <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">מגמת הוצאות חודשית — 12 חודשים אחרונים</h3>
               {trendData.length > 0 && trendData.some(d => Number(d._total) > 0) ? (
-                <ResponsiveContainer width="100%" height={240}>
+                <div dir="ltr"><ResponsiveContainer width="100%" height={240}>
                   <BarChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                     <XAxis dataKey="label" tick={{ fill: '#86868b', fontSize: 10 }} />
@@ -217,7 +217,7 @@ export function VehicleExpenseDetail({ vehicle, activeCategories, onClose }: Veh
                         />
                       ))}
                   </BarChart>
-                </ResponsiveContainer>
+                </ResponsiveContainer></div>
               ) : (
                 <div className="h-[240px] flex items-center justify-center text-[#86868b] text-sm">
                   אין נתוני הוצאה לרכב זה
@@ -230,7 +230,7 @@ export function VehicleExpenseDetail({ vehicle, activeCategories, onClose }: Veh
               <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">פילוח כולל לפי קטגוריה</h3>
               {pieData.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
-                  <ResponsiveContainer width="100%" height={220}>
+                  <div dir="ltr"><ResponsiveContainer width="100%" height={220}>
                     <PieChart>
                       <Pie
                         data={pieData}
@@ -259,7 +259,7 @@ export function VehicleExpenseDetail({ vehicle, activeCategories, onClose }: Veh
                         }}
                       />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ResponsiveContainer></div>
 
                   {/* Legend */}
                   <div className="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto pr-2">

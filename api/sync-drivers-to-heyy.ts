@@ -1,11 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { timingSafeEqual } from 'node:crypto';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const HEYY_API_KEY = process.env.HEYY_API_KEY;
 const HEYY_BASE_URL = process.env.HEYY_BASE_URL || 'https://api.heyy.io/api/v2.0';
 const SYNC_SECRET = process.env.HEYY_SYNC_SECRET;
+
+function safeCompare(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
+}
 
 interface HeyyAttributeEntry {
   attribute?: { externalId?: string };
@@ -167,9 +175,13 @@ async function syncOne(target: SyncTarget, existing: HeyyContact | undefined): P
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-  if (SYNC_SECRET) {
-    const got = req.headers['x-sync-secret'];
-    if (got !== SYNC_SECRET) return res.status(401).json({ error: 'Bad secret' });
+  if (!SYNC_SECRET) {
+    return res.status(500).json({ error: 'Server missing HEYY_SYNC_SECRET' });
+  }
+  const gotHeader = req.headers['x-sync-secret'];
+  const got = Array.isArray(gotHeader) ? gotHeader[0] : gotHeader;
+  if (typeof got !== 'string' || !safeCompare(got, SYNC_SECRET)) {
+    return res.status(401).json({ error: 'Bad secret' });
   }
 
   if (!SUPABASE_URL || !SERVICE_KEY) return res.status(500).json({ error: 'Supabase env missing' });

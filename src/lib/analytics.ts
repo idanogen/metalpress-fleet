@@ -21,7 +21,10 @@ export function isApplicableForMonth(vehicle: Vehicle, year: string, monthNum: n
   return start <= endOfMonth;
 }
 
-// mileage is cumulative odometer — compute monthly driving distance as deltas
+// mileage is cumulative odometer — compute monthly driving distance as deltas.
+// Skip non-consecutive months: if Feb is missing between Jan and Mar, we don't
+// know how the driving distributed across them — attributing all to March would
+// produce a fake spike. Caller treats absence as "no data" instead.
 export function getMonthlyDeltas(vehicle: Vehicle): { year: string; monthName: string; monthNum: number; km: number }[] {
   const usage = Array.isArray(vehicle.monthlyUsage) ? vehicle.monthlyUsage : [];
   const sorted = [...usage]
@@ -33,12 +36,16 @@ export function getMonthlyDeltas(vehicle: Vehicle): { year: string; monthName: s
 
   const deltas: { year: string; monthName: string; monthNum: number; km: number }[] = [];
   for (let i = 1; i < sorted.length; i++) {
-    const delta = sorted[i].mileage - sorted[i - 1].mileage;
+    const prev = sorted[i - 1];
+    const curr = sorted[i];
+    const monthGap = (Number(curr.year) - Number(prev.year)) * 12 + (curr.monthNum - prev.monthNum);
+    if (monthGap !== 1) continue;
+    const delta = curr.mileage - prev.mileage;
     if (delta > 0) {
       deltas.push({
-        year: sorted[i].year,
-        monthName: sorted[i].monthName,
-        monthNum: sorted[i].monthNum,
+        year: curr.year,
+        monthName: curr.monthName,
+        monthNum: curr.monthNum,
         km: delta,
       });
     }
@@ -127,13 +134,28 @@ export function detectAnomalies(vehicles: Vehicle[], year: string, monthNum: num
     }
   }
 
-  // Chronic no-report: 3+ consecutive months with mileage === 0
+  // Chronic no-report: 3+ consecutive months with mileage === 0.
+  // Excludes (a) months before the vehicle was assigned (isApplicableForMonth)
+  // and (b) the current in-progress month — drivers report it in the next month.
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonthNum = now.getMonth() + 1;
+  const isCurrentOrFuture = (y: string, m: number) => {
+    const yn = Number(y);
+    return yn > currentYear || (yn === currentYear && m >= currentMonthNum);
+  };
+
   for (const vehicle of vehicles) {
     let consecutive = 0;
-    const sorted = [...vehicle.monthlyUsage].sort((a, b) => {
-      if (a.year !== b.year) return b.year.localeCompare(a.year);
-      return b.monthNum - a.monthNum;
-    });
+    const sorted = [...vehicle.monthlyUsage]
+      .filter(m =>
+        isApplicableForMonth(vehicle, m.year, m.monthNum) &&
+        !isCurrentOrFuture(m.year, m.monthNum)
+      )
+      .sort((a, b) => {
+        if (a.year !== b.year) return b.year.localeCompare(a.year);
+        return b.monthNum - a.monthNum;
+      });
 
     for (const m of sorted) {
       if (m.mileage === 0) {
@@ -144,7 +166,9 @@ export function detectAnomalies(vehicles: Vehicle[], year: string, monthNum: num
     }
 
     if (consecutive >= 3) {
-      const alreadyAdded = anomalies.some(a => a.vehicle.id === vehicle.id && a.vehicle.plateNumber === vehicle.plateNumber);
+      const alreadyAdded = anomalies.some(a =>
+        a.type === 'chronic_no_report' && a.vehicle.id === vehicle.id
+      );
       if (!alreadyAdded) {
         anomalies.push({
           vehicle,

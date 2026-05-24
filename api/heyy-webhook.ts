@@ -1,10 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { timingSafeEqual } from 'node:crypto';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const HEYY_WEBHOOK_SECRET = process.env.HEYY_WEBHOOK_SECRET;
 const HEYY_API_KEY = process.env.HEYY_API_KEY;
+
+function safeCompare(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
+}
 const HEYY_BASE_URL = process.env.HEYY_BASE_URL || 'https://api.heyy.io/api/v2.0';
 const HEYY_CHANNEL_ID = process.env.HEYY_CHANNEL_ID;
 const MAKE_PRIORITY_WRITE_WEBHOOK = process.env.MAKE_PRIORITY_WRITE_WEBHOOK;
@@ -141,9 +149,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   if (!SUPABASE_URL || !SERVICE_KEY) return res.status(500).json({ error: 'Server missing Supabase config' });
 
+  // TODO security: make this fail-closed once heyy.io webhook is configured to
+  // send the `x-heyy-secret` header. Currently optional to avoid breaking the
+  // production bot before that config exists.
   if (HEYY_WEBHOOK_SECRET) {
-    const got = req.headers['x-heyy-secret'] || req.headers['x-webhook-secret'];
-    if (got !== HEYY_WEBHOOK_SECRET) return res.status(401).json({ error: 'Bad secret' });
+    const gotHeader = req.headers['x-heyy-secret'] || req.headers['x-webhook-secret'];
+    const got = Array.isArray(gotHeader) ? gotHeader[0] : gotHeader;
+    if (typeof got !== 'string' || !safeCompare(got, HEYY_WEBHOOK_SECRET)) {
+      return res.status(401).json({ error: 'Bad secret' });
+    }
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
@@ -264,9 +278,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: false, validation: 'could not parse mileage' });
   }
 
-  // Block unsolicited follow-up reports: if a report already exists for this
-  // (vehicle, year, month) — regardless of source — refuse the new value and
-  // route corrections through a human, so we never silently overwrite history.
+  // Block unsolicited follow-up reports: if a real report already exists for
+  // this (vehicle, year, month) — regardless of source — refuse the new value
+  // and route corrections through a human, so we never silently overwrite history.
+  // A row with mileage=0 is NOT a real report — it's a placeholder the Priority
+  // sync creates for vehicles that have monthly costs but no kilometer reading
+  // yet. The upsert below will fill in the mileage without touching cost columns.
   const { data: existingReport } = await supabase
     .from('monthly_reports')
     .select('mileage, source')
@@ -275,7 +292,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .eq('report_month', month)
     .maybeSingle();
 
-  if (existingReport) {
+  if (existingReport && Number(existingReport.mileage) > 0) {
     await sendHeyyWhatsAppText(e164,
       `${firstName}, כבר קיבלנו ממך דיווח לחודש ${month}/${year}: ${Number(existingReport.mileage).toLocaleString('he-IL')} ק"מ.\nאם נדרש תיקון, נא לפנות למנהל הצי.`);
     await supabase.from('inbound_messages').insert({

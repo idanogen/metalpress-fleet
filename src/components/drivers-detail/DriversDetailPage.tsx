@@ -35,7 +35,7 @@ function daysUntil(iso: string): number | null {
 function sourceLabel(source: string): { label: string; color: string } {
   switch (source) {
     case 'priority': return { label: 'פריוריטי', color: 'text-[#007AFF]' };
-    case 'heyy': return { label: 'וואטסאפ', color: 'text-[#25D366]' };
+    case 'whatsapp_bot': return { label: 'וואטסאפ', color: 'text-[#25D366]' };
     case 'manual': return { label: 'ידני', color: 'text-[#86868b]' };
     default: return { label: '—', color: 'text-[#c7c7cc]' };
   }

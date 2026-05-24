@@ -2,17 +2,22 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchFleetData } from '@/api/fleet';
 import { getFleetStats, detectAnomalies, hasReported, isApplicableForMonth, getMonthData } from '@/lib/analytics';
-import { loadSettings } from '@/components/settings/SettingsPage';
+import { useSettings } from '@/components/settings/SettingsPage';
 import type { Vehicle } from '@/types/fleet';
 
-// Default to previous month — drivers report in current month for last month
-const now = new Date();
-const defaultMonth = now.getMonth() === 0 ? 12 : now.getMonth(); // getMonth() is 0-based, so March=2 → prev=2 (Feb)
-const defaultYear = now.getMonth() === 0 ? String(now.getFullYear() - 1) : String(now.getFullYear());
+// Default to previous month — drivers report in current month for last month.
+// Computed lazily inside useState so a tab left open across a month rollover
+// gets the correct default on next mount, not a stale module-load snapshot.
+function computeDefaultMonth(): { year: string; month: number } {
+  const now = new Date();
+  const month = now.getMonth() === 0 ? 12 : now.getMonth();
+  const year = now.getMonth() === 0 ? String(now.getFullYear() - 1) : String(now.getFullYear());
+  return { year, month };
+}
 
 export function useFleetData() {
-  const [selectedYear, setSelectedYear] = useState(defaultYear);
-  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+  const [selectedYear, setSelectedYear] = useState(() => computeDefaultMonth().year);
+  const [selectedMonth, setSelectedMonth] = useState(() => computeDefaultMonth().month);
 
   const { data: rawData = [], isLoading, error, dataUpdatedAt } = useQuery<Vehicle[]>({
     queryKey: ['fleet-data'],
@@ -41,7 +46,7 @@ export function useFleetData() {
   const inventoryVehicles = useMemo(() => allVehicles.filter(v => v.driverName === 'מלאי'), [allVehicles]);
   const inventoryCount = inventoryVehicles.length;
 
-  const anomalyThreshold = loadSettings().anomalyThreshold;
+  const { anomalyThreshold } = useSettings();
 
   const stats = useMemo(
     () => getFleetStats(vehicles, selectedYear, selectedMonth, anomalyThreshold),

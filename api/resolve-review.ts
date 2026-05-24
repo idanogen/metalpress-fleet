@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { timingSafeEqual } from 'node:crypto';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -7,6 +8,14 @@ const HEYY_API_KEY = process.env.HEYY_API_KEY;
 const HEYY_BASE_URL = process.env.HEYY_BASE_URL || 'https://api.heyy.io/api/v2.0';
 const HEYY_CHANNEL_ID = process.env.HEYY_CHANNEL_ID;
 const MAKE_PRIORITY_WRITE_WEBHOOK = process.env.MAKE_PRIORITY_WRITE_WEBHOOK;
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
+
+function safeCompare(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
+}
 
 async function sendHeyyWhatsAppText(e164Phone: string, bodyText: string): Promise<void> {
   if (!HEYY_API_KEY || !HEYY_CHANNEL_ID) return;
@@ -67,6 +76,15 @@ async function writeToPriorityViaMake(p: { vehicleId: number; year: number; mont
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   if (!SUPABASE_URL || !SERVICE_KEY) return res.status(500).json({ error: 'server not configured' });
+
+  if (!ADMIN_SECRET) {
+    return res.status(500).json({ error: 'Server missing ADMIN_SECRET' });
+  }
+  const gotHeader = req.headers['x-admin-secret'];
+  const got = Array.isArray(gotHeader) ? gotHeader[0] : gotHeader;
+  if (typeof got !== 'string' || !safeCompare(got, ADMIN_SECRET)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   const { id, action, corrected_mileage } = (req.body ?? {}) as {
     id?: number;
