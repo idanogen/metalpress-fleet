@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchFleetData } from '@/api/fleet';
-import { getFleetStats, detectAnomalies, hasReported, getMonthData } from '@/lib/analytics';
+import { getFleetStats, detectAnomalies, hasReported, isApplicableForMonth, getMonthData } from '@/lib/analytics';
 import { loadSettings } from '@/components/settings/SettingsPage';
 import type { Vehicle } from '@/types/fleet';
 
@@ -43,7 +43,10 @@ export function useFleetData() {
   );
 
   const unreportedVehicles = useMemo(
-    () => vehicles.filter(v => !hasReported(v, selectedYear, selectedMonth)),
+    () => vehicles.filter(v =>
+      isApplicableForMonth(v, selectedYear, selectedMonth) &&
+      !hasReported(v, selectedYear, selectedMonth)
+    ),
     [vehicles, selectedYear, selectedMonth]
   );
 

@@ -10,6 +10,17 @@ export function hasReported(vehicle: Vehicle, year: string, monthNum: number): b
   return !!month && month.mileage > 0;
 }
 
+/** True if the vehicle was already assigned by the end of the given month (or start date unknown). */
+export function isApplicableForMonth(vehicle: Vehicle, year: string, monthNum: number): boolean {
+  if (!vehicle.startDate) return true;
+  const yearNum = Number(year);
+  if (!Number.isFinite(yearNum)) return true;
+  const start = new Date(vehicle.startDate);
+  if (Number.isNaN(start.getTime())) return true;
+  const endOfMonth = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+  return start <= endOfMonth;
+}
+
 // mileage is cumulative odometer — compute monthly driving distance as deltas
 export function getMonthlyDeltas(vehicle: Vehicle): { year: string; monthName: string; monthNum: number; km: number }[] {
   const usage = Array.isArray(vehicle.monthlyUsage) ? vehicle.monthlyUsage : [];
@@ -53,7 +64,9 @@ export function getDriverAvgUsage(vehicle: Vehicle, excludeYear?: string, exclud
 
 export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: number, anomalyThreshold = 30): FleetStats {
   const reported = vehicles.filter(v => hasReported(v, year, monthNum));
-  const notReported = vehicles.filter(v => !hasReported(v, year, monthNum));
+  const notReported = vehicles.filter(v =>
+    isApplicableForMonth(v, year, monthNum) && !hasReported(v, year, monthNum)
+  );
 
   const monthDeltas = vehicles
     .map(v => getMonthDelta(v, year, monthNum))

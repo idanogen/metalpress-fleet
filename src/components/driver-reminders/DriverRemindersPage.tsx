@@ -3,7 +3,7 @@ import { Search, Send, CheckCircle, Loader2, AlertCircle, Clock } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Vehicle } from '@/types/fleet';
-import { hasReported } from '@/lib/analytics';
+import { hasReported, isApplicableForMonth } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 import { fetchReminders, insertReminder, type ReminderLogRow } from '@/lib/reminderLog';
 
@@ -132,7 +132,10 @@ export function DriverRemindersPage({
   }, [queryClient, reminderQueryKey, yearNum, selectedMonth]);
 
   const unreportedVehicles = useMemo(
-    () => vehicles.filter(v => !hasReported(v, selectedYear, selectedMonth)),
+    () => vehicles.filter(v =>
+      isApplicableForMonth(v, selectedYear, selectedMonth) &&
+      !hasReported(v, selectedYear, selectedMonth)
+    ),
     [vehicles, selectedYear, selectedMonth]
   );
 
