@@ -300,14 +300,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       matched_driver_id: driver.id,
       matched_vehicle_id: vehicle.id,
       parsed_mileage: mileage,
-      status: 'failed',
+      parsed_year: year,
+      parsed_month: month,
+      status: 'pending_review',
       error: `mileage ${mileage} below or equal to current ${vehicle.current_mileage}`,
-      processed_at: new Date().toISOString(),
     });
     return res.status(200).json({ ok: false, validation: 'mileage below or equal to current', current: vehicle.current_mileage, reported: mileage });
   }
 
-  if (vehicle.current_mileage > 0 && mileage - vehicle.current_mileage > 5000) {
+  if (vehicle.current_mileage > 0 && mileage - vehicle.current_mileage > 10000) {
     await sendHeyyWhatsAppText(e164,
       `${firstName}, הקריאה (${mileage.toLocaleString('he-IL')}) גבוהה משמעותית מהקודמת (${vehicle.current_mileage.toLocaleString('he-IL')}).\nנא לוודא שלא נוספה ספרה בטעות ולשלוח שוב.`);
     await supabase.from('inbound_messages').insert({
@@ -315,9 +316,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       matched_driver_id: driver.id,
       matched_vehicle_id: vehicle.id,
       parsed_mileage: mileage,
-      status: 'failed',
-      error: `mileage jump ${mileage - vehicle.current_mileage} exceeds 5000`,
-      processed_at: new Date().toISOString(),
+      parsed_year: year,
+      parsed_month: month,
+      status: 'pending_review',
+      error: `mileage jump ${mileage - vehicle.current_mileage} exceeds 10000`,
     });
     return res.status(200).json({ ok: false, validation: 'mileage jump too large', current: vehicle.current_mileage, reported: mileage });
   }

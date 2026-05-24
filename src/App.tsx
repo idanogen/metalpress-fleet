@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Sidebar, type ViewType } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { KpiCards } from '@/components/dashboard/KpiCards';
@@ -12,9 +13,11 @@ import { InventoryPage } from '@/components/inventory/InventoryPage';
 import { FuelExpensesPage } from '@/components/fuel-expenses/FuelExpensesPage';
 import { DriverRemindersPage } from '@/components/driver-reminders/DriverRemindersPage';
 import { DriversDetailPage } from '@/components/drivers-detail/DriversDetailPage';
+import { AnomaliesReviewPage } from '@/components/anomalies-review/AnomaliesReviewPage';
 import { SettingsPage } from '@/components/settings/SettingsPage';
 import { ReportsPage } from '@/components/reports/ReportsPage';
 import { useFleetData } from '@/hooks/useFleetData';
+import { fetchPendingAnomalies } from '@/lib/anomalies';
 import type { Vehicle } from '@/types/fleet';
 
 function LoadingSkeleton() {
@@ -41,10 +44,22 @@ export default function App() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
 
+  const { data: pendingAnomalies = [] } = useQuery({
+    queryKey: ['pending-anomalies'],
+    queryFn: fetchPendingAnomalies,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+  });
+
   return (
     <div className="min-h-screen text-[#1d1d1f]" dir="rtl">
       {/* Floating Sidebar */}
-      <Sidebar currentView={currentView} onNavigate={setCurrentView} unreportedCount={fleet.unreportedVehicles.length} />
+      <Sidebar
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        unreportedCount={fleet.unreportedVehicles.length}
+        anomaliesCount={pendingAnomalies.length}
+      />
 
       {/* Floating Header */}
       <Header
@@ -132,6 +147,10 @@ export default function App() {
 
           {currentView === 'drivers-detail' && (
             <DriversDetailPage vehicles={fleet.vehicles} />
+          )}
+
+          {currentView === 'anomalies-review' && (
+            <AnomaliesReviewPage />
           )}
 
           {currentView === 'reports' && (
