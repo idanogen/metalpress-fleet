@@ -1,181 +1,145 @@
 import type { Vehicle, MonthlyUsage } from '@/types/fleet';
-import { vehiclesData } from '@/data/vehicles';
+import { supabase } from '@/lib/supabase';
 
-// Make Data Store API
-const MAKE_API_TOKEN = import.meta.env.VITE_MAKE_API_TOKEN || '';
-const DATA_STORE_ID = import.meta.env.VITE_MAKE_DATA_STORE_ID || '';
-// In dev, use Vite proxy. In prod, use Vercel serverless function to avoid CORS.
-const MAKE_API_BASE = import.meta.env.DEV ? '/api/make' : '';
-const USE_SERVERLESS = !import.meta.env.DEV;
+const HEBREW_MONTHS: Record<number, string> = {
+  1: 'ינו', 2: 'פבר', 3: 'מרץ', 4: 'אפר', 5: 'מאי', 6: 'יונ',
+  7: 'יול', 8: 'אוג', 9: 'ספט', 10: 'אוק', 11: 'נוב', 12: 'דצמ',
+};
 
-interface MakeVehicleRecord {
-  equipmentId: number;
-  driverName: string;
-  phone: string;
-  model: string;
-  plateNumber: string;
-  ownershipType: string;
-  supplier: string;
-  company: string;
-  currentMileage: number;
-  rentValue: number;
-  startDate: string;
-  endDate: string;
-  leaseEndDate: string;
-  licenseEndDate: string;
-  lastReportYear: string;
-  lastReportMonth: string;
-  monthlyUsage: string;
-  lastSyncedAt?: string;
+interface DbVehicle {
+  id: number;
+  plate_number: string | null;
+  model: string | null;
+  ownership_type: string | null;
+  supplier: string | null;
+  company: string | null;
+  lease_end_date: string | null;
+  license_end_date: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  rent_value: number | null;
+  current_mileage: number;
+  last_report_year: number | null;
+  last_report_month: number | null;
+  is_inventory: boolean;
+  current_driver: { name: string; phone: string | null } | null;
+  monthly_reports: DbReport[];
 }
 
-const STALE_DAYS = 14;
-
-interface MakeDataStoreResponse {
-  records: { key: string; data: MakeVehicleRecord }[];
-  count: number;
-  pg: { limit: number; offset: number };
+interface DbReport {
+  report_year: number;
+  report_month: number;
+  mileage: number;
+  start_date: string | null;
+  end_date: string | null;
+  days: number | null;
+  fuel_consumption: number | null;
+  fuel_cost: number | null;
+  priority_row_id: number | null;
+  source: string | null;
+  road6_cost: number | null;
+  road6_north_cost: number | null;
+  pango_cost: number | null;
+  carmel_cost: number | null;
+  reports_cost: number | null;
+  maintenance_cost: number | null;
+  insurance_cost: number | null;
+  license_cost: number | null;
+  ituran_cost: number | null;
+  carwash_cost: number | null;
+  tires_cost: number | null;
+  rental_cost: number | null;
+  electric_cost: number | null;
 }
 
-function filterCurrentMonth(usage: MonthlyUsage[]): MonthlyUsage[] {
-  const now = new Date();
-  const currentYear = String(now.getFullYear());
-  const currentMonth = now.getMonth() + 1; // 1-based
-  return usage
-    .filter(m => !(m.year === currentYear && m.monthNum === currentMonth))
-    .map(m => {
-      // Malformed entries from Priority have mileage === carUsage and no days field.
-      // The value is actually a Priority internal row ID, not real mileage.
-      if (m.mileage > 0 && m.mileage === m.carUsage && !m.days) {
-        return { ...m, mileage: 0 };
-      }
-      return m;
-    });
+function toIsoStart(d: string | null): string {
+  return d ? `${d}T00:00:00+02:00` : '';
 }
 
-// Bot updates currentMileage + lastReportYear/Month immediately when a driver reports via WhatsApp,
-// but doesn't touch the monthlyUsage array (only the weekly Priority sync rebuilds it).
-// Patch the matching month entry so dashboard, table and chart reflect the fresh report instantly.
-function patchLatestReport(record: MakeVehicleRecord, usage: MonthlyUsage[]): MonthlyUsage[] {
-  const reportMonthRaw = (record.lastReportMonth || '').trim();
-  const reportYear = (record.lastReportYear || '').trim();
-  const mileage = Number(record.currentMileage) || 0;
-  if (!reportMonthRaw || !reportYear || mileage <= 0) return usage;
-
-  const monthNum = parseInt(reportMonthRaw, 10);
-  const isNumeric = !isNaN(monthNum);
-
-  return usage.map(m => {
-    const matches =
-      m.year === reportYear &&
-      ((isNumeric && m.monthNum === monthNum) || (!isNumeric && m.monthName === reportMonthRaw));
-    if (matches && (!m.mileage || m.mileage <= 0)) {
-      return { ...m, mileage };
-    }
-    return m;
-  });
+function mapReport(r: DbReport): MonthlyUsage {
+  return {
+    year: String(r.report_year),
+    monthNum: r.report_month,
+    monthName: HEBREW_MONTHS[r.report_month] || '',
+    startDate: toIsoStart(r.start_date),
+    endDate: toIsoStart(r.end_date),
+    days: r.days ?? 0,
+    mileage: r.mileage,
+    fuelConsumption: Number(r.fuel_consumption ?? 0),
+    fuelCost: Number(r.fuel_cost ?? 0),
+    carUsage: r.priority_row_id ?? 0,
+    source: r.source ?? '',
+    road6Cost: Number(r.road6_cost ?? 0),
+    road6NorthCost: Number(r.road6_north_cost ?? 0),
+    pangoCost: Number(r.pango_cost ?? 0),
+    carmelCost: Number(r.carmel_cost ?? 0),
+    reportsCost: Number(r.reports_cost ?? 0),
+    maintenanceCost: Number(r.maintenance_cost ?? 0),
+    insuranceCost: Number(r.insurance_cost ?? 0),
+    licenseCost: Number(r.license_cost ?? 0),
+    ituranCost: Number(r.ituran_cost ?? 0),
+    carwashCost: Number(r.carwash_cost ?? 0),
+    tiresCost: Number(r.tires_cost ?? 0),
+    rentalCost: Number(r.rental_cost ?? 0),
+    electricCost: Number(r.electric_cost ?? 0),
+  };
 }
 
-function mapMakeRecordToVehicle(record: MakeVehicleRecord): Vehicle {
-  let monthlyUsage: MonthlyUsage[] = [];
-  try {
-    const rawStr = record.monthlyUsage || '[]';
-    const match = rawStr.match(/\[[\s\S]*\]/);
-    const clean = match ? match[0] : '[]';
-    const parsed = JSON.parse(clean);
-    monthlyUsage = Array.isArray(parsed) ? filterCurrentMonth(parsed) : [];
-    monthlyUsage = patchLatestReport(record, monthlyUsage);
-  } catch {
-    monthlyUsage = [];
-  }
+function mapVehicle(v: DbVehicle): Vehicle {
+  const driverName = v.is_inventory ? 'מלאי' : (v.current_driver?.name ?? '');
+  const phone = v.current_driver?.phone ?? '';
+
+  const monthlyUsage = (v.monthly_reports ?? [])
+    .map(mapReport)
+    .sort((a, b) =>
+      a.year !== b.year ? b.year.localeCompare(a.year) : b.monthNum - a.monthNum
+    );
 
   return {
-    id: record.equipmentId,
-    driverName: record.driverName || '',
-    phone: record.phone || '',
-    model: record.model || '',
-    plateNumber: record.plateNumber || '',
-    ownershipType: record.ownershipType || '',
-    supplier: record.supplier || '',
-    company: record.company || '',
-    currentMileage: record.currentMileage || 0,
-    rentValue: record.rentValue || 0,
-    startDate: record.startDate || '',
-    endDate: record.endDate || '',
-    leaseEndDate: record.endDate || '',
-    licenseEndDate: record.licenseEndDate || '',
-    lastReportYear: record.lastReportYear || '',
-    lastReportMonth: record.lastReportMonth || '',
+    id: v.id,
+    driverName,
+    phone,
+    model: v.model ?? '',
+    plateNumber: v.plate_number ?? '',
+    ownershipType: v.ownership_type ?? '',
+    supplier: v.supplier ?? '',
+    company: v.company ?? '',
+    currentMileage: v.current_mileage,
+    rentValue: v.rent_value ?? 0,
+    startDate: v.start_date ?? '',
+    endDate: v.end_date ?? '',
+    leaseEndDate: v.lease_end_date ?? v.end_date ?? '',
+    licenseEndDate: v.license_end_date ?? '',
+    lastReportYear: v.last_report_year ? String(v.last_report_year) : '',
+    lastReportMonth: v.last_report_month ? String(v.last_report_month) : '',
     monthlyUsage,
   };
 }
 
-async function fetchPage(offset: number, limit: number = 100): Promise<MakeDataStoreResponse> {
-  const url = `${MAKE_API_BASE}/data-stores/${DATA_STORE_ID}/data?pg%5Blimit%5D=${limit}&pg%5Boffset%5D=${offset}`;
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Token ${MAKE_API_TOKEN}`,
-      'Accept': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
-async function fetchViaServerless(): Promise<MakeVehicleRecord[]> {
-  const response = await fetch('/api/fleet');
-  if (!response.ok) throw new Error(`Serverless ${response.status}`);
-  const data = await response.json();
-  return (data.records || []).map((r: { data: MakeVehicleRecord }) => r.data);
-}
-
-async function fetchViaProxy(): Promise<MakeVehicleRecord[]> {
-  const allRecords: MakeVehicleRecord[] = [];
-  let offset = 0;
-  const pageSize = 100;
-
-  while (true) {
-    const page = await fetchPage(offset, pageSize);
-    if (!page?.records || page.records.length === 0) break;
-    allRecords.push(...page.records.map(r => r.data));
-    if (page.records.length < pageSize) break;
-    offset += page.records.length;
-  }
-
-  return allRecords;
-}
-
 export async function fetchFleetData(): Promise<Vehicle[]> {
-  if (!USE_SERVERLESS && (!MAKE_API_TOKEN || !DATA_STORE_ID)) {
-    console.log('[Fleet API] No Make API config, using static data');
-    return vehiclesData;
-  }
+  const { data, error } = await supabase
+    .from('vehicles')
+    .select(`
+      id, plate_number, model, ownership_type, supplier, company,
+      lease_end_date, license_end_date, start_date, end_date,
+      rent_value, current_mileage, last_report_year, last_report_month,
+      is_inventory,
+      current_driver:drivers!current_driver_id(name, phone),
+      monthly_reports(
+        report_year, report_month, mileage,
+        start_date, end_date, days,
+        fuel_consumption, fuel_cost, priority_row_id, source,
+        road6_cost, road6_north_cost, pango_cost, carmel_cost, reports_cost,
+        maintenance_cost, insurance_cost, license_cost, ituran_cost,
+        carwash_cost, tires_cost, rental_cost, electric_cost
+      )
+    `)
+    .eq('is_active', true)
+    .order('id');
 
-  try {
-    const allRecords = USE_SERVERLESS ? await fetchViaServerless() : await fetchViaProxy();
+  if (error) throw new Error(`Supabase: ${error.message}`);
 
-    if (allRecords.length === 0) {
-      console.warn('[Fleet API] Empty response from Make, falling back to static data');
-      return vehiclesData;
-    }
-
-    const staleThresholdMs = Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000;
-    const fresh = allRecords.filter(r => {
-      if (!r.lastSyncedAt) return true;
-      const t = Date.parse(r.lastSyncedAt);
-      return isNaN(t) ? true : t >= staleThresholdMs;
-    });
-    const skipped = allRecords.length - fresh.length;
-    const vehicles = fresh.map(mapMakeRecordToVehicle);
-    console.log(`[Fleet API] Loaded ${vehicles.length} vehicles${skipped ? ` (filtered ${skipped} stale, not synced for ${STALE_DAYS}+ days)` : ''}`);
-    return vehicles;
-  } catch (error) {
-    console.error('[Fleet API] Failed to fetch from Make, using static fallback:', error);
-    return vehiclesData;
-  }
+  const vehicles = (data as unknown as DbVehicle[]).map(mapVehicle);
+  console.log(`[Fleet API] Loaded ${vehicles.length} vehicles from Supabase`);
+  return vehicles;
 }

@@ -1,7 +1,7 @@
-import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, MessageCircle, Package } from 'lucide-react';
+import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, Package, Wallet, AlertTriangle, Briefcase } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'driver-reminders' | 'send-first-message' | 'drivers-detail' | 'reports' | 'settings';
+export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'fleet-expenses' | 'overhead-expenses' | 'driver-reminders' | 'drivers-detail' | 'anomalies-review' | 'reports' | 'settings';
 
 // WhatsApp icon as inline SVG for accurate branding
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -23,13 +23,15 @@ const mainNavItems: NavItemDef[] = [
   { icon: LayoutDashboard, label: 'דאשבורד', view: 'dashboard' },
   { icon: Truck, label: 'ניהול צי', view: 'fleet-management' },
   { icon: WhatsAppIcon, label: 'תזכורת לנהגים', view: 'driver-reminders', customIcon: true },
-  { icon: MessageCircle, label: 'הודעה ראשונה', view: 'send-first-message' },
+  { icon: AlertTriangle, label: 'דיווחים חריגים', view: 'anomalies-review' },
   { icon: Users, label: 'נהגים מפורט', view: 'drivers-detail' },
   { icon: Package, label: 'רכבי מלאי', view: 'inventory' },
 ];
 
 const reportNavItems: NavItemDef[] = [
   { icon: FileBarChart, label: 'דוחות', view: 'reports' },
+  { icon: Wallet, label: 'הוצאות צי', view: 'fleet-expenses' },
+  { icon: Briefcase, label: 'הוצאות כלליות', view: 'overhead-expenses' },
   { icon: Fuel, label: 'הוצאות דלק', view: 'fuel-expenses' },
 ];
 
@@ -41,9 +43,10 @@ interface SidebarProps {
   currentView: ViewType;
   onNavigate: (view: ViewType) => void;
   unreportedCount?: number;
+  anomaliesCount?: number;
 }
 
-export function Sidebar({ currentView, onNavigate, unreportedCount }: SidebarProps) {
+export function Sidebar({ currentView, onNavigate, unreportedCount, anomaliesCount }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Close drawer on resize to desktop
@@ -88,6 +91,11 @@ export function Sidebar({ currentView, onNavigate, unreportedCount }: SidebarPro
           {isWhatsApp && unreportedCount != null && unreportedCount > 0 && (
             <span className="mr-auto bg-[#ff3b30] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
               {unreportedCount}
+            </span>
+          )}
+          {item.view === 'anomalies-review' && anomaliesCount != null && anomaliesCount > 0 && (
+            <span className="mr-auto bg-[#ff9500] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+              {anomaliesCount}
             </span>
           )}
         </button>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>דוח רכבים בסטטוסים חריגים — צי MetalPress</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Heebo', 'Assistant', -apple-system, 'Segoe UI', sans-serif;
+    color: #1d1d1f;
+    margin: 0;
+    background: #fff;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .header {
+    border-bottom: 3px solid #007AFF;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 20pt;
+    font-weight: 800;
+    color: #1d1d1f;
+    letter-spacing: -0.5px;
+  }
+  .header .meta {
+    text-align: left;
+    font-size: 9.5pt;
+    color: #86868b;
+    line-height: 1.4;
+  }
+  .header .meta strong { color: #1d1d1f; }
+
+  .intro {
+    background: #f5f5f7;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    font-size: 10.5pt;
+    color: #424245;
+  }
+  .intro p { margin: 0 0 6px 0; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .summary {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    flex: 1;
+    border: 1px solid #e5e5ea;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .stat .label { font-size: 9pt; color: #86868b; margin-bottom: 4px; }
+  .stat .value { font-size: 22pt; font-weight: 800; color: #1d1d1f; line-height: 1; }
+  .stat.red { border-right: 4px solid #ff3b30; }
+  .stat.orange { border-right: 4px solid #ff9500; }
+  .stat.gray { border-right: 4px solid #86868b; }
+  .stat.blue { border-right: 4px solid #007AFF; }
+
+  h2 {
+    font-size: 13pt;
+    margin: 28px 0 10px 0;
+    color: #1d1d1f;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h2 .badge {
+    background: #f2f2f7;
+    color: #1d1d1f;
+    font-size: 9.5pt;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+  h2 .pill {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  h2 .pill.red { background: #ff3b30; }
+  h2 .pill.orange { background: #ff9500; }
+  h2 .pill.gray { background: #86868b; }
+
+  .section-desc {
+    font-size: 9.5pt;
+    color: #6e6e73;
+    margin: -4px 0 12px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    background: #fff;
+    border: 1px solid #e5e5ea;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  thead {
+    background: #f5f5f7;
+  }
+  th {
+    text-align: right;
+    padding: 9px 10px;
+    font-weight: 700;
+    color: #424245;
+    font-size: 9pt;
+    border-bottom: 1px solid #e5e5ea;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f2f2f7;
+    color: #1d1d1f;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.plate { font-family: 'SF Mono', Menlo, monospace; font-size: 9pt; direction: ltr; text-align: right; }
+  td.num { font-variant-numeric: tabular-nums; }
+  td.muted { color: #86868b; }
+
+  .recommendation {
+    margin-top: 30px;
+    background: #fff8e6;
+    border: 1px solid #ffcc00;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 10pt;
+    color: #1d1d1f;
+  }
+  .recommendation h3 {
+    margin: 0 0 8px 0;
+    font-size: 11.5pt;
+    color: #1d1d1f;
+  }
+  .recommendation ul { margin: 0; padding-right: 18px; }
+  .recommendation li { margin-bottom: 4px; }
+
+  .footer {
+    margin-top: 28px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e5ea;
+    text-align: center;
+    color: #86868b;
+    font-size: 9pt;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>דוח רכבים בסטטוסים חריגים</h1>
+    <div style="color:#86868b; font-size:10.5pt; margin-top:4px;">צי רכב MetalPress · נדרשת בדיקה</div>
+  </div>
+  <div class="meta">
+    <div><strong>תאריך הדוח:</strong> 24 במאי 2026</div>
+    <div><strong>מקור נתונים:</strong> מסד צי הרכב (Supabase)</div>
+    <div><strong>סטטוס סנכרון:</strong> 21 במאי 2026</div>
+  </div>
+</div>
+
+<div class="intro">
+  <p>במסגרת בדיקה תקופתית של דשבורד צי הרכב, אותרו <strong>29 רכבים</strong> שמופיעים כיום במערכת כפעילים אך נראה שאינם רכבים בשימוש פעיל בפועל. הרשומות מסווגות לשלוש קטגוריות לפי הסיווג שלהן בפריוריטי.</p>
+  <p>הדוח מבקש לוודא מול הגורם המוסמך במטלפרס אילו רכבים ניתן להסתיר מהדשבורד (וממסכי תזכורות הנהגים, מעקב ליסינג ורישוי, ודיווחי ק״מ חודשיים), ואילו רשומות צריכות להישאר.</p>
+</div>
+
+<div class="summary">
+  <div class="stat red">
+    <div class="label">נהג "מושבת"</div>
+    <div class="value">20</div>
+  </div>
+  <div class="stat orange">
+    <div class="label">דגם "שוטף"</div>
+    <div class="value">8</div>
+  </div>
+  <div class="stat gray">
+    <div class="label">ללא שיוך נהג</div>
+    <div class="value">2</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">סה״כ לבדיקה</div>
+    <div class="value">29</div>
+  </div>
+</div>
+
+<h2><span class="pill red"></span> רכבים שסומנו "מושבת" בפריוריטי <span class="badge">20 רכבים</span></h2>
+<div class="section-desc">רכבים שבפריוריטי הנהג המשויך אליהם הוא "מושבת". חלקם בעלי היסטוריית דיווחים, ועדיין מופיעים בדשבורד כרכבים פעילים.</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>לוחית</th>
+      <th>דגם</th>
+      <th>חברה</th>
+      <th>סוג</th>
+      <th>ספק</th>
+      <th>ק״מ נוכחי</th>
+      <th>דיווח אחרון</th>
+      <th>סה״כ דיווחים</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="plate">6678008</td><td>סקודה</td><td>מטלפרס פתרונות חכמים</td><td>פרטי</td><td>פריסבי</td><td class="num">350</td><td>12/2025</td><td class="num">1</td></tr>
+    <tr><td class="plate">12345678</td><td>שוטף</td><td>מטלפרס פתרונות חכמים</td><td>פרטית</td><td>מטלפרס</td><td class="num">2,050</td><td>01/2026</td><td class="num">13</td></tr>
+    <tr><td class="plate">32066503</td><td>TIGGO 7 PRO</td><td>מטלפרס פתרונות חכמים</td><td>ליסינג</td><td>פריסבי</td><td class="num">29,702</td><td>04/2024</td><td class="num">3</td></tr>
+    <tr><td class="plate">65362903</td><td>פיגו 5008 אקטיב</td><td>מטלפרס פתרונות חכמים</td><td>ליסינג</td><td>פריסבי</td><td class="num">34,307</td><td>06/2025</td><td class="num">10</td></tr>
+    <tr><td class="plate">64054903</td><td>סקודה אוקטביה</td><td>מטלפרס פתרונות חכמים</td><td>ליסינג</td><td>פריסבי</td><td class="num">79,600</td><td>04/2026</td><td class="num">4</td></tr>
+    <tr><td class="plate">54153503</td><td>מיצובישי Outlander</td><td>מטלפרס פתרונות חכמים</td><td>ליסינג</td><td>פריסבי</td><td class="num">48,586</td><td>02/2026</td><td class="num">22</td></tr>
+    <tr><td class="plate">13036604</td><td>צ'רי TIGGO 8</td><td>מטלפרס פתרונות חכמים</td><td>ליסינג</td><td>פריסבי</td><td class="num">0</td><td class="muted">—</td><td class="num">0</td></tr>
+    <tr><td class="plate">53701502</td><td>טויוטה TOYOTA CO</td><td>מטלפרס פתרונות חכמים</td><td>ליסינג</td><td>תמיר</td><td class="num">53,800</td><td>10/2025</td><td class="num">2</td></tr>
+    <tr><td class="plate">11142102</td><td>פיג'ו 3008</td><td>מטלפרס ניהול עשן</td><td>פרטי</td><td>פרטי</td><td class="num">65,360</td><td>12/2025</td><td class="num">3</td></tr>
+    <tr><td class="plate">11219104</td><td>סקודה KODIAQ</td><td>מטלפרס ניהול עשן</td><td>חברה</td><td>פרטי</td><td class="num">62,984</td><td>02/2026</td><td class="num">15</td></tr>
+    <tr><td class="plate">48882603</td><td>סיטרואן ברלינגו</td><td>מטלפרס שירות</td><td>ליסינג</td><td>פריסבי</td><td class="num">108,543</td><td>01/2026</td><td class="num">17</td></tr>
+    <tr><td class="plate">28527103</td><td>דאציה DUSTER</td><td>מטלפרס ניהול עשן</td><td>חברה</td><td>פרטי</td><td class="num">104,381</td><td>06/2025</td><td class="num">18</td></tr>
+    <tr><td class="plate">28526703</td><td>דאציה DUSTER</td><td>מטלפרס ניהול עשן</td><td>חברה</td><td>פרטי</td><td class="num">145,926</td><td>01/2026</td><td class="num">23</td></tr>
+    <tr><td class="plate">17507604</td><td>קיה PICANTO</td><td>פ.א כוכב 2018</td><td>השכרה</td><td>תמיר</td><td class="num">9,637</td><td>03/2026</td><td class="num">5</td></tr>
+    <tr><td class="plate">14010903</td><td>פיג'ו צרפת</td><td>פ.א כוכב 2018</td><td>ליסינג</td><td>דומיקאר</td><td class="num">94,637</td><td>11/2025</td><td class="num">21</td></tr>
+    <tr><td class="plate">69102403</td><td>מזדה MAZDA 2</td><td>מטלפרס דלתות ומחיצות אש</td><td>השכרה</td><td>החכר</td><td class="num">52,706</td><td>03/2026</td><td class="num">3</td></tr>
+    <tr><td class="plate">81894403</td><td>רנו ARKANA</td><td>מטלפרס דלתות ומחיצות אש</td><td>ליסינג</td><td>פריסבי</td><td class="num">40,526</td><td>02/2026</td><td class="num">1</td></tr>
+    <tr><td class="plate">36086003</td><td>קיה SELTOS</td><td>מטלפרס דלתות ומחיצות אש</td><td>ליסינג</td><td>תמיר</td><td class="num">0</td><td class="muted">—</td><td class="num">0</td></tr>
+    <tr><td class="plate">26563404</td><td>CJ33T ניסאן</td><td>מטלפרס פתרונות חכמים</td><td>ליסינג</td><td>פריסבי</td><td class="num">66</td><td>03/2026</td><td class="num">1</td></tr>
+    <tr><td class="plate">76738903</td><td>סיאט</td><td>מטלפרס דלתות ומחיצות אש</td><td>ליסינג</td><td>תמיר</td><td class="num">0</td><td class="muted">—</td><td class="num">0</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="pill orange"></span> רכבי "שוטף" <span class="badge">8 רשומות</span></h2>
+<div class="section-desc">רשומות שבהן הדגם הוא "שוטף". ברובן ה"נהג" המשויך הוא תווית מערכת (שירות / פתרונות / ניהול עשן / כוכב / דלתות / מיגון), ללא ק״מ או היסטוריית דיווחים. נראה כי אלה אינן רכבים אמיתיים אלא רשומות מסווגות.</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>לוחית</th>
+      <th>"נהג"</th>
+      <th>חברה משויכת</th>
+      <th>ק״מ</th>
+      <th>דיווחים</th>
+      <th>הערה</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="plate">11223344</td><td>שירות</td><td>מטלפרס שירות</td><td class="num">0</td><td class="num">0</td><td class="muted">תווית מערכת</td></tr>
+    <tr><td class="plate">22334455</td><td>פתרונות</td><td>מטלפרס פתרונות חכמים</td><td class="num">0</td><td class="num">0</td><td class="muted">תווית מערכת</td></tr>
+    <tr><td class="plate">33445566</td><td>ניהול עשן</td><td>מטלפרס ניהול עשן</td><td class="num">0</td><td class="num">0</td><td class="muted">תווית מערכת</td></tr>
+    <tr><td class="plate">44556677</td><td>כוכב</td><td>פ.א כוכב 2018</td><td class="num">0</td><td class="num">0</td><td class="muted">תווית מערכת</td></tr>
+    <tr><td class="plate">55667788</td><td>דלתות</td><td>מטלפרס דלתות ומחיצות אש</td><td class="num">0</td><td class="num">0</td><td class="muted">תווית מערכת</td></tr>
+    <tr><td class="plate">66778899</td><td>מיגון</td><td>מטלפרס מיגון אש</td><td class="num">0</td><td class="num">0</td><td class="muted">תווית מערכת</td></tr>
+    <tr><td class="plate">55996688</td><td class="muted">—</td><td>מטלפרס ייצוא (1982)</td><td class="num">0</td><td class="num">0</td><td class="muted">ללא נהג + ללא היסטוריה</td></tr>
+  </tbody>
+</table>
+<div style="font-size:9pt;color:#86868b;margin-top:6px;">* רשומה נוספת בקטגוריה זו (לוחית 12345678) מוצגת בטבלת "מושבת" לעיל בשל הנהג המסומן שם.</div>
+
+<h2><span class="pill gray"></span> רכבים פעילים ללא שיוך נהג <span class="badge">2 רכבים</span></h2>
+<div class="section-desc">רכבים שאינם מסומנים מלאי, אך לא משויכים לנהג כלשהו, ללא היסטוריית דיווחים.</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>לוחית</th>
+      <th>דגם</th>
+      <th>חברה</th>
+      <th>סוג</th>
+      <th>ק״מ</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="plate">59399901</td><td>ב.מ.וו Z4 SDRIV</td><td>מטלפרס ייצוא (1982)</td><td>פרטית</td><td class="num">0</td></tr>
+    <tr><td class="plate">9847931</td><td>ניסאן ספרד</td><td>מטלפרס ייצוא (1982)</td><td>חברה</td><td class="num">0</td></tr>
+  </tbody>
+</table>
+
+<div class="recommendation">
+  <h3>המלצה לפעולה</h3>
+  <ul>
+    <li><strong>קטגוריית "מושבת" (20 רכבים):</strong> מבוקש אישור להסיר מהדשבורד. הרכבים מסומנים בפריוריטי כמושבתים והנתונים שלהם משוקעים בחישובי ק״מ, אחוזי דיווח ותזכורות לנהגים.</li>
+    <li><strong>קטגוריית "שוטף" (8 רשומות):</strong> נראה שמדובר בתוויות מערכת ולא ברכבים פעילים. מבוקש אישור להסיר.</li>
+    <li><strong>רכבים ללא נהג (2):</strong> מבוקש לציין אם אלה רכבים פעילים שממתינים לשיוך נהג חדש, או שיש להסיר אותם.</li>
+  </ul>
+</div>
+
+<div class="footer">
+  הופק אוטומטית מתוך מערכת ניהול צי הרכב · MetalPress Fleet Dashboard
+</div>
+
+</body>
+</html>

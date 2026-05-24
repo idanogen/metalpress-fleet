@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Sidebar, type ViewType } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { KpiCards } from '@/components/dashboard/KpiCards';
@@ -10,12 +11,15 @@ import { DriverDetail } from '@/components/dashboard/DriverDetail';
 import { FleetManagementPage } from '@/components/fleet-management/FleetManagementPage';
 import { InventoryPage } from '@/components/inventory/InventoryPage';
 import { FuelExpensesPage } from '@/components/fuel-expenses/FuelExpensesPage';
+import { FleetExpensesPage } from '@/components/fleet-expenses/FleetExpensesPage';
+import { OverheadExpensesPage } from '@/components/overhead-expenses/OverheadExpensesPage';
 import { DriverRemindersPage } from '@/components/driver-reminders/DriverRemindersPage';
-import { SendFirstMessagePage } from '@/components/send-first-message/SendFirstMessagePage';
 import { DriversDetailPage } from '@/components/drivers-detail/DriversDetailPage';
+import { AnomaliesReviewPage } from '@/components/anomalies-review/AnomaliesReviewPage';
 import { SettingsPage } from '@/components/settings/SettingsPage';
 import { ReportsPage } from '@/components/reports/ReportsPage';
 import { useFleetData } from '@/hooks/useFleetData';
+import { fetchPendingAnomalies } from '@/lib/anomalies';
 import type { Vehicle } from '@/types/fleet';
 
 function LoadingSkeleton() {
@@ -42,10 +46,22 @@ export default function App() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
 
+  const { data: pendingAnomalies = [] } = useQuery({
+    queryKey: ['pending-anomalies'],
+    queryFn: fetchPendingAnomalies,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+  });
+
   return (
     <div className="min-h-screen text-[#1d1d1f]" dir="rtl">
       {/* Floating Sidebar */}
-      <Sidebar currentView={currentView} onNavigate={setCurrentView} unreportedCount={fleet.unreportedVehicles.length} />
+      <Sidebar
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        unreportedCount={fleet.unreportedVehicles.length}
+        anomaliesCount={pendingAnomalies.length}
+      />
 
       {/* Floating Header */}
       <Header
@@ -123,6 +139,22 @@ export default function App() {
             />
           )}
 
+          {currentView === 'fleet-expenses' && (
+            <FleetExpensesPage
+              vehicles={fleet.vehicles}
+              selectedYear={fleet.selectedYear}
+              selectedMonth={fleet.selectedMonth}
+            />
+          )}
+
+          {currentView === 'overhead-expenses' && (
+            <OverheadExpensesPage
+              overheadAccounts={fleet.overheadAccounts}
+              selectedYear={fleet.selectedYear}
+              selectedMonth={fleet.selectedMonth}
+            />
+          )}
+
           {currentView === 'driver-reminders' && (
             <DriverRemindersPage
               vehicles={fleet.vehicles}
@@ -131,16 +163,12 @@ export default function App() {
             />
           )}
 
-          {currentView === 'send-first-message' && (
-            <SendFirstMessagePage
-              vehicles={fleet.vehicles}
-              selectedYear={fleet.selectedYear}
-              selectedMonth={fleet.selectedMonth}
-            />
-          )}
-
           {currentView === 'drivers-detail' && (
             <DriversDetailPage vehicles={fleet.vehicles} />
+          )}
+
+          {currentView === 'anomalies-review' && (
+            <AnomaliesReviewPage />
           )}
 
           {currentView === 'reports' && (
