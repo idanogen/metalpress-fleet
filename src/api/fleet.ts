@@ -1,4 +1,4 @@
-import type { Vehicle, MonthlyUsage } from '@/types/fleet';
+import type { Vehicle, MonthlyUsage, VehicleInvoice } from '@/types/fleet';
 import { supabase } from '@/lib/supabase';
 
 const HEBREW_MONTHS: Record<number, string> = {
@@ -142,4 +142,56 @@ export async function fetchFleetData(): Promise<Vehicle[]> {
   const vehicles = (data as unknown as DbVehicle[]).map(mapVehicle);
   console.log(`[Fleet API] Loaded ${vehicles.length} vehicles from Supabase`);
   return vehicles;
+}
+
+interface DbInvoice {
+  id: number;
+  vehicle_id: number;
+  plate_number: string;
+  report_year: number | null;
+  report_month: number | null;
+  invoice_number: string | null;
+  invoice_date: string | null;
+  amount: number | null;
+  supplier_name: string | null;
+  supplier_code: string | null;
+  company_code: string | null;
+  category_name: string | null;
+  category_code: number | null;
+  status: string | null;
+}
+
+function mapInvoice(i: DbInvoice): VehicleInvoice {
+  return {
+    id: i.id,
+    vehicleId: i.vehicle_id,
+    plateNumber: i.plate_number,
+    reportYear: i.report_year,
+    reportMonth: i.report_month,
+    invoiceNumber: i.invoice_number,
+    invoiceDate: i.invoice_date,
+    amount: Number(i.amount ?? 0),
+    supplierName: i.supplier_name,
+    supplierCode: i.supplier_code,
+    companyCode: i.company_code,
+    categoryName: i.category_name,
+    categoryCode: i.category_code,
+    status: i.status,
+  };
+}
+
+export async function fetchVehicleInvoices(vehicleId: number): Promise<VehicleInvoice[]> {
+  const { data, error } = await supabase
+    .from('vehicle_invoices')
+    .select(
+      'id, vehicle_id, plate_number, report_year, report_month, ' +
+      'invoice_number, invoice_date, amount, ' +
+      'supplier_name, supplier_code, company_code, ' +
+      'category_name, category_code, status'
+    )
+    .eq('vehicle_id', vehicleId)
+    .order('invoice_date', { ascending: false, nullsFirst: false });
+
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (data as unknown as DbInvoice[]).map(mapInvoice);
 }

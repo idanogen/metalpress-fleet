@@ -109,3 +109,20 @@ export interface FleetStats {
   totalMonthlyKm: number;
   anomalyCount: number;
 }
+
+export interface VehicleInvoice {
+  id: number;
+  vehicleId: number;
+  plateNumber: string;
+  reportYear: number | null;
+  reportMonth: number | null;
+  invoiceNumber: string | null;
+  invoiceDate: string | null;
+  amount: number;
+  supplierName: string | null;
+  supplierCode: string | null;
+  companyCode: string | null;
+  categoryName: string | null;
+  categoryCode: number | null;
+  status: string | null;
+}

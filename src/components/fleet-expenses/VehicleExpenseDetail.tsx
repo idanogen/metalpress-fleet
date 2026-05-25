@@ -1,13 +1,14 @@
-import { X, Wallet, TrendingUp, Calendar, Building2 } from 'lucide-react';
+import { X, Wallet, TrendingUp, Calendar, Building2, Receipt, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts';
-import { useMemo } from 'react';
-import type { Vehicle, MonthlyUsage, ExpenseCategoryKey } from '@/types/fleet';
+import { useMemo, useState } from 'react';
+import type { Vehicle, MonthlyUsage, ExpenseCategoryKey, VehicleInvoice } from '@/types/fleet';
 import { EXPENSE_CATEGORIES } from '@/types/fleet';
 import { VehicleImage } from '@/components/ui/VehicleImage';
+import { useVehicleInvoices } from '@/hooks/useVehicleInvoices';
 
 const MONTH_LABELS = ['ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יונ', 'יול', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'];
 
@@ -29,6 +30,7 @@ interface VehicleExpenseDetailProps {
 
 export function VehicleExpenseDetail({ vehicle, activeCategories, onClose }: VehicleExpenseDetailProps) {
   const activeKeys = useMemo(() => [...activeCategories] as ExpenseCategoryKey[], [activeCategories]);
+  const { data: invoices = [], isLoading: invoicesLoading } = useVehicleInvoices(vehicle?.id ?? null);
 
   // Filter only categories that have any value for this vehicle
   const usedCategories = useMemo(() => {
@@ -341,6 +343,9 @@ export function VehicleExpenseDetail({ vehicle, activeCategories, onClose }: Veh
                 </table>
               </div>
             </div>
+
+            {/* Invoices table — per-line invoice details from Priority EDPE_CARUSAGEPIVENV */}
+            <InvoicesSection invoices={invoices} loading={invoicesLoading} />
           </div>
         </motion.div>
       </div>
@@ -371,6 +376,152 @@ function KpiMini({
       </div>
       <p className="text-lg font-extrabold text-[#1d1d1f] truncate">{value}</p>
       {sub && <p className="text-[10px] text-[#86868b] mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+// Fuzzy-match a Priority category description to one of our EXPENSE_CATEGORIES
+// so the invoice row can be colored consistently with the rest of the dashboard.
+function categoryColorFor(name: string | null): string {
+  if (!name) return '#86868b';
+  const lower = name.toLowerCase();
+  const match = EXPENSE_CATEGORIES.find(c => {
+    const cl = c.label.toLowerCase();
+    return lower.includes(cl) || cl.includes(lower);
+  });
+  return match?.color ?? '#86868b';
+}
+
+function formatInvoiceDate(iso: string | null): string {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y.slice(2)}`;
+}
+
+function InvoicesSection({ invoices, loading }: { invoices: VehicleInvoice[]; loading: boolean }) {
+  const [monthFilter, setMonthFilter] = useState<string>('all');
+
+  const monthOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const inv of invoices) {
+      if (inv.reportYear && inv.reportMonth) {
+        set.add(`${inv.reportYear}-${String(inv.reportMonth).padStart(2, '0')}`);
+      }
+    }
+    return [...set].sort().reverse();
+  }, [invoices]);
+
+  const filtered = useMemo(() => {
+    if (monthFilter === 'all') return invoices;
+    const [y, m] = monthFilter.split('-');
+    return invoices.filter(
+      i => String(i.reportYear) === y && String(i.reportMonth).padStart(2, '0') === m
+    );
+  }, [invoices, monthFilter]);
+
+  const totalAmount = useMemo(
+    () => filtered.reduce((s, i) => s + (i.amount || 0), 0),
+    [filtered]
+  );
+
+  return (
+    <div className="glass-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-white/30 flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Receipt className="w-4 h-4 text-[#5856D6]" />
+          <h3 className="text-sm font-bold text-[#1d1d1f]">
+            חשבוניות הוצאות רכב
+            {!loading && invoices.length > 0 && (
+              <span className="text-[#86868b] font-normal mr-2">
+                ({invoices.length} {invoices.length === 1 ? 'חשבונית' : 'חשבוניות'})
+              </span>
+            )}
+          </h3>
+        </div>
+
+        {monthOptions.length > 1 && (
+          <select
+            value={monthFilter}
+            onChange={e => setMonthFilter(e.target.value)}
+            className="text-xs bg-white/60 border border-white/40 rounded-lg px-2.5 py-1 text-[#1d1d1f] font-medium cursor-pointer"
+          >
+            <option value="all">כל החודשים</option>
+            {monthOptions.map(opt => {
+              const [y, m] = opt.split('-');
+              return (
+                <option key={opt} value={opt}>
+                  {MONTH_LABELS[parseInt(m, 10) - 1]} {y}
+                </option>
+              );
+            })}
+          </select>
+        )}
+
+        {filtered.length > 0 && (
+          <div className="ms-auto text-xs text-[#86868b]">
+            סה״כ: <span className="font-bold text-[#1d1d1f]">{formatCurrency(totalAmount)}</span>
+          </div>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="h-[120px] flex items-center justify-center text-[#86868b] text-sm gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          טוען חשבוניות…
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="h-[100px] flex items-center justify-center text-[#86868b] text-sm">
+          {invoices.length === 0 ? 'אין חשבוניות מסונכרנות לרכב זה' : 'אין חשבוניות לחודש שנבחר'}
+        </div>
+      ) : (
+        <div className="overflow-x-auto max-h-[400px]">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-white/80 backdrop-blur-sm z-10">
+              <tr className="border-b border-white/30">
+                <th className="px-3 py-2 text-right font-bold text-[#86868b] whitespace-nowrap">תאריך</th>
+                <th className="px-3 py-2 text-right font-bold text-[#86868b] whitespace-nowrap">קטגוריה</th>
+                <th className="px-3 py-2 text-right font-bold text-[#86868b] whitespace-nowrap">ספק</th>
+                <th className="px-3 py-2 text-right font-bold text-[#86868b] whitespace-nowrap">חברה</th>
+                <th className="px-3 py-2 text-right font-bold text-[#86868b] whitespace-nowrap">מס׳ חשבונית</th>
+                <th className="px-3 py-2 text-left font-bold text-[#86868b] whitespace-nowrap">סכום</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(inv => {
+                const color = categoryColorFor(inv.categoryName);
+                return (
+                  <tr key={inv.id} className="border-b border-black/[0.03] hover:bg-white/40 transition-colors">
+                    <td className="px-3 py-2 text-[#1d1d1f] whitespace-nowrap font-mono">
+                      {formatInvoiceDate(inv.invoiceDate)}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium"
+                        style={{ backgroundColor: `${color}18`, color }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                        {inv.categoryName || '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-[#1d1d1f] max-w-[180px] truncate" title={inv.supplierName ?? ''}>
+                      {inv.supplierName || '—'}
+                    </td>
+                    <td className="px-3 py-2 text-[#86868b] whitespace-nowrap font-mono text-[11px]">
+                      {inv.companyCode || '—'}
+                    </td>
+                    <td className="px-3 py-2 text-[#86868b] whitespace-nowrap font-mono text-[11px]">
+                      {inv.invoiceNumber || '—'}
+                    </td>
+                    <td className="px-3 py-2 text-left font-bold text-[#1d1d1f] whitespace-nowrap font-mono">
+                      {formatCurrency(inv.amount)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

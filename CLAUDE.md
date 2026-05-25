@@ -46,6 +46,7 @@ Vite 8 + React 19 + TypeScript + Tailwind CSS 4 + Recharts + Framer Motion + Rea
   - `vehicles` — צי הרכב (כולל `is_active`, `is_inventory`, `current_driver_id`, `last_synced_at`)
   - `drivers` — נהגים (name, phone, whatsapp_id)
   - `monthly_reports` — דיווחים חודשיים (ק"מ, דלק, 13 קטגוריות עלות, source)
+  - `vehicle_invoices` — חשבוניות פר שורה מהמסך הנכד `EDPE_CARUSAGEPIVENV` בפריוריטי (תאריך, ספק, סכום, קטגוריה, חברה). PK חיצוני: `(carusagepiv, kline)`
 
 ### עמודות עלות ב-`monthly_reports`
 14 קטגוריות הוצאה מסונכרנות מפריוריטי (`METL_CARUSAGE_SUBFORM`):
@@ -96,6 +97,7 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 
 #### RPC ב-Supabase
 - `sync_vehicle_from_priority(p_payload jsonb)` — הסנריו 4646251 שולח אליו payload פר רכב. עושה upsert לרכב + drivers + monthly_reports. תומך ב-overhead accounts (model='שוטף') שאין להם ק"מ אבל יש עלויות. עדכון בקונפליקט רק כשsource='priority' (לא דורס דיווחי וואטסאפ).
+- `sync_vehicle_invoices(p_payload jsonb)` — מקבל את אותו payload כמו `sync_vehicle_from_priority` ושולף ממנו את `METL_CARUSAGE_SUBFORM[].EDPE_CARUSAGEPIVENV_SUBFORM[]` לעדכון `vehicle_invoices`. דורש שה-URL בסנריו יכלול `($expand=EDPE_CARUSAGEPIVENV_SUBFORM)`. ראה `docs/sync-vehicle-invoices-spec.md`.
 
 ---
 
@@ -124,7 +126,7 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 | `drivers-detail` | DriversDetailPage | היסטוריית 12 חודשים לכל נהג + פרטי חוזה ורישוי |
 | `anomalies-review` | AnomaliesReviewPage | סקירת דיווחים חריגים |
 | `fuel-expenses` | FuelExpensesPage | הוצאות דלק (ממוקד דלק בלבד) |
-| `fleet-expenses` | FleetExpensesPage | הוצאות צי — 14 קטגוריות, פילטרים, גרפים, drawer לרכב |
+| `fleet-expenses` | FleetExpensesPage | הוצאות צי — 14 קטגוריות, פילטרים, גרפים, drawer לרכב עם **טבלת חשבוניות מפורטות** (`vehicle_invoices`) |
 | `overhead-expenses` | OverheadExpensesPage | 7 חשבונות פיקטיביים (model='שוטף') — הוצאות כלליות לפי חברה |
 | `reports` | ReportsPage | דוחות + ייצוא Excel |
 | `settings` | SettingsPage | הגדרות (anomaly threshold וכו') |
