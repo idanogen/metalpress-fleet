@@ -67,7 +67,12 @@ async function writeToPriorityViaMake(p: { vehicleId: number; year: number; mont
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(p),
     });
-    return { ok: r.ok, status: r.status };
+    // Capture Priority's real status + body so a rejection (e.g. mileage lower
+    // than a past month) is surfaced, not swallowed.
+    if (r.ok) return { ok: true, status: r.status };
+    let body = '';
+    try { body = (await r.text()).slice(0, 500); } catch { /* ignore */ }
+    return { ok: false, status: r.status, error: `HTTP ${r.status}${body ? `: ${body}` : ''}` };
   } catch (e) {
     return { ok: false, error: String(e) };
   }
@@ -86,10 +91,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { id, action, corrected_mileage } = (req.body ?? {}) as {
+  const { id, action, corrected_mileage, vehicle_id } = (req.body ?? {}) as {
     id?: number;
     action?: string;
     corrected_mileage?: number;
+    vehicle_id?: number;
   };
 
   if (typeof id !== 'number') return res.status(400).json({ error: 'id (number) required' });
@@ -110,17 +116,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (fetchErr || !row) return res.status(404).json({ error: 'inbound message not found' });
   if (row.status !== 'pending_review') return res.status(400).json({ error: `already ${row.status}` });
-  if (!row.matched_vehicle_id || !row.matched_driver_id || !row.parsed_year || !row.parsed_month) {
-    return res.status(400).json({ error: 'inbound message missing required context (vehicle/driver/year/month)' });
+  if (!row.matched_driver_id || !row.parsed_year || !row.parsed_month) {
+    return res.status(400).json({ error: 'inbound message missing required context (driver/year/month)' });
+  }
+
+  const { matched_driver_id: driverId, parsed_year: year, parsed_month: month } = row;
+
+  // Most pending rows already know their vehicle. Ambiguous rows (driver had several
+  // active vehicles) carry no vehicle — the reviewer must pass the chosen vehicle_id,
+  // which we validate belongs to this driver and is an active, non-inventory car.
+  let vehicleId = row.matched_vehicle_id as number | null;
+  if (!vehicleId) {
+    if (typeof vehicle_id !== 'number') {
+      return res.status(400).json({ error: 'יש לבחור רכב עבור דיווח שלא שויך אוטומטית' });
+    }
+    const { data: chosen } = await supabase
+      .from('vehicles')
+      .select('id, current_driver_id, is_active, is_inventory')
+      .eq('id', vehicle_id)
+      .single();
+    if (!chosen || chosen.current_driver_id !== driverId || !chosen.is_active || chosen.is_inventory) {
+      return res.status(400).json({ error: 'הרכב שנבחר אינו משויך לנהג או אינו פעיל' });
+    }
+    vehicleId = vehicle_id;
   }
 
   const finalMileage = action === 'approve' ? row.parsed_mileage : corrected_mileage!;
-  const { matched_vehicle_id: vehicleId, matched_driver_id: driverId, parsed_year: year, parsed_month: month } = row;
 
   const [{ data: driver }, { data: vehicle }] = await Promise.all([
     supabase.from('drivers').select('phone, name').eq('id', driverId).single(),
     supabase.from('vehicles').select('plate_number, current_mileage, last_report_year, last_report_month').eq('id', vehicleId).single(),
   ]);
+
+  // Business rule (mirrors Priority): odometer can only go up. Refuse to commit a
+  // reading at or below the vehicle's current mileage — Priority would reject it
+  // anyway, and writing it to Supabase only creates a dashboard↔Priority mismatch.
+  // The reviewer must enter a corrected value that's higher than the current reading.
+  if (vehicle && vehicle.current_mileage > 0 && finalMileage <= vehicle.current_mileage) {
+    return res.status(409).json({
+      error: `קריאה ${finalMileage.toLocaleString('he-IL')} אינה גבוהה מהקריאה הקיימת (${vehicle.current_mileage.toLocaleString('he-IL')}). פריוריטי לא יקבל מספר נמוך — יש להזין קריאה מתוקנת גבוהה יותר.`,
+      current_mileage: vehicle.current_mileage,
+      attempted: finalMileage,
+    });
+  }
 
   const { error: reportError } = await supabase
     .from('monthly_reports')
@@ -165,6 +203,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   await supabase.from('inbound_messages').update({
     status: action === 'approve' ? 'approved' : 'rejected',
     parsed_mileage: finalMileage,
+    matched_vehicle_id: vehicleId,
     processed_at: new Date().toISOString(),
   }).eq('id', id);
 

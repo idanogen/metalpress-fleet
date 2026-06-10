@@ -40,7 +40,7 @@ export function AnomaliesReviewPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1d1d1f]">דיווחים חריגים</h2>
               <p className="text-sm text-[#86868b] mt-1">
-                דיווחי ק"מ שנפלו בולידציה (גבוה משמעותית או נמוך מהקודם) — מחכים לאישור או תיקון
+                דיווחי ק"מ שנפלו בולידציה (גבוה/נמוך מהקודם) או שלא ידוע לאיזה רכב לשייך — מחכים לאישור, תיקון או בחירת רכב
               </p>
             </div>
             <div className="mr-auto">
@@ -103,9 +103,21 @@ function AnomalyCard({
   const [correctedValue, setCorrectedValue] = useState<string>('');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Ambiguous report: no vehicle was matched, the driver has several active cars.
+  // The reviewer must pick one before approving. Auto-select when there's only one.
+  const candidates = item.candidates ?? [];
+  const isAmbiguous = !item.vehicle && candidates.length > 0;
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
+    candidates.length === 1 ? candidates[0].id : null
+  );
+  const vehicle = isAmbiguous
+    ? candidates.find(c => c.id === selectedVehicleId) ?? null
+    : item.vehicle;
+  const needsVehicleChoice = isAmbiguous && selectedVehicleId === null;
+
   const mutation = useMutation({
     mutationFn: (vars: { action: 'approve' | 'reject'; corrected?: number }) =>
-      resolveAnomaly(item.id, vars.action, vars.corrected),
+      resolveAnomaly(item.id, vars.action, vars.corrected, selectedVehicleId ?? undefined),
     onSuccess: (result) => {
       const action = result.action === 'approve' ? 'אושר' : 'תוקן';
       const priorityMsg = result.priorityWritten
@@ -124,18 +136,37 @@ function AnomalyCard({
     },
   });
 
-  const handleApprove = () => mutation.mutate({ action: 'approve' });
+  const currentMileage = vehicle?.current_mileage ?? 0;
+  // Odometer only goes up — a reading at/below the current one can't be approved
+  // (Priority rejects it). The reviewer must correct it to a higher number.
+  const isBelowCurrent = currentMileage > 0 && item.parsed_mileage <= currentMileage;
+
+  const handleApprove = () => {
+    if (needsVehicleChoice) {
+      setFeedback({ type: 'error', text: 'יש לבחור רכב לפני אישור' });
+      return;
+    }
+    mutation.mutate({ action: 'approve' });
+  };
   const handleReject = () => {
+    if (needsVehicleChoice) {
+      setFeedback({ type: 'error', text: 'יש לבחור רכב לפני תיקון' });
+      return;
+    }
     const n = Number(correctedValue);
     if (!Number.isFinite(n) || n <= 0) {
       setFeedback({ type: 'error', text: 'יש להזין מספר תקין' });
       return;
     }
+    if (currentMileage > 0 && n <= currentMileage) {
+      setFeedback({ type: 'error', text: `הקריאה המתוקנת חייבת להיות גבוהה מהקריאה הקיימת (${currentMileage.toLocaleString('he-IL')})` });
+      return;
+    }
     mutation.mutate({ action: 'reject', corrected: n });
   };
 
-  const delta = item.vehicle && item.vehicle.current_mileage > 0
-    ? item.parsed_mileage - item.vehicle.current_mileage
+  const delta = vehicle && vehicle.current_mileage > 0
+    ? item.parsed_mileage - vehicle.current_mileage
     : null;
   const monthLabel = MONTH_NAMES[item.parsed_month] || `חודש ${item.parsed_month}`;
 
@@ -150,7 +181,7 @@ function AnomalyCard({
       <div className="p-5 lg:p-6">
         {/* Top row: driver + vehicle + meta */}
         <div className="flex flex-wrap items-start gap-4">
-          <VehicleImage model={item.vehicle?.model ?? ''} width={64} height={44} />
+          <VehicleImage model={vehicle?.model ?? ''} width={64} height={44} />
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h3 className="text-lg font-bold text-[#1d1d1f]">{item.driver?.name ?? '—'}</h3>
@@ -164,9 +195,9 @@ function AnomalyCard({
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#424245]">
               <span className="flex items-center gap-1">
                 <Car className="w-3.5 h-3.5 text-[#86868b]" />
-                {item.vehicle?.model ?? '—'}
+                {vehicle?.model ?? '—'}
               </span>
-              <span className="text-[#86868b] font-mono text-xs">{item.vehicle?.plate_number ?? '—'}</span>
+              <span className="text-[#86868b] font-mono text-xs">{vehicle?.plate_number ?? '—'}</span>
               <span className="flex items-center gap-1 text-[#86868b]">
                 <Calendar className="w-3.5 h-3.5" />
                 דיווח על {monthLabel} {item.parsed_year}
@@ -175,12 +206,39 @@ function AnomalyCard({
           </div>
         </div>
 
+        {/* Ambiguous report — driver has several active vehicles, reviewer picks one */}
+        {isAmbiguous && (
+          <div className="mt-4 p-3 rounded-2xl bg-[#007AFF]/[0.06] border border-[#007AFF]/20">
+            <div className="text-xs font-semibold text-[#007AFF] mb-2 flex items-center gap-1.5">
+              <Car className="w-3.5 h-3.5" />
+              לאיזה רכב לשייך את הדיווח? (רשומים על הנהג {candidates.length} רכבים)
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {candidates.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedVehicleId(c.id)}
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
+                    selectedVehicleId === c.id
+                      ? 'bg-[#007AFF] text-white border-[#007AFF] shadow-sm'
+                      : 'bg-white/70 text-[#1d1d1f] border-black/10 hover:border-[#007AFF]/40'
+                  }`}
+                >
+                  <span>{c.model || 'רכב'}</span>
+                  <span className="font-mono text-xs opacity-80 mr-2">{c.plate_number}</span>
+                  <span className="text-xs opacity-70 mr-1">({c.current_mileage.toLocaleString('he-IL')} ק"מ)</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Numbers row */}
         <div className="mt-5 grid grid-cols-3 gap-3">
           <div className="bg-black/[0.03] rounded-2xl p-3 text-center">
             <div className="text-xs text-[#86868b] mb-1">קריאה קודמת</div>
             <div className="text-xl font-bold text-[#1d1d1f]">
-              {item.vehicle?.current_mileage.toLocaleString('he-IL') ?? '—'}
+              {vehicle?.current_mileage.toLocaleString('he-IL') ?? '—'}
             </div>
           </div>
           <div className="bg-[#ff9500]/[0.08] rounded-2xl p-3 text-center">
@@ -222,23 +280,35 @@ function AnomalyCard({
         {/* Actions */}
         {!feedback && (
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleApprove}
-              disabled={mutation.isPending}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#34c759] text-white hover:bg-[#28a745] disabled:opacity-50 transition-all shadow-sm"
-            >
-              {mutation.isPending && mutation.variables?.action === 'approve' ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CheckCircle className="w-4 h-4" />
-              )}
-              אשר את הקריאה ({item.parsed_mileage.toLocaleString('he-IL')})
-            </button>
+            {needsVehicleChoice && (
+              <div className="w-full mb-1 p-3 rounded-xl bg-[#007AFF]/10 text-[#007AFF] text-sm font-medium">
+                בחר את הרכב למעלה כדי לאשר או לתקן את הדיווח.
+              </div>
+            )}
+            {isBelowCurrent ? (
+              <div className="w-full mb-1 p-3 rounded-xl bg-[#ff3b30]/10 text-[#ff3b30] text-sm font-medium">
+                לא ניתן לאשר — הקריאה ({item.parsed_mileage.toLocaleString('he-IL')}) נמוכה או שווה לקיימת ({currentMileage.toLocaleString('he-IL')}).
+                קילומטראז' רק עולה, ופריוריטי ידחה מספר נמוך. יש לתקן ידנית לקריאה גבוהה יותר.
+              </div>
+            ) : (
+              <button
+                onClick={handleApprove}
+                disabled={mutation.isPending || needsVehicleChoice}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#34c759] text-white hover:bg-[#28a745] disabled:opacity-50 transition-all shadow-sm"
+              >
+                {mutation.isPending && mutation.variables?.action === 'approve' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+                אשר את הקריאה ({item.parsed_mileage.toLocaleString('he-IL')})
+              </button>
+            )}
 
             {!showRejectInput ? (
               <button
                 onClick={() => setShowRejectInput(true)}
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || needsVehicleChoice}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#ff9500]/10 text-[#ff9500] hover:bg-[#ff9500] hover:text-white disabled:opacity-50 transition-all"
               >
                 <X className="w-4 h-4" />

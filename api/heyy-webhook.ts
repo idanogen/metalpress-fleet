@@ -46,7 +46,13 @@ async function writeToPriorityViaMake(p: { vehicleId: number; year: number; mont
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(p),
     });
-    return { ok: r.ok, status: r.status };
+    // The Make scenario now returns Priority's real status code (not a fake 200).
+    // On failure, capture the response body too — Priority explains the reason in
+    // Hebrew (e.g. "קילומטראז' גבוה יותר נרשם"), which we want surfaced in the log.
+    if (r.ok) return { ok: true, status: r.status };
+    let body = '';
+    try { body = (await r.text()).slice(0, 500); } catch { /* ignore */ }
+    return { ok: false, status: r.status, error: `HTTP ${r.status}${body ? `: ${body}` : ''}` };
   } catch (e) {
     return { ok: false, error: String(e) };
   }
@@ -247,14 +253,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(404).json({ error: 'No vehicle for driver', driver: driver.name });
   }
   if (vehicles.length > 1) {
+    // Driver is assigned to more than one active vehicle (typically mid-swap: the
+    // old car wasn't deactivated in Priority yet). We can't tell which odometer
+    // this reading belongs to — so instead of dropping it silently (the old bug),
+    // route it to the dashboard's anomaly review with NO vehicle picked. A human
+    // selects the correct plate there, and resolve-review writes it through.
+    const ambiguousMileage = parseMileage(rawText);
+    const { year: ambYear, month: ambMonth } = previousMonth();
+    const ackE164 = '+972' + phone.replace(/^0/, '');
+    const ackFirst = driver.name.split(/\s+/)[0];
+    const plates = vehicles.map(v => v.plate_number).filter(Boolean).join(', ');
+
+    // Couldn't even read a number — tell the driver and log as a plain failure.
+    if (ambiguousMileage === null) {
+      await sendHeyyWhatsAppText(ackE164,
+        `${ackFirst}, לא הצלחתי לזהות מספר קילומטראז' תקין בהודעה.\nנא לשלוח רק את המספר, לדוגמה: 125430`);
+      await supabase.from('inbound_messages').insert({
+        ...inboundBase,
+        matched_driver_id: driver.id,
+        status: 'failed',
+        error: `multiple vehicles (${vehicles.length}) + unparseable mileage`,
+        processed_at: new Date().toISOString(),
+      });
+      return res.status(200).json({ ok: false, validation: 'multiple vehicles + could not parse mileage' });
+    }
+
+    // Acknowledge so the driver isn't left in the dark, then queue for review.
+    await sendHeyyWhatsAppText(ackE164,
+      `תודה ${ackFirst} 🙏 קיבלנו את הקריאה ${ambiguousMileage.toLocaleString('he-IL')} ק"מ.\nמכיוון שרשומים על שמך כמה רכבים, נשייך אותה לרכב הנכון ונאשר בהקדם.`);
     await supabase.from('inbound_messages').insert({
       ...inboundBase,
       matched_driver_id: driver.id,
-      status: 'failed',
-      error: `multiple vehicles (${vehicles.length}) — ambiguous`,
-      processed_at: new Date().toISOString(),
+      parsed_mileage: ambiguousMileage,
+      parsed_year: ambYear,
+      parsed_month: ambMonth,
+      status: 'pending_review',
+      error: `ריבוי רכבים (${vehicles.length}) — נדרשת בחירת רכב ידנית${plates ? `: ${plates}` : ''}`,
     });
-    return res.status(409).json({ error: 'Multiple vehicles', count: vehicles.length });
+    return res.status(200).json({ ok: false, validation: 'multiple vehicles — sent to review', count: vehicles.length });
   }
 
   const vehicle = vehicles[0];
@@ -309,9 +345,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: false, validation: 'already reported', existing: existingReport.mileage, reported: mileage });
   }
 
-  if (mileage <= vehicle.current_mileage && vehicle.current_mileage > 0) {
+  // The floor for a valid reading is the highest mileage we trust for this vehicle.
+  // current_mileage alone is not enough — a bad manual/earlier report can lower it
+  // below reality (it happened: a vehicle showed 21,514 while Priority held 198,262,
+  // so a fresh ~21K reading passed this guard but Priority rejected the write-back).
+  // Priority is the system of record, so we also floor against the highest reading
+  // it ever reported. A new value below the floor is flagged for human review.
+  const { data: priorityPeak } = await supabase
+    .from('monthly_reports')
+    .select('mileage')
+    .eq('vehicle_id', vehicle.id)
+    .eq('source', 'priority')
+    .order('mileage', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const floor = Math.max(vehicle.current_mileage || 0, Number(priorityPeak?.mileage) || 0);
+
+  if (mileage <= floor && floor > 0) {
     await sendHeyyWhatsAppText(e164,
-      `${firstName}, המספר ששלחת (${mileage.toLocaleString('he-IL')}) נמוך או שווה לקריאה האחרונה (${vehicle.current_mileage.toLocaleString('he-IL')}).\nנא לבדוק ולשלוח שוב — רק את המספר, בלי טקסט נוסף.`);
+      `${firstName}, המספר ששלחת (${mileage.toLocaleString('he-IL')}) נמוך או שווה לקריאה האחרונה (${floor.toLocaleString('he-IL')}).\nנא לבדוק ולשלוח שוב — רק את המספר, בלי טקסט נוסף.`);
     await supabase.from('inbound_messages').insert({
       ...inboundBase,
       matched_driver_id: driver.id,
@@ -320,14 +372,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       parsed_year: year,
       parsed_month: month,
       status: 'pending_review',
-      error: `mileage ${mileage} below or equal to current ${vehicle.current_mileage}`,
+      error: `mileage ${mileage} below or equal to floor ${floor} (current ${vehicle.current_mileage}, priority peak ${priorityPeak?.mileage ?? 0})`,
     });
-    return res.status(200).json({ ok: false, validation: 'mileage below or equal to current', current: vehicle.current_mileage, reported: mileage });
+    return res.status(200).json({ ok: false, validation: 'mileage below or equal to floor', floor, reported: mileage });
   }
 
-  if (vehicle.current_mileage > 0 && mileage - vehicle.current_mileage > 10000) {
+  if (floor > 0 && mileage - floor > 10000) {
     await sendHeyyWhatsAppText(e164,
-      `${firstName}, הקריאה (${mileage.toLocaleString('he-IL')}) גבוהה משמעותית מהקודמת (${vehicle.current_mileage.toLocaleString('he-IL')}).\nנא לוודא שלא נוספה ספרה בטעות ולשלוח שוב — רק את המספר, בלי טקסט נוסף.`);
+      `${firstName}, הקריאה (${mileage.toLocaleString('he-IL')}) גבוהה משמעותית מהקודמת (${floor.toLocaleString('he-IL')}).\nנא לוודא שלא נוספה ספרה בטעות ולשלוח שוב — רק את המספר, בלי טקסט נוסף.`);
     await supabase.from('inbound_messages').insert({
       ...inboundBase,
       matched_driver_id: driver.id,
@@ -336,9 +388,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       parsed_year: year,
       parsed_month: month,
       status: 'pending_review',
-      error: `mileage jump ${mileage - vehicle.current_mileage} exceeds 10000`,
+      error: `mileage jump ${mileage - floor} exceeds 10000 (floor ${floor})`,
     });
-    return res.status(200).json({ ok: false, validation: 'mileage jump too large', current: vehicle.current_mileage, reported: mileage });
+    return res.status(200).json({ ok: false, validation: 'mileage jump too large', floor, reported: mileage });
   }
 
   // Upsert the report
@@ -392,6 +444,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!heyyOk) errors.push('heyy contact update failed');
   if (!priorityResult.ok) errors.push(`priority write failed: ${priorityResult.error ?? `HTTP ${priorityResult.status}`}`);
 
+  // The mileage is always saved to Supabase, so the dashboard is correct either way.
+  // But if Priority rejected the write, mark it distinctly so it's queryable and
+  // doesn't masquerade as a clean success — Priority is the system of record.
   await supabase.from('inbound_messages').insert({
     ...inboundBase,
     matched_driver_id: driver.id,
@@ -399,7 +454,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     parsed_mileage: mileage,
     parsed_year: year,
     parsed_month: month,
-    status: 'written',
+    status: priorityResult.ok ? 'written' : 'priority_failed',
     processed_at: new Date().toISOString(),
     error: errors.length ? errors.join('; ') : null,
   });

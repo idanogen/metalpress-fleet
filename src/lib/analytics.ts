@@ -59,6 +59,26 @@ export function getMonthDelta(vehicle: Vehicle, year: string, monthNum: number):
   return found?.km || 0;
 }
 
+/** Kilometers to display for a month. Normally the odometer delta vs the previous
+ * consecutive month. But a vehicle's FIRST reported month has no prior reading to
+ * subtract from, so the delta is 0 and the column would show nothing — even though
+ * we do have a reading. In that case fall back to the raw odometer reading so a
+ * brand-new vehicle isn't shown as blank. */
+export function getDisplayMonthKm(vehicle: Vehicle, year: string, monthNum: number): number {
+  const delta = getMonthDelta(vehicle, year, monthNum);
+  if (delta > 0) return delta;
+  const month = getMonthData(vehicle, year, monthNum);
+  if (!month || month.mileage <= 0) return 0;
+  // Only fall back for the EARLIEST reading — otherwise a missing middle month
+  // would wrongly show the raw odometer as if it were the month's distance.
+  const hasEarlierReading = (vehicle.monthlyUsage ?? []).some(m =>
+    m.mileage > 0 &&
+    (Number(m.year) < Number(year) ||
+      (Number(m.year) === Number(year) && m.monthNum < monthNum))
+  );
+  return hasEarlierReading ? 0 : month.mileage;
+}
+
 export function getDriverAvgUsage(vehicle: Vehicle, excludeYear?: string, excludeMonth?: number): number {
   const deltas = getMonthlyDeltas(vehicle);
   const filtered = deltas.filter(d => {

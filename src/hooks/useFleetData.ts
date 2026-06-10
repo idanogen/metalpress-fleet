@@ -41,9 +41,15 @@ export function useFleetData() {
     [rawData]
   );
 
-  // Separate inventory from active fleet — inventory vehicles don't count in stats.
-  const vehicles = useMemo(() => allVehicles.filter(v => v.driverName !== 'מלאי'), [allVehicles]);
-  const inventoryVehicles = useMemo(() => allVehicles.filter(v => v.driverName === 'מלאי'), [allVehicles]);
+  // A vehicle belongs to "inventory" (not the reportable fleet) when it's flagged
+  // 'מלאי', OR when its driver has no phone — a phoneless driver can't be sent a
+  // WhatsApp reminder and won't report km, so such vehicles only clutter the fleet
+  // and reminders views. Treating them as inventory keeps stats/reminders clean.
+  // Reversible by design: add a phone in Priority and the vehicle rejoins the fleet
+  // on the next sync, no code change needed.
+  const isInventory = (v: Vehicle) => v.driverName === 'מלאי' || !v.phone;
+  const vehicles = useMemo(() => allVehicles.filter(v => !isInventory(v)), [allVehicles]);
+  const inventoryVehicles = useMemo(() => allVehicles.filter(isInventory), [allVehicles]);
   const inventoryCount = inventoryVehicles.length;
 
   const { anomalyThreshold } = useSettings();

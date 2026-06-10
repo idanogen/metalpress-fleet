@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Vehicle } from '@/types/fleet';
-import { getDriverAvgUsage, getMonthData, getMonthDelta } from '@/lib/analytics';
+import { getDriverAvgUsage, getMonthData, getDisplayMonthKm } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 
 interface FleetTableProps {
@@ -26,7 +26,7 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
       const avg = getDriverAvgUsage(v);
       return {
         vehicle: v,
-        mileage: getMonthDelta(v, selectedYear, selectedMonth),
+        mileage: getDisplayMonthKm(v, selectedYear, selectedMonth),
         avg: Math.round(avg),
         reported: (monthData?.mileage || 0) > 0,
       };
