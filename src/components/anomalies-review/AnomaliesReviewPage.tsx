@@ -137,9 +137,10 @@ function AnomalyCard({
   });
 
   const currentMileage = vehicle?.current_mileage ?? 0;
-  // Odometer only goes up — a reading at/below the current one can't be approved
-  // (Priority rejects it). The reviewer must correct it to a higher number.
-  const isBelowCurrent = currentMileage > 0 && item.parsed_mileage <= currentMileage;
+  // Odometer only goes up — a reading below the current one can't be approved
+  // (Priority rejects it). Equal IS allowed: divergence items from the Priority
+  // sync carry the current value, and approving them just confirms it.
+  const isBelowCurrent = currentMileage > 0 && item.parsed_mileage < currentMileage;
 
   const handleApprove = () => {
     if (needsVehicleChoice) {
@@ -287,7 +288,7 @@ function AnomalyCard({
             )}
             {isBelowCurrent ? (
               <div className="w-full mb-1 p-3 rounded-xl bg-[#ff3b30]/10 text-[#ff3b30] text-sm font-medium">
-                לא ניתן לאשר — הקריאה ({item.parsed_mileage.toLocaleString('he-IL')}) נמוכה או שווה לקיימת ({currentMileage.toLocaleString('he-IL')}).
+                לא ניתן לאשר — הקריאה ({item.parsed_mileage.toLocaleString('he-IL')}) נמוכה מהקיימת ({currentMileage.toLocaleString('he-IL')}).
                 קילומטראז' רק עולה, ופריוריטי ידחה מספר נמוך. יש לתקן ידנית לקריאה גבוהה יותר.
               </div>
             ) : (

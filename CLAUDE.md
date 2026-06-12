@@ -75,8 +75,8 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 
 | ID | שם | תיאור |
 |----|-----|--------|
-| 4646251 | MetalPress — סנכרון חודשי מלא מפריורטי | קורא `METL_EMPLOYEECARS` + `METL_CARUSAGE_SUBFORM`, שולח ל-RPC `sync_vehicle_from_priority` ב-Supabase. כולל סנכרון נהגים ל-heyy בסוף. רץ מונת'לי 23:00 ב-1 לחודש |
-| 4636689 | עדכון רכבים חדשים מהפריורטי | זיהוי רכבים חדשים בפריוריטי והוספה למסד |
+| 4646251 | MetalPress — סנכרון שבועי מלא מפריורטי | קורא `METL_EMPLOYEECARS` + `METL_CARUSAGE_SUBFORM` (+חשבוניות נכד), שולח לכל רכב את `sync_vehicle_from_priority` **וגם** `sync_vehicle_invoices` (חווט 12/6/2026), סנכרון נהגים ל-heyy, ואז `sync_health_report` שתוצאתו במייל הסיכום. **רץ שבועי — יום שני 23:00** (שונה מחודשי ב-10/6/2026) |
+| 4738680 | MetalPress — Priority Write Mileage | webhook → PATCH ק"מ לפריוריטי במפתח (GLNAME,MONTHNUM), מחזיר סטטוס אמיתי |
 | 4627015 | שליחת הודעה ידנית מטלפרס | webhook מהדשבורד לשליחת תזכורת ידנית לנהג |
 | 4646471 | שליחת הודעה ידנית תחילת חודש מטרפלס | webhook נוסף לתזכורות |
 
@@ -84,6 +84,7 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 
 | ID | שם | הערות |
 |----|-----|--------|
+| 4636689 | עדכון רכבים חדשים מהפריורטי | **כבוי ולא תקין** (isinvalid) — רכבים חדשים נקלטים בסנכרון השבועי 4646251 (עיכוב מרבי: שבוע) |
 | 4602610 | מטלפרס קבלת הודעות מווצאפ | **הוחלף** — בוט WhatsApp עבר מ-Green API/Make ל-heyy + Vercel endpoint `/api/heyy-webhook` |
 | 4626788 | MetalPress Dashboard Webhook | ישן |
 | 4626827 | MetalPress Sync Priority → Data Store | הוחלף ע"י 4646251 (סנכרון ל-Supabase) |
@@ -96,8 +97,9 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 - **אותנטיקציה:** Basic Auth (connection: "METALPRESSAPI", keychain 85308 ב-Make)
 
 #### RPC ב-Supabase
-- `sync_vehicle_from_priority(p_payload jsonb)` — הסנריו 4646251 שולח אליו payload פר רכב. עושה upsert לרכב + drivers + monthly_reports. תומך ב-overhead accounts (model='שוטף') שאין להם ק"מ אבל יש עלויות. עדכון בקונפליקט רק כשsource='priority' (לא דורס דיווחי וואטסאפ).
-- `sync_vehicle_invoices(p_payload jsonb)` — מקבל את אותו payload כמו `sync_vehicle_from_priority` ושולף ממנו את `METL_CARUSAGE_SUBFORM[].EDPE_CARUSAGEPIVENV_SUBFORM[]` לעדכון `vehicle_invoices`. דורש שה-URL בסנריו יכלול `($expand=EDPE_CARUSAGEPIVENV_SUBFORM)`. ראה `docs/sync-vehicle-invoices-spec.md`.
+- `sync_vehicle_from_priority(p_payload jsonb)` — הסנריו 4646251 שולח אליו payload פר רכב. עושה upsert לרכב + drivers + monthly_reports. תומך ב-overhead accounts (model='שוטף') שאין להם ק"מ אבל יש עלויות. עדכון בקונפליקט רק כשsource='priority' (לא דורס דיווחי וואטסאפ). מ-12/6/2026: מרענן `current_mileage` ברכב קיים (GREATEST — לא יורד לעולם), מעדכן `mileage` בקונפליקט כשהערך מפריוריטי חיובי (0 לא דורס קריאה אמיתית), וכששורה מוגנת (בוט/ידני) סותרת את פריוריטי — יוצר פריט `pending_review` ב-`inbound_messages` (provider='priority_sync') שמופיע בדף הדיווחים החריגים.
+- `sync_vehicle_invoices(p_payload jsonb)` — מקבל את אותו payload כמו `sync_vehicle_from_priority` ושולף ממנו את `METL_CARUSAGE_SUBFORM[].EDPE_CARUSAGEPIVENV_SUBFORM[]` לעדכון `vehicle_invoices`. דורש שה-URL בסנריו יכלול `($expand=EDPE_CARUSAGEPIVENV_SUBFORM)`. ראה `docs/sync-vehicle-invoices-spec.md`. **חווט לסנריו 4646251 רק ב-12/6/2026** — לפני כן לא נקרא ע"י אף סנריו והחשבוניות קפאו על 25/5.
+- `sync_health_report()` — בדיקת תקינות הסנכרון: רכבים שלא סונכרנו 8+ ימים (=כשל RPC שקט ב-Make), פערי ק"מ פנימיים, דיווחים ממתינים, כשלי כתיבה לפריוריטי, גיל החשבוניות. נקרא בסוף הסנריו השבועי ומוטמע במייל הסיכום; כותב היסטוריה ל-`fleet.sync_log`.
 
 ---
 

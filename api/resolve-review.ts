@@ -149,12 +149,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ]);
 
   // Business rule (mirrors Priority): odometer can only go up. Refuse to commit a
-  // reading at or below the vehicle's current mileage — Priority would reject it
-  // anyway, and writing it to Supabase only creates a dashboard↔Priority mismatch.
-  // The reviewer must enter a corrected value that's higher than the current reading.
-  if (vehicle && vehicle.current_mileage > 0 && finalMileage <= vehicle.current_mileage) {
+  // reading below the vehicle's current mileage — Priority would reject it anyway,
+  // and writing it to Supabase only creates a dashboard↔Priority mismatch.
+  // Equal IS allowed: divergence items from the Priority sync carry the current
+  // value, and approving them confirms it (an idempotent write, Priority accepts).
+  if (vehicle && vehicle.current_mileage > 0 && finalMileage < vehicle.current_mileage) {
     return res.status(409).json({
-      error: `קריאה ${finalMileage.toLocaleString('he-IL')} אינה גבוהה מהקריאה הקיימת (${vehicle.current_mileage.toLocaleString('he-IL')}). פריוריטי לא יקבל מספר נמוך — יש להזין קריאה מתוקנת גבוהה יותר.`,
+      error: `קריאה ${finalMileage.toLocaleString('he-IL')} נמוכה מהקריאה הקיימת (${vehicle.current_mileage.toLocaleString('he-IL')}). פריוריטי לא יקבל מספר נמוך — יש להזין קריאה מתוקנת גבוהה יותר.`,
       current_mileage: vehicle.current_mileage,
       attempted: finalMileage,
     });
@@ -190,6 +191,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let heyyOk = false;
   if (driver?.phone) heyyOk = await updateHeyyContactMileage(driver.phone, finalMileage);
   const priorityResult = await writeToPriorityViaMake({ vehicleId, year, month, mileage: finalMileage });
+
+  // A failed Priority write must leave a replayable trace — the webhook flow marks
+  // its own row priority_failed, but this resolve flow flips the row to
+  // approved/rejected below, so a failure here used to vanish (it happened: an
+  // approved report was lost by a silent 404 and surfaced only in an audit).
+  // Insert a dedicated priority_failed row that both the resend script
+  // (scripts/resend-failed-priority-writes.mjs) and the weekly sync flagging pick up.
+  if (!priorityResult.ok) {
+    await supabase.from('inbound_messages').insert({
+      provider: 'resolve_review',
+      phone: driver?.phone ?? null,
+      matched_driver_id: driverId,
+      matched_vehicle_id: vehicleId,
+      parsed_mileage: finalMileage,
+      parsed_year: year,
+      parsed_month: month,
+      status: 'priority_failed',
+      error: `resolve-${action}: priority write failed: ${priorityResult.error ?? `HTTP ${priorityResult.status}`}`,
+    });
+  }
 
   if (driver?.phone) {
     const e164 = '+972' + driver.phone.replace(/^0/, '');
