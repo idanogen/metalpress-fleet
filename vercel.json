@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/clean-heyy-lastnames",
+      "schedule": "0 3 1 * *"
+    }
+  ]
+}

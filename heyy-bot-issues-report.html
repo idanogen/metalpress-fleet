@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דוח תקלות בוט WhatsApp — MetalPress Fleet</title>
+<style>
+  :root {
+    --blue: #007AFF; --green: #34c759; --orange: #ff9500;
+    --red: #ff3b30; --gray: #86868b; --ink: #1d1d1f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(160deg, #eef2f8 0%, #f6f7fb 50%, #eaf0f7 100%);
+    color: var(--ink); line-height: 1.6; padding: 32px 18px; min-height: 100vh;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  header.page {
+    background: linear-gradient(135deg, #007AFF 0%, #4aa3ff 100%);
+    color: #fff; border-radius: 24px; padding: 30px 34px; margin-bottom: 24px;
+    box-shadow: 0 10px 40px rgba(0,122,255,.25);
+  }
+  header.page h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  header.page p { opacity: .92; font-size: 15px; }
+  .meta-row { margin-top: 14px; font-size: 13px; opacity: .85; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 26px; }
+  .kpi {
+    background: rgba(255,255,255,.55); backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,.7); border-radius: 20px; padding: 18px;
+    text-align: center;
+  }
+  .kpi .num { font-size: 30px; font-weight: 800; line-height: 1; }
+  .kpi .lbl { font-size: 12px; color: var(--gray); margin-top: 8px; }
+  .kpi.red .num { color: var(--red); }
+  .kpi.orange .num { color: var(--orange); }
+  .kpi.blue .num { color: var(--blue); }
+  .kpi.gray .num { color: var(--gray); }
+
+  section.card {
+    background: rgba(255,255,255,.6); backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,.7); border-radius: 24px;
+    padding: 26px 28px; margin-bottom: 22px;
+    box-shadow: 0 6px 24px rgba(30,40,80,.06);
+  }
+  .sec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .sec-head .ico { font-size: 22px; }
+  .sec-head h2 { font-size: 20px; font-weight: 700; }
+  .badge {
+    font-size: 12px; font-weight: 700; padding: 3px 11px; border-radius: 999px;
+    color: #fff; white-space: nowrap;
+  }
+  .badge.crit { background: var(--red); }
+  .badge.warn { background: var(--orange); }
+  .badge.info { background: var(--blue); }
+  .badge.ok   { background: var(--green); }
+  .lead { color: #3a3a3c; margin: 6px 0 16px; font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+  th, td { text-align: right; padding: 10px 12px; border-bottom: 1px solid rgba(0,0,0,.07); }
+  th { font-size: 12px; color: var(--gray); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td.mono, .mono { font-family: "SF Mono", ui-monospace, Menlo, monospace; direction: ltr; text-align: left; }
+  .pill { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+  .pill.red { background: rgba(255,59,48,.12); color: var(--red); }
+  .pill.orange { background: rgba(255,149,0,.14); color: #c46a00; }
+  .pill.green { background: rgba(52,199,89,.14); color: #1d8a3b; }
+  .pill.gray { background: rgba(134,134,139,.16); color: #555; }
+  .vcount { display:inline-block; font-size:11px; font-weight:700; padding:1px 8px;
+    border-radius:999px; margin-right:6px; white-space:nowrap; vertical-align:middle; }
+  .vcount.multi { background: rgba(255,149,0,.16); color:#c46a00; }
+  .vcount.one { background: rgba(134,134,139,.16); color:#555; }
+  .vlist { display:block; font-size:11.5px; color:var(--gray); margin-top:3px; line-height:1.5; }
+  .vlist .plate { font-family:"SF Mono",ui-monospace,Menlo,monospace; direction:ltr; }
+
+  .flow {
+    background: rgba(0,122,255,.06); border: 1px dashed rgba(0,122,255,.3);
+    border-radius: 16px; padding: 16px 18px; margin: 14px 0; font-size: 14px;
+  }
+  .flow b { color: var(--blue); }
+  ul.fix { margin: 10px 18px 0; }
+  ul.fix li { margin-bottom: 9px; }
+  .tag-line { display:inline-block; background:#fff; border:1px solid rgba(0,0,0,.08);
+    border-radius:8px; padding:1px 8px; font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    direction:ltr; font-size:12px; }
+  .note { background: rgba(52,199,89,.08); border-right: 3px solid var(--green);
+    border-radius: 10px; padding: 12px 16px; margin-top: 14px; font-size: 14px; }
+  .note.defer { background: rgba(134,134,139,.1); border-right-color: var(--gray); }
+  footer { text-align: center; color: var(--gray); font-size: 12px; margin-top: 30px; }
+  .quote { color: var(--gray); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>🚗 דוח תקלות — בוט WhatsApp לדיווחי ק"מ</h1>
+    <p>סריקת כל הדיווחים שנכשלו במערכת <span class="mono">heyy → /api/heyy-webhook</span></p>
+    <div class="meta-row">נוצר: 09/06/2026 · מקור: <span class="mono">fleet.inbound_messages</span> + <span class="mono">fleet.vehicles</span> · טווח: 18/05–07/06</div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi green"><div class="num">96</div><div class="lbl">דיווחים שנרשמו בהצלחה</div></div>
+    <div class="kpi red"><div class="num">5</div><div class="lbl">אבדו בשקט (ריבוי רכבים)</div></div>
+    <div class="kpi orange"><div class="num">3</div><div class="lbl">נהגים תקועים כרגע</div></div>
+    <div class="kpi gray"><div class="num">7</div><div class="lbl">תשובות טקסט חופשי</div></div>
+  </div>
+
+  <!-- ============ בעיה 1 ============ -->
+  <section class="card">
+    <div class="sec-head">
+      <span class="ico">🔴</span>
+      <h2>בעיה 1 — נהג עם כמה רכבים פעילים</h2>
+      <span class="badge crit">קריטי · אובדן נתונים שקט</span>
+    </div>
+    <p class="lead">
+      כשנהג משויך ל<b>יותר מרכב פעיל אחד</b> בו-זמנית, ה-webhook לא יודע לאיזה רכב לשייך את הק"מ,
+      אז הוא עוצר עם השגיאה <span class="tag-line">multiple vehicles — ambiguous</span>.
+      הבעיה הקשה: בענף הזה בקוד <b>אין שליחת הודעה לנהג</b> — אז הדיווח פשוט נעלם, והנהג בטוח ששלח.
+    </p>
+
+    <div class="flow">
+      <b>הזרימה שנשברת:</b> נהג שולח מספר →
+      ה-endpoint מוצא 2 רכבים פעילים →
+      <span class="mono">return 409 "Multiple vehicles"</span> →
+      ❌ לא נכתב לדשבורד · ❌ לא נכתב לפריוריטי · ❌ הנהג לא מקבל תשובה
+    </div>
+
+    <h3 style="font-size:15px; margin:18px 0 4px;">דיווחים שאבדו בגלל הבאג הזה</h3>
+    <table>
+      <thead>
+        <tr><th>תאריך</th><th>נהג</th><th>טלפון</th><th>מה שלח</th><th>סטטוס</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>07/06</td><td>אייל ניסן<span class="vcount multi">🚗 ×2</span><span class="vlist">קיה ספורטאז' <span class="plate">68125203</span> · רנו <span class="plate">59432203</span> (0 ק"מ)</span></td><td class="mono">0542424013</td><td class="mono">55188</td><td><span class="pill red">אבד</span></td></tr>
+        <tr><td>03/06</td><td>אייל ניסן<span class="vcount multi">🚗 ×2</span><span class="vlist">קיה ספורטאז' <span class="plate">68125203</span> · רנו <span class="plate">59432203</span> (0 ק"מ)</span></td><td class="mono">0542424013</td><td class="mono">54812</td><td><span class="pill red">אבד</span></td></tr>
+        <tr><td>01/06</td><td>אייל ניסן<span class="vcount multi">🚗 ×2</span><span class="vlist">קיה ספורטאז' <span class="plate">68125203</span> · רנו <span class="plate">59432203</span> (0 ק"מ)</span></td><td class="mono">0542424013</td><td class="mono">54812</td><td><span class="pill red">אבד</span></td></tr>
+        <tr><td>26/05</td><td>אייל ניסן<span class="vcount multi">🚗 ×2</span><span class="vlist">קיה ספורטאז' <span class="plate">68125203</span> · רנו <span class="plate">59432203</span> (0 ק"מ)</span></td><td class="mono">0542424013</td><td class="mono">54500</td><td><span class="pill red">אבד</span></td></tr>
+        <tr><td>24/05</td><td>אדיר לניאצו<span class="vcount multi">🚗 ×2 בזמנו</span><span class="vcount one">כיום 1</span><span class="vlist">צ'רי חדש <span class="plate">64015204</span> (פעיל) · צ'רי ישן <span class="plate">31923003</span> (הושבת)</span></td><td class="mono">0542424151</td><td class="mono">1332</td><td><span class="pill orange">תוקן ידנית בדשבורד*</span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px; color:var(--gray); margin-top:10px;">
+      * אדיר: קיים בדשבורד דיווח ידני (<span class="mono">source=manual</span>, 1332, חודש 5) — מישהו הזין ביד.
+      אבל <b>לפריוריטי זה לא נדחף</b>. אייל: שום דבר לא נרשם — לא בדשבורד ולא בפריוריטי, 4 ניסיונות אבדו.
+    </p>
+  </section>
+
+  <!-- ============ בעיה 2 ============ -->
+  <section class="card">
+    <div class="sec-head">
+      <span class="ico">🟠</span>
+      <h2>בעיה 2 — נהגים שעדיין במצב שבור</h2>
+      <span class="badge warn">ימשיך להיכשל בכל דיווח עתידי</span>
+    </div>
+    <p class="lead">
+      הנהגים הבאים משויכים <b>עכשיו</b> ליותר מרכב פעיל אחד. כל דיווח שישלחו ייפול שוב על אותו באג,
+      עד שהשיוך בפריוריטי יתוקן או שהבוט ידע לבחור רכב.
+    </p>
+    <table>
+      <thead>
+        <tr><th>נהג</th><th>רכב</th><th>דגם</th><th>ק"מ נוכחי</th><th>הערה</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="2"><b>אייל ניסן</b><br><span class="mono" style="font-size:12px">0542424013</span></td>
+            <td class="mono">68125203</td><td>קיה ספורטאז'</td><td class="mono">53,000</td><td><span class="pill green">הרכב האמיתי שלו</span></td></tr>
+        <tr><td class="mono">59432203</td><td>רנו</td><td class="mono">0</td><td><span class="pill orange">רכב חדש, 0 ק"מ — כנראה שיוך עודף</span></td></tr>
+
+        <tr><td rowspan="4"><b>יונס יאסין</b><br><span class="mono" style="font-size:12px">0502035211</span></td>
+            <td class="mono">8117237</td><td>KANGOO</td><td class="mono">372,609</td><td rowspan="4"><span class="pill orange">משויך ל-4 רכבים!</span><br><span style="font-size:12px;color:var(--gray)">צריך בירור בפריוריטי — מי באמת שלו</span></td></tr>
+        <tr><td class="mono">43375203</td><td>דודג' RAM</td><td class="mono">159,885</td></tr>
+        <tr><td class="mono">86902803</td><td>צ'רי TIGGO 7</td><td class="mono">13,108</td></tr>
+        <tr><td class="mono">38688104</td><td>מסגרית אבו מוך</td><td class="mono">0</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px; color:var(--gray); margin-top:10px;">
+      ברקע: אדיר כבר <b>אינו</b> במצב הזה — הרכב הישן שלו הושבת בסנכרון של 01/06, אז עכשיו יש לו רכב אחד ודיווחים עתידיים יעבדו.
+    </p>
+  </section>
+
+  <!-- ============ בעיה 3 ============ -->
+  <section class="card">
+    <div class="sec-head">
+      <span class="ico">🟡</span>
+      <h2>בעיה 3 — תשובות בטקסט חופשי (לא מספר)</h2>
+      <span class="badge info">דורש מעקב אנושי</span>
+    </div>
+    <p class="lead">
+      נהגים שענו במשפט במקום במספר. כאן הבוט <b>כן</b> שולח להם הודעה ("נא לשלוח רק את המספר"),
+      אבל חלק מהתשובות מסמנות בעיה אמיתית שצריך לטפל בה ידנית — לא סתם "שלח שוב".
+    </p>
+    <table>
+      <thead>
+        <tr><th>תאריך</th><th>נהג</th><th>מה כתב</th><th>למה זה חשוב</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>01/06</td><td>דני פורת</td><td class="quote">"הוחלף הרכב"</td><td><span class="pill orange">צריך לעדכן שיוך רכב</span></td></tr>
+        <tr><td>29/05</td><td>ניקולא מלנקוביץ</td><td class="quote">"מספר קודם היה טעות"</td><td><span class="pill orange">צריך תיקון דיווח קודם</span></td></tr>
+        <tr><td>03/06</td><td>משה בן מאיר</td><td class="quote">"היי אני בחו"ל, שאחזור אשלח"</td><td><span class="pill gray">יחזור מאוחר יותר</span></td></tr>
+        <tr><td>03/06</td><td>שרה מזור</td><td class="quote">"זו הקריאה שיש לי"</td><td><span class="pill gray">כנראה שלחה צילום בנפרד</span></td></tr>
+        <tr><td>24/05</td><td>רוברט פרידי</td><td class="quote">"זה הק"מ"</td><td><span class="pill gray">צירף תמונה?</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    MetalPress Fleet · דוח אוטומטי מתוך מסד הנתונים · 09/06/2026
+  </footer>
+
+</div>
+</body>
+</html>

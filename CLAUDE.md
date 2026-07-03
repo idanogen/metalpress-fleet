@@ -97,7 +97,7 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 - **אותנטיקציה:** Basic Auth (connection: "METALPRESSAPI", keychain 85308 ב-Make)
 
 #### RPC ב-Supabase
-- `sync_vehicle_from_priority(p_payload jsonb)` — הסנריו 4646251 שולח אליו payload פר רכב. עושה upsert לרכב + drivers + monthly_reports. תומך ב-overhead accounts (model='שוטף') שאין להם ק"מ אבל יש עלויות. עדכון בקונפליקט רק כשsource='priority' (לא דורס דיווחי וואטסאפ). מ-12/6/2026: מרענן `current_mileage` ברכב קיים (GREATEST — לא יורד לעולם), מעדכן `mileage` בקונפליקט כשהערך מפריוריטי חיובי (0 לא דורס קריאה אמיתית), וכששורה מוגנת (בוט/ידני) סותרת את פריוריטי — יוצר פריט `pending_review` ב-`inbound_messages` (provider='priority_sync') שמופיע בדף הדיווחים החריגים.
+- `sync_vehicle_from_priority(p_payload jsonb)` — הסנריו 4646251 שולח אליו payload פר רכב. עושה upsert לרכב + drivers + monthly_reports. תומך ב-overhead accounts (model='שוטף') שאין להם ק"מ אבל יש עלויות. מ-3/7/2026 ההגנה על דיווחי וואטסאפ היא **ברמת שדה הק"מ בלבד**: בקונפליקט, 14 עמודות העלות מתעדכנות מפריוריטי תמיד (גם בשורות בוט/ידני — פריוריטי הוא מקור האמת היחיד לעלויות), ו-`mileage` מוגן ב-CASE (שורת בוט/ידני שומרת את קריאת הנהג; בשורת פריוריטי 0 לא דורס קריאה אמיתית). לפני כן ההגנה היתה ברמת שורה (`WHERE source='priority'`) וחסמה גם את העלויות — באג שהשאיר ~2/3 מהוצאות מאי 2026 מחוץ לדשבורד (ראה `migrations/2026-07-03_costs_always_sync_on_protected_rows.sql`). מ-12/6/2026: מרענן `current_mileage` ברכב קיים (GREATEST — לא יורד לעולם), וכששורה מוגנת (בוט/ידני) סותרת את פריוריטי — יוצר פריט `pending_review` ב-`inbound_messages` (provider='priority_sync') שמופיע בדף הדיווחים החריגים.
 - `sync_vehicle_invoices(p_payload jsonb)` — מקבל את אותו payload כמו `sync_vehicle_from_priority` ושולף ממנו את `METL_CARUSAGE_SUBFORM[].EDPE_CARUSAGEPIVENV_SUBFORM[]` לעדכון `vehicle_invoices`. דורש שה-URL בסנריו יכלול `($expand=EDPE_CARUSAGEPIVENV_SUBFORM)`. ראה `docs/sync-vehicle-invoices-spec.md`. **חווט לסנריו 4646251 רק ב-12/6/2026** — לפני כן לא נקרא ע"י אף סנריו והחשבוניות קפאו על 25/5.
 - `sync_health_report()` — בדיקת תקינות הסנכרון: רכבים שלא סונכרנו 8+ ימים (=כשל RPC שקט ב-Make), פערי ק"מ פנימיים, דיווחים ממתינים, כשלי כתיבה לפריוריטי, גיל החשבוניות. נקרא בסוף הסנריו השבועי ומוטמע במייל הסיכום; כותב היסטוריה ל-`fleet.sync_log`.
 
@@ -114,6 +114,13 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 - **URL:** `https://hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl` (סנריו 4627015)
 - **פורמט טלפון:** `0523694547` → `972523694547@c.us`
 - **Cooldown:** 48 שעות (localStorage, מפתח: `fleet-reminder-timestamps`)
+
+### תזכורת חודשית אוטומטית (broadcast ב-heyy)
+- **מי שולח:** broadcast חוזר ב-heyy בשם "תזכורת ק"מ חודשית לנהגים" (id `ae7cf40b-a091-4d5b-9f2e-e8039048438d`, לשעבר "tets") — לא Make ולא Vercel
+- **תזמון:** כל 1 לחודש, 05:00 UTC = 08:00 בקיץ / 07:00 בחורף שעון ישראל (RRULE ב-UTC; שונה מ-07:16 UTC ב-3/7/2026 לבקשת מעיין). מאחוריו workflow `c7e11410` ("עידן טסט שליחה לכל הנהגים") עם תבנית "תזכורת"
+- **פניה בשם:** התבנית פונה לפי שם איש הקשר ב-heyy. heyy מזהם `lastName` אוטומטית מפרופיל הוואטסאפ של הנהג ("Raz", אימוג'ים) — נוקה ב-3/7/2026 (92 אנשי קשר) ע"י `scripts/clean-heyy-lastnames.mjs`; גיבוי לשחזור ב-`backups/2026-07-03-heyy-lastnames.json`
+- **ניקוי אוטומטי חודשי:** Vercel Cron (`vercel.json`) קורא ל-`/api/clean-heyy-lastnames` כל 1 לחודש ב-03:00 UTC — שעתיים לפני שידור התזכורת — ומרוקן `lastName` שזוהם מחדש. אימות: `Bearer CRON_SECRET` (מוגדר ב-Vercel env) או `x-sync-secret`. כל ריצה נרשמת ל-`fleet.sync_log` (source='heyy_lastname_cleanup') עם הזוגות שנמחקו ב-metadata לשחזור
+- **מלכודת API:** עדכון איש קשר/broadcast ב-heyy = **PUT** (PATCH מחזיר 404). עדכון broadcast חייב לכלול `isReoccurring: true` יחד עם `recurrenceRules`, אחרת החזרתיות נמחקת
 
 ---
 
@@ -213,3 +220,11 @@ docs/
 4. **VehicleImage** — תמונות רכב לפי דגם, fallback לאייקון כללי
 5. **Cooldown mechanism** — localStorage-based, מפתח `{vehicleId}-{month}-{year}`, ניקוי אוטומטי של ישנים
 6. **מיגרציה ל-Supabase** — בוצעה ב-19/5/2026, החליפה את Make Data Store. אין יותר fallback לקובץ סטטי
+
+---
+
+## 🔵 רוני — חלק מצוות הפרויקט הזה
+הפרויקט נוגע ב-Priority ERP → רוני בצוות כאן בכל סשן (סקיל גלובלי `roni-priority`).
+- **לפני כיוון/שינוי שנוגע בפריוריטי** → היוועץ בבית הידע: `~/Idan-HQ/knowledge/priority/`
+- **כל לקח חדש על פריוריטי** → חזרה לבית הידע (learnings.md / clients.md / projects-map.md)
+- **הקשר הפרויקט:** סביבת MetalPress: prio.metalpress.co.il · מסך מותאם ידוע: METL_EMPLOYEECARS

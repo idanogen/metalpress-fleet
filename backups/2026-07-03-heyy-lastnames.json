@@ -1,0 +1,554 @@
+[
+  {
+    "id": "580223fe-5d12-455f-9228-2017e4571d0c",
+    "firstName": "לקוח",
+    "lastName": "מרציאנו",
+    "phoneNumber": "+972543344063"
+  },
+  {
+    "id": "78a4b3f6-ba08-4053-ae7d-7af80691d63d",
+    "firstName": "לקוח",
+    "lastName": "קלדרון",
+    "phoneNumber": "+972538251721"
+  },
+  {
+    "id": "4780b828-1686-4b11-a364-585c0825ae23",
+    "firstName": "עימאד",
+    "lastName": "עימאד",
+    "phoneNumber": "+972527535264"
+  },
+  {
+    "id": "d38fdcbe-95a5-4d66-81a2-1db021321207",
+    "firstName": "Anonymous",
+    "lastName": "Labadie",
+    "phoneNumber": "+972542424125"
+  },
+  {
+    "id": "1251dde2-e46e-4ba8-a1c9-f041f390231f",
+    "firstName": "Anonymous",
+    "lastName": "MacGyver",
+    "phoneNumber": "+972526922821"
+  },
+  {
+    "id": "ebe1bf97-af07-4a04-a38b-ebb4236ae2ff",
+    "firstName": "איריס שרביט רז",
+    "lastName": "Raz",
+    "phoneNumber": "+972542424185"
+  },
+  {
+    "id": "543149d0-282b-4bd9-94a3-41431be869ae",
+    "firstName": "עדי כהן",
+    "lastName": "מטלפרס",
+    "phoneNumber": "+972542424184"
+  },
+  {
+    "id": "73fb433b-ec5d-49e3-9a1b-55f749ccef8c",
+    "firstName": "ברק שנקר",
+    "lastName": "ברק",
+    "phoneNumber": "+972542424153"
+  },
+  {
+    "id": "3badeb32-e389-4b47-a2b1-1a5640b0553b",
+    "firstName": "רכב מפעל ניהול עשן",
+    "lastName": "Sharvit",
+    "phoneNumber": "+972527730377"
+  },
+  {
+    "id": "51c7c064-ea0e-44c3-8b89-b7f914e47534",
+    "firstName": "אלכסנדר איזמאילוב",
+    "lastName": "איזמאילוב",
+    "phoneNumber": "+972524475854"
+  },
+  {
+    "id": "88229971-22e6-4b35-a21c-9183f24c4a56",
+    "firstName": "לאוניד פרונין",
+    "lastName": "Leonid",
+    "phoneNumber": "+972586567890"
+  },
+  {
+    "id": "8fd6d0cc-7c12-47ab-8512-6e658d294a52",
+    "firstName": "מירב פרינטי",
+    "lastName": "Parienty",
+    "phoneNumber": "+972545744212"
+  },
+  {
+    "id": "b143b8d2-5aa6-403b-8198-018cd884ff71",
+    "firstName": "אבירן אסולין",
+    "lastName": "Aviran",
+    "phoneNumber": "+972509060668"
+  },
+  {
+    "id": "f7e2e375-2aab-42e9-abe0-e996ec1ab561",
+    "firstName": "מעיין דורי",
+    "lastName": "מעיין",
+    "phoneNumber": "+972542424139"
+  },
+  {
+    "id": "57cfe614-7324-4280-a1e4-774431a24988",
+    "firstName": "בינה שטיוולמן",
+    "lastName": "בינה",
+    "phoneNumber": "+972542424047"
+  },
+  {
+    "id": "9083968d-9e9f-4b76-88dd-bdb72a0cd912",
+    "firstName": "אלעד שיפמן",
+    "lastName": "Shifman",
+    "phoneNumber": "+972542424076"
+  },
+  {
+    "id": "020565f1-1fa4-462f-b300-92686a6b4293",
+    "firstName": "אלירן אלמליח",
+    "lastName": "אלירן",
+    "phoneNumber": "+972542424160"
+  },
+  {
+    "id": "cdc937f1-59dc-474e-ada2-8106c430cfaa",
+    "firstName": "אופיר חן ציון",
+    "lastName": "ציון",
+    "phoneNumber": "+972503663002"
+  },
+  {
+    "id": "596214b4-b1c2-489a-b4b7-731a8c191b59",
+    "firstName": "איתמר פרג'",
+    "lastName": "Farage",
+    "phoneNumber": "+972504345115"
+  },
+  {
+    "id": "8d520037-ac91-4eef-9120-1156e8191158",
+    "firstName": "עומר ליבר",
+    "lastName": "ליבר",
+    "phoneNumber": "+972545223069"
+  },
+  {
+    "id": "b2be613a-2c74-480a-b115-3a3274c37d11",
+    "firstName": "ענת פליישר",
+    "lastName": "בשמחה",
+    "phoneNumber": "+972556696902"
+  },
+  {
+    "id": "c72683d5-96cd-4c6a-b0f6-1b01da534926",
+    "firstName": "ניקולא מלנקוביץ",
+    "lastName": "Nik",
+    "phoneNumber": "+972548671862"
+  },
+  {
+    "id": "bff16c77-a4db-4efc-82dd-4b75b29e252d",
+    "firstName": "יקיר פאס",
+    "lastName": "פאס",
+    "phoneNumber": "+972543805078"
+  },
+  {
+    "id": "32ff38de-0fb1-49f5-bc23-799437306839",
+    "firstName": "דימה ניקוגוסיאן",
+    "lastName": "Nikogosian",
+    "phoneNumber": "+972549776954"
+  },
+  {
+    "id": "05727af2-06bf-470d-baed-d1b0a64504c2",
+    "firstName": "סרגיי",
+    "lastName": "Серёга",
+    "phoneNumber": "+972538979657"
+  },
+  {
+    "id": "4733f5fc-7b5a-4f90-bd9a-5fdb3fef3fcd",
+    "firstName": "גלעד פולק",
+    "lastName": "גלעד",
+    "phoneNumber": "+972542424086"
+  },
+  {
+    "id": "e27181de-3257-4991-8b71-1d3a27785477",
+    "firstName": "דני פורת",
+    "lastName": "פורת",
+    "phoneNumber": "+972542424148"
+  },
+  {
+    "id": "f4911ddc-9b3e-46d2-933c-7bce7e84352b",
+    "firstName": "אנדריי בלבנוב",
+    "lastName": "ס.",
+    "phoneNumber": "+972542871736"
+  },
+  {
+    "id": "a09db91b-f282-4099-b402-3e7f91546efa",
+    "firstName": "מוסטקיס משה",
+    "lastName": "משה",
+    "phoneNumber": "+972542424015"
+  },
+  {
+    "id": "e0371d9c-810a-45d6-a316-db236abe6592",
+    "firstName": "משה סיני",
+    "lastName": "סיני",
+    "phoneNumber": "+972542424016"
+  },
+  {
+    "id": "352cd697-4b2a-4789-85f6-2e0c495e1537",
+    "firstName": "יוסי ישראלוב",
+    "lastName": "859857",
+    "phoneNumber": "+972547522847"
+  },
+  {
+    "id": "e20bb4f8-8b3f-4007-9a3f-00d14b64f7a0",
+    "firstName": "עקול ניסימוב",
+    "lastName": "Akul",
+    "phoneNumber": "+972542223444"
+  },
+  {
+    "id": "a304ad1e-d0fa-45d5-a6e1-2f8ace0bdb33",
+    "firstName": "שירה גבאי",
+    "lastName": "שירה",
+    "phoneNumber": "+972542424177"
+  },
+  {
+    "id": "24076f40-6e92-48ec-92a1-8e881b58c07f",
+    "firstName": "משה קרנצלר",
+    "lastName": "קרנצלר",
+    "phoneNumber": "+972584770057"
+  },
+  {
+    "id": "c57fdf69-3dd3-4e18-9f8b-b86d91c6e343",
+    "firstName": "חגי אוזן",
+    "lastName": "אוזן",
+    "phoneNumber": "+972503293298"
+  },
+  {
+    "id": "0642965a-ad58-4620-a4f8-78be4ffb9647",
+    "firstName": "משה בן מאיר",
+    "lastName": "מאיר",
+    "phoneNumber": "+972546921774"
+  },
+  {
+    "id": "0e9745f4-ea2d-4cde-a65c-54d016f7a08d",
+    "firstName": "שוקי בלומין",
+    "lastName": "בלומין",
+    "phoneNumber": "+972542424164"
+  },
+  {
+    "id": "550dc107-3991-48cd-92c7-2fe8c93aa3d0",
+    "firstName": "פו'זאר ויטלי",
+    "lastName": "Pozar",
+    "phoneNumber": "+972502540060"
+  },
+  {
+    "id": "65110240-4f57-4779-8eef-31b0ba60c483",
+    "firstName": "שי גני",
+    "lastName": "גני",
+    "phoneNumber": "+972547874022"
+  },
+  {
+    "id": "9dfbfbc8-f6c2-4cf8-b6df-cb98b74bc3f3",
+    "firstName": "אדיר לניאצו",
+    "lastName": "לנציאנו",
+    "phoneNumber": "+972542424151"
+  },
+  {
+    "id": "b7108400-6e1b-49c1-803e-026be6e4bef2",
+    "firstName": "קטיה גל",
+    "lastName": "Galle",
+    "phoneNumber": "+972545910922"
+  },
+  {
+    "id": "24067e59-aa7f-4b7b-9a23-be86ee8e24a4",
+    "firstName": "עידן סינוני",
+    "lastName": "עידן",
+    "phoneNumber": "+972542424178"
+  },
+  {
+    "id": "faf91001-c750-480f-951e-6ddfc63820e0",
+    "firstName": "שי ליברמן",
+    "lastName": "Shay",
+    "phoneNumber": "+972542424029"
+  },
+  {
+    "id": "847ec78b-a0ea-4cfb-a464-20cd79eca60f",
+    "firstName": "רוני נתן",
+    "lastName": "רוני",
+    "phoneNumber": "+972542424071"
+  },
+  {
+    "id": "82a68817-b3c0-4bb3-ab82-cbcbc66ff13a",
+    "firstName": "רוברט פרידי",
+    "lastName": "רוברט",
+    "phoneNumber": "+972542424073"
+  },
+  {
+    "id": "66549686-5135-436c-bed6-abf53a97f7b0",
+    "firstName": "ואהיל עאבס",
+    "lastName": "ואיל",
+    "phoneNumber": "+972545333689"
+  },
+  {
+    "id": "4e93c40c-28c2-411c-89c3-28cda49ab921",
+    "firstName": "עלי עמריה",
+    "lastName": "Ali",
+    "phoneNumber": "+972536331110"
+  },
+  {
+    "id": "f79829a5-7fa0-4899-9e9f-23756582a6be",
+    "firstName": "פנחס מירלשוולי",
+    "lastName": "פנחס",
+    "phoneNumber": "+972502035213"
+  },
+  {
+    "id": "94212195-0fa5-42b5-a677-b05a2e0909ed",
+    "firstName": "אחמד יאסין",
+    "lastName": "...",
+    "phoneNumber": "+972549182998"
+  },
+  {
+    "id": "ded8f4e0-7d13-4f9d-84dd-f72553b78ca3",
+    "firstName": "טניה וקסלר",
+    "lastName": "Veksler",
+    "phoneNumber": "+972526550599"
+  },
+  {
+    "id": "89e62995-54d3-4deb-873a-c2f62f9bf7eb",
+    "firstName": "קרן משפטי",
+    "lastName": "Reitmann",
+    "phoneNumber": "+972543977461"
+  },
+  {
+    "id": "473ed181-be45-4d8a-8346-dff467f4c558",
+    "firstName": "יהושע כפיר",
+    "lastName": "כפיר",
+    "phoneNumber": "+972546881037"
+  },
+  {
+    "id": "19928642-6820-49ec-bde7-54c718df6bca",
+    "firstName": "אריאלה פינטו",
+    "lastName": "אריאלה",
+    "phoneNumber": "+972502035272"
+  },
+  {
+    "id": "c85de45c-1a2e-4a84-831e-369af1b387e8",
+    "firstName": "דוד אמסלם",
+    "lastName": "אמסלם",
+    "phoneNumber": "+972502035220"
+  },
+  {
+    "id": "a1856a13-bd45-452f-9959-845e053b8c65",
+    "firstName": "שרה מזור",
+    "lastName": "מזור",
+    "phoneNumber": "+972502035261"
+  },
+  {
+    "id": "bd710614-cc50-4817-8554-6eb20f4005b8",
+    "firstName": "אתי מרקוביץ",
+    "lastName": "אדרי",
+    "phoneNumber": "+972524505656"
+  },
+  {
+    "id": "6db821d5-fb0f-4273-937f-01e5675ce740",
+    "firstName": "אסף שפירא",
+    "lastName": "אסף",
+    "phoneNumber": "+972502035201"
+  },
+  {
+    "id": "fd7906fa-a5fb-4869-a541-4e2285bce6d6",
+    "firstName": "אלה טורצי'ן",
+    "lastName": "Элла",
+    "phoneNumber": "+972546269126"
+  },
+  {
+    "id": "d9796da4-2278-4998-a81f-385a3eaa4d36",
+    "firstName": "מור סעיד",
+    "lastName": "סעיד",
+    "phoneNumber": "+972502037796"
+  },
+  {
+    "id": "e7e9a8ac-cb5c-429d-b9fd-65f1ebffdcb8",
+    "firstName": "אמיר אבולנגא",
+    "lastName": "אמיר",
+    "phoneNumber": "+972527523636"
+  },
+  {
+    "id": "d0034ce7-0871-47e8-a171-3e4c8356cb85",
+    "firstName": "לבנה זלוף",
+    "lastName": "לבנה",
+    "phoneNumber": "+972542424044"
+  },
+  {
+    "id": "4a26a477-ba2a-4bd8-9d65-de67e580ce70",
+    "firstName": "פנחס דואני",
+    "lastName": "דואני",
+    "phoneNumber": "+972507894057"
+  },
+  {
+    "id": "c57aa5b9-a98b-43e6-a5be-4bfe50ca9548",
+    "firstName": "נטלי קוצ'טוב",
+    "lastName": "🌶️🌶️",
+    "phoneNumber": "+972543255556"
+  },
+  {
+    "id": "d64b8317-61b5-4c9f-874b-8da98fcb2071",
+    "firstName": "גיא וייס",
+    "lastName": "Guyw",
+    "phoneNumber": "+972506324838"
+  },
+  {
+    "id": "27088903-f3a2-43a5-abdf-d1ae160be0c2",
+    "firstName": "קרטייב ולרי",
+    "lastName": "Karataev",
+    "phoneNumber": "+972534241022"
+  },
+  {
+    "id": "89d34b5c-6299-4aac-adca-8f08b34f383c",
+    "firstName": "ניר ריינהרץ",
+    "lastName": "Nir",
+    "phoneNumber": "+972542880831"
+  },
+  {
+    "id": "decf1726-0ddd-4cde-bba7-95035724cd7a",
+    "firstName": "אילייה גמזון",
+    "lastName": "Metalpress",
+    "phoneNumber": "+972542424096"
+  },
+  {
+    "id": "f579f37f-6f36-4a3a-9925-b9b5ef83ca2b",
+    "firstName": "אדיר אקשם",
+    "lastName": "Aksham",
+    "phoneNumber": "+972544242033"
+  },
+  {
+    "id": "657e0937-9d9f-4eec-8591-b596aa686a67",
+    "firstName": "מזי צח",
+    "lastName": "צח",
+    "phoneNumber": "+972542424028"
+  },
+  {
+    "id": "4585777c-b95d-47ab-8a01-db1199ffcc3d",
+    "firstName": "ארז גרשון",
+    "lastName": "גרשון",
+    "phoneNumber": "+972542424093"
+  },
+  {
+    "id": "bad772bf-a05e-4214-a129-3471f8180183",
+    "firstName": "יהודית ביטון ברליה",
+    "lastName": "ביטון-ברליה",
+    "phoneNumber": "+972544210184"
+  },
+  {
+    "id": "5d3bb914-6a5b-4d23-bb49-70d0e6ca3c4b",
+    "firstName": "שמוליק קרידו",
+    "lastName": "קרידו",
+    "phoneNumber": "+972542424152"
+  },
+  {
+    "id": "2c666a30-b8a8-4b3a-bf38-c855e6adff0e",
+    "firstName": "גורביץ' אלכסנדר",
+    "lastName": "Alex-Eng-Hashmal",
+    "phoneNumber": "+972542424161"
+  },
+  {
+    "id": "a9a5450d-69c5-480b-9561-1f434e4ae075",
+    "firstName": "עאזאר מרוואן",
+    "lastName": "Azar",
+    "phoneNumber": "+972542424065"
+  },
+  {
+    "id": "f8f466e6-1abe-49a4-bd71-a8ded157e3da",
+    "firstName": "אביתר מנחם",
+    "lastName": "חכמים",
+    "phoneNumber": "+972542424167"
+  },
+  {
+    "id": "47cbcb5c-3f94-46eb-885d-9c10bb445c97",
+    "firstName": "אבידר ג'רסי",
+    "lastName": "אבידר",
+    "phoneNumber": "+972542424135"
+  },
+  {
+    "id": "cac81231-d36d-40a1-99d0-1daeea3a1453",
+    "firstName": "ניקולאי חייטוב",
+    "lastName": "Nikolay",
+    "phoneNumber": "+972542424140"
+  },
+  {
+    "id": "6165382d-5f42-49b4-9a84-0cb70388169b",
+    "firstName": "איגור גרוש",
+    "lastName": "איגור",
+    "phoneNumber": "+972542424188"
+  },
+  {
+    "id": "35ea09bf-4453-4d00-b579-580f0cb36d9e",
+    "firstName": "קרן טולדנו",
+    "lastName": "KT",
+    "phoneNumber": "+972542424145"
+  },
+  {
+    "id": "349917cc-c852-4fae-b32b-b26db22a3707",
+    "firstName": "אושרי טזזאי",
+    "lastName": "חכמים",
+    "phoneNumber": "+972543677738"
+  },
+  {
+    "id": "8d1c6d0e-685b-4e4c-ba98-e8d450579882",
+    "firstName": "סביון משפטי",
+    "lastName": "סביון",
+    "phoneNumber": "+972542424134"
+  },
+  {
+    "id": "133f672f-12f0-483f-a894-bf6776d610b0",
+    "firstName": "שני אליהו",
+    "lastName": "שני",
+    "phoneNumber": "+972504553022"
+  },
+  {
+    "id": "59b5295a-a51e-4ee2-8e37-62f30f88ce11",
+    "firstName": "משה קסורלה",
+    "lastName": "משה",
+    "phoneNumber": "+972542424163"
+  },
+  {
+    "id": "a7603a3a-530e-46ce-8606-94546fd4b740",
+    "firstName": "מזדבזדה ולדימיר",
+    "lastName": "Ზაზა",
+    "phoneNumber": "+972542424009"
+  },
+  {
+    "id": "e3efeae2-0616-4d8d-a967-5c2db4177aa1",
+    "firstName": "אייל ניסן",
+    "lastName": "ניסן",
+    "phoneNumber": "+972542424013"
+  },
+  {
+    "id": "157ebfca-44a1-48ee-93cc-7e4a536133ff",
+    "firstName": "עילם רז",
+    "lastName": "מטלפרס",
+    "phoneNumber": "+972542424042"
+  },
+  {
+    "id": "3e3225a0-d0ad-459c-8601-f5e68a74bc03",
+    "firstName": "יבגני מלניק",
+    "lastName": "Evgeny",
+    "phoneNumber": "+972542424189"
+  },
+  {
+    "id": "c58c2949-c7e4-4e08-8c9b-38ce931d6bac",
+    "firstName": "מישל פילו",
+    "lastName": "פילו",
+    "phoneNumber": "+972542424088"
+  },
+  {
+    "id": "8c52a430-c13e-42f4-8998-48358822e7be",
+    "firstName": "חורי תומא",
+    "lastName": "חורי",
+    "phoneNumber": "+972542424035"
+  },
+  {
+    "id": "7876aaf5-c72c-4535-9e22-c2b4ef0f78c7",
+    "firstName": "גיא כספי",
+    "lastName": "גיא",
+    "phoneNumber": "+972542424030"
+  },
+  {
+    "id": "1772effe-4f9c-43c7-ad0e-704c7999d919",
+    "firstName": "עידו חלילי",
+    "lastName": "Ido",
+    "phoneNumber": "+972542424115"
+  },
+  {
+    "id": "1b81dbf2-2ba2-475c-8840-cb5ef6efaa3d",
+    "firstName": "Anonymous",
+    "lastName": "Williamson",
+    "phoneNumber": "+972544693683"
+  }
+]

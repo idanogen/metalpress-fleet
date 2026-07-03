@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>דוח רכבים ללא טלפון נהג — MetalPress Fleet</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Heebo", Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    padding: 40px 20px;
+    line-height: 1.5;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+    color: #fff;
+    padding: 32px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .header h1 { font-size: 26px; margin-bottom: 8px; font-weight: 700; }
+  .header .subtitle { font-size: 15px; opacity: 0.92; }
+  .header .meta { margin-top: 16px; font-size: 13px; opacity: 0.85; }
+
+  .intro {
+    background: #fff;
+    padding: 24px 32px;
+    border-bottom: 1px solid #e5e5ea;
+  }
+  .intro p { font-size: 15px; color: #3a3a3c; margin-bottom: 8px; }
+  .intro strong { color: #007AFF; }
+
+  .section {
+    background: #fff;
+    padding: 28px 32px;
+    border-bottom: 1px solid #e5e5ea;
+  }
+  .section:last-child { border-radius: 0 0 20px 20px; border-bottom: none; }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .badge-red { background: #ffe5e3; color: #c00b00; }
+  .badge-orange { background: #fff0db; color: #b35900; }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 8px;
+    background: #fafafa;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  thead { background: #f2f2f7; }
+  th {
+    text-align: right;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6e6e73;
+    border-bottom: 1px solid #e5e5ea;
+  }
+  td {
+    padding: 14px;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f3;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #fff; }
+
+  .plate {
+    font-family: "SF Mono", "Menlo", monospace;
+    font-weight: 600;
+    color: #007AFF;
+    background: #e8f1ff;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    direction: ltr;
+    display: inline-block;
+  }
+  .phone-cell {
+    color: #c00b00;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .phone-input {
+    border: 1px dashed #c7c7cc;
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    width: 140px;
+    font-family: inherit;
+    text-align: center;
+    direction: ltr;
+  }
+
+  .note-box {
+    background: #fff8e6;
+    border-right: 4px solid #ff9500;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #6b4500;
+  }
+  .note-box strong { color: #b35900; }
+
+  .duplicate-list {
+    list-style: none;
+    padding: 0;
+  }
+  .duplicate-list li {
+    background: #fafafa;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    border: 1px solid #f0f0f3;
+  }
+  .duplicate-list code {
+    background: #e8e8ed;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    direction: ltr;
+    display: inline-block;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: #86868b;
+    font-size: 12px;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .container { max-width: 100%; }
+    .header, .section { border-radius: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>דוח רכבים ללא טלפון נהג</h1>
+    <div class="subtitle">צי MetalPress — רכבים שהמערכת לא יכולה לשלוח אליהם תזכורות בוואטסאפ</div>
+    <div class="meta">📅 הופק: 25.5.2026 · 🚗 6 רכבים פעילים · 🧑‍💼 לבדיקת בעלים</div>
+  </div>
+
+  <div class="intro">
+    <p>שלום,</p>
+    <p>במהלך בדיקה תקופתית של מאגר הצי מצאנו <strong>6 רכבים פעילים</strong> שלא משויך לנהג שלהם מספר טלפון נייד במערכת.</p>
+    <p>המשמעות: <strong>הבוט לא יכול לשלוח להם תזכורת חודשית בוואטסאפ</strong> כדי שידווחו ק"מ ודלק.</p>
+    <p>נשמח אם תוכלו לעבור על הרשימה ולמלא את הטלפונים החסרים, או לסמן אם הנהג כבר לא רלוונטי.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="badge badge-red">6 רכבים</span>
+      רכבים פעילים עם נהג ללא טלפון
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>מס׳ רכב</th>
+          <th>דגם</th>
+          <th>נהג</th>
+          <th>חברה</th>
+          <th>טלפון נייד</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="plate">46-572-403</span></td>
+          <td>סקודה KODIAQ FL</td>
+          <td>דפנה כספי</td>
+          <td>מטלפרס פתרונות חכמים</td>
+          <td><span class="phone-cell">חסר</span></td>
+        </tr>
+        <tr>
+          <td><span class="plate">82-165-320</span></td>
+          <td>א.ג.נגררים YG601</td>
+          <td>גיא כספי נגרר</td>
+          <td>מטלפרס פתרונות חכמים</td>
+          <td><span class="phone-cell">חסר</span></td>
+        </tr>
+        <tr>
+          <td><span class="plate">78-909-602</span></td>
+          <td>מרצדס SPRINTER</td>
+          <td>פאיד</td>
+          <td>מטלפרס דלתות ומחיצות אש</td>
+          <td><span class="phone-cell">חסר</span></td>
+        </tr>
+        <tr>
+          <td><span class="plate">45-738-004</span></td>
+          <td>סיטרואן ברלינגו</td>
+          <td>אלי צברי</td>
+          <td>מטלפרס ניהול עשן</td>
+          <td><span class="phone-cell">חסר</span></td>
+        </tr>
+        <tr>
+          <td><span class="plate">83-733-201</span></td>
+          <td>אאודי</td>
+          <td>גל ניסימוב</td>
+          <td>פ.א כוכב 2018</td>
+          <td><span class="phone-cell">חסר</span></td>
+        </tr>
+        <tr>
+          <td><span class="plate">59-399-901</span></td>
+          <td>במוו Z4</td>
+          <td>טלילה ניסומוב</td>
+          <td>מטלפרס יצוא (1982)</td>
+          <td><span class="phone-cell">חסר</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="badge badge-orange">2 נהגים</span>
+      דופליקטים בטבלת הנהגים
+    </div>
+
+    <p style="margin-bottom: 14px; font-size: 14px; color: #3a3a3c;">
+      מצאנו שני נהגים שמופיעים פעמיים במערכת עם איות שונה — שתי הגרסאות בלי טלפון.
+      כדאי לאחד אותם לרשומה אחת:
+    </p>
+
+    <ul class="duplicate-list">
+      <li>
+        <strong>טלילה ניסימוב</strong> <code>id 71</code> ↔ <strong>טלילה ניסומוב</strong> <code>id 1398</code>
+        <br><span style="color: #86868b; font-size: 13px;">— הבדל באיות (י/ו). הרכב <span class="plate">59-399-901</span> משויך ל-id 1398</span>
+      </li>
+      <li>
+        <strong>יצוא</strong> <code>id 105</code> ↔ <strong>יצוא</strong> <code>id 1399</code>
+        <br><span style="color: #86868b; font-size: 13px;">— שני נהגים בשם זהה. הרכב <span class="plate">55-996-688</span> משויך ל-id 1399</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="note-box">
+      <strong>הערה:</strong> 7 רכבים נוספים עם לוחיות "11223344"–"55996688" הם <strong>חשבונות פיקטיביים</strong> להוצאות כלליות של החברה (פנגו, ביטוחים וכו') — אין צורך לשייך להם טלפון.
+      <br>
+      בנוסף, 17 פריטי ציוד (מלגזות, נגררים, מסגריות) אינם רשומים עם נהג כלל — מתוכנן וצפוי.
+    </div>
+  </div>
+
+  <div class="footer">
+    דוח אוטומטי · MetalPress Fleet Dashboard · עוגן Solutions
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ביקורת עומק — מערך הסנכרון MetalPress</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif;background:linear-gradient(135deg,#eef2f7,#dde7f0);color:#1d1d1f;padding:36px 20px;line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto}
+  h1{font-size:29px;margin-bottom:4px;letter-spacing:-.5px}
+  .sub{color:#86868b;margin-bottom:24px;font-size:14px}
+  .card{background:rgba(255,255,255,.74);backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.85);border-radius:22px;padding:24px;margin-bottom:20px;box-shadow:0 6px 30px rgba(20,40,80,.06)}
+  .card h2{font-size:20px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:9px 11px;text-align:right;border-bottom:1px solid rgba(0,0,0,.07);vertical-align:top}
+  th{color:#86868b;font-weight:600;font-size:12px}
+  .sev{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:8px;white-space:nowrap}
+  .sev.crit{background:rgba(255,59,48,.14);color:#d70015}
+  .sev.high{background:rgba(255,149,0,.16);color:#c25e00}
+  .sev.med{background:rgba(0,122,255,.12);color:#007aff}
+  .fixed{color:#1a8c3e;font-weight:700;white-space:nowrap}
+  .open{color:#c25e00;font-weight:700;white-space:nowrap}
+  code{background:rgba(0,0,0,.06);padding:1px 6px;border-radius:6px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace}
+  .grid{display:flex;gap:14px;flex-wrap:wrap}
+  .pill{flex:1;min-width:200px;border-radius:16px;padding:16px;background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.3)}
+  .pill .big{font-size:19px;font-weight:700}
+  .pill .desc{font-size:13px;color:#555;margin-top:3px}
+  .flow{background:#1d1d1f;color:#e8e8ed;padding:16px 18px;border-radius:14px;font-size:13px;line-height:1.7;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,monospace;overflow-x:auto}
+  .flow .ok{color:#7ee787}.flow .new{color:#79c0ff}
+  ul,ol{margin-right:22px}li{margin-bottom:7px;font-size:14px}
+  .muted{color:#86868b;font-size:13px}
+  .note{background:rgba(255,149,0,.09);border:1px solid rgba(255,149,0,.3);border-radius:12px;padding:13px 15px;font-size:14px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔬 ביקורת עומק — מערך הסנכרון</h1>
+  <div class="sub">MetalPress Fleet · נבדקו: מסד נתונים, 3 סנריואים ב-Make, 3 RPC, נתיב כתיבה-חזרה, heyy · 12/06/2026</div>
+
+  <div class="card">
+    <h2>🗺️ מה נבדק — כל שרשרת הסנכרון</h2>
+    <div class="flow">Priority ERP
+  ├─→ <span class="ok">[4646251 weekly Mon 23:00]</span> → sync_vehicle_from_priority ✚ <span class="new">sync_vehicle_invoices (NEW)</span> → Supabase
+  │      └─→ drivers→heyy → <span class="new">sync_health_report (NEW)</span> → summary email (idan+iris)
+  ├─← <span class="ok">[4738680 webhook]</span> ← PATCH mileage ← bot (heyy-webhook) / manager (resolve-review)
+  └─   [4636689 daily new-vehicles] = OFF + invalid (covered by weekly)</div>
+  </div>
+
+  <div class="card">
+    <h2>🐞 ממצאים — לפי חומרה</h2>
+    <table>
+      <thead><tr><th>חומרה</th><th>ממצא</th><th>השפעה</th><th>סטטוס</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="sev crit">קריטי</span></td>
+          <td><b>סנכרון חשבוניות מת מיום ההקמה.</b> ה-RPC נבנה ב-25/5 אך אף סנריו לא קרא לו.</td>
+          <td>טבלת החשבוניות קפאה על 25/5 — ה-drawer בדף הוצאות צי הציג נתונים בני 18 יום.</td>
+          <td class="fixed">✅ תוקן — חווט לסנריו השבועי + הוזרמו 346 חשבוניות חדשות (159 עודכנו)</td>
+        </tr>
+        <tr>
+          <td><span class="sev crit">קריטי</span></td>
+          <td><b>כשל כתיבה לפריוריטי בזרימת אישור-מנהל נבלע.</b> הסטטוס נהפך ל-approved גם כשהכתיבה נכשלה; סקריפט ה-resend קורא רק priority_failed.</td>
+          <td>הוכח במקרה אמיתי: דיווח 51,000 ק"מ של עקול ניסימוב אושר ב-24/5, אבד בבאג ה-POST, ואיש לא ידע עד היום.</td>
+          <td class="fixed">✅ תוקן — כשל יוצר רשומת priority_failed (נפרס ל-Vercel); המקרה של עקול הוסלם למנהלים</td>
+        </tr>
+        <tr>
+          <td><span class="sev high">גבוה</span></td>
+          <td><b>פער בסימון סתירות:</b> דיווח שלנו שמעולם לא נחת בפריוריטי (ק"מ ריק שם) לא סומן — הסימון דרש ערך חיובי בפריוריטי.</td>
+          <td>4 דיווחים כאלה נמצאו בהצלבה מול פריוריטי חי; אחד פעיל ואמיתי.</td>
+          <td class="fixed">✅ תוקן — ענף סימון שני ב-RPC: "דיווח שלא נקלט בפריוריטי"; אישור הפריט דוחף מחדש</td>
+        </tr>
+        <tr>
+          <td><span class="sev high">גבוה</span></td>
+          <td><b>אפס ניטור:</b> כשל RPC פר-רכב ב-Make = Ignore שקט; טבלת sync_log קיימת אך ריקה; אין שום דרך לדעת שסנכרון "הצליח" אבל לא עדכן כלום (בדיוק מה שקרה ב-1/6 וב-8/6).</td>
+          <td>הבאגים של השבוע חיו 3 שבועות בלי שאף אחד ידע.</td>
+          <td class="fixed">✅ תוקן — RPC חדש sync_health_report: רכבים שלא סונכרנו, פערי ק"מ, כשלי כתיבה, גיל חשבוניות. רץ בסוף כל סנכרון שבועי, מוטמע במייל הסיכום, נכתב ל-sync_log</td>
+        </tr>
+        <tr>
+          <td><span class="sev med">בינוני</span></td>
+          <td><b>תיעוד לא נכון:</b> הסנכרון רץ שבועי (שני 23:00) ולא "חודשי ב-1"; סנריו הרכבים החדשים היומי כבוי ולא-תקין למרות שמתועד כפעיל.</td>
+          <td>החלטות תפעול התקבלו על סמך תמונה שגויה.</td>
+          <td class="fixed">✅ תוקן — CLAUDE.md עודכן; הסנריו שונה שם ל"שבועי"; רכב חדש נקלט תוך שבוע לכל היותר</td>
+        </tr>
+        <tr>
+          <td><span class="sev med">בינוני</span></td>
+          <td><b>שרידי נתונים ברכבים לא-פעילים:</b> רכב מוחלף (87) עם היסטוריה סותרת; רכב בדיקות (130) עם דיווחי טסט.</td>
+          <td>לא מוצג בדשבורד (לא פעילים) — זיהום נתונים בלבד.</td>
+          <td class="open">⏳ מתועד — לניקוי בהזדמנות, לא דחוף</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>✅ מה נבדק ונמצא תקין</h2>
+    <div class="grid">
+      <div class="pill"><div class="big">102/112</div><div class="desc">דיווחי בוט/ידני אומתו אחד-לאחד מול פריוריטי חי. 6 הסוטים מסומנים למנהלים, 4 האבודים טופלו.</div></div>
+      <div class="pill"><div class="big">שלמות DB</div><div class="desc">אפס יתומים, אפס כפילויות, אילוצי uniqueness על כל מפתחות הסנכרון, אפס ערכי source לא חוקיים.</div></div>
+      <div class="pill"><div class="big">heyy = דשבורד</div><div class="desc">101 אנשי קשר מיושרים מלא. נתיב ה-PATCH לפריוריטי (4738680) בנוי נכון ומחזיר סטטוס אמיתי.</div></div>
+    </div>
+    <p class="muted" style="margin-top:12px">הערה: לנהג אמיר סיני שני רכבים פרטיים פעילים (לגיטימי בפריוריטי) — דיווח שלו בבוט יופנה אוטומטית לבחירת רכב בדף החריגים.</p>
+  </div>
+
+  <div class="card">
+    <h2>🛡️ שכבות ההגנה אחרי הביקורת</h2>
+    <ol>
+      <li><b>בזמן דיווח:</b> בוט מאמת רצפה/קפיצה; כשל כתיבה לפריוריטי נרשם כ-priority_failed (עכשיו גם מזרימת אישור-מנהל).</li>
+      <li><b>כל יום שני בלילה:</b> סנכרון מלא — רכבים, ק"מ, עלויות, חשבוניות. כל סתירה בין נתון שלנו לפריוריטי → פריט בדף החריגים. שום דבר לא נדרס ושום דבר לא נעלם בשקט.</li>
+      <li><b>אחרי כל סנכרון:</b> בדיקת תקינות אוטומטית במייל הסיכום — רכבים שנכשלו בשקט, פערים, כשלים, גיל חשבוניות. היסטוריה נשמרת ב-sync_log.</li>
+      <li><b>תיקון עצמי:</b> סקריפט resend לכשלי פריוריטי, סקריפט replay לסנכרון מלא מקובץ ייצוא, גיבויי snapshot מתוארכים.</li>
+    </ol>
+    <div class="note">📬 <b>המייל השבועי הבא (שני 15/6, 23:00) הוא המבחן:</b> הוא ירוץ עם כל התיקונים ויכלול לראשונה את שורת התקינות. אם תראה בו "רכבים שלא סונכרנו: 0" ו"פערי ק"מ: 0" — המערכת יציבה.</div>
+  </div>
+
+  <div class="card">
+    <h2>👤 ממתין למנהלים (8 פריטים בדף החריגים)</h2>
+    <ul>
+      <li>יונס יאסין — אימות הקפיצה ל-172,896 (החלפת רכב?)</li>
+      <li>אתי מרקוביץ — סטייה מתמשכת מאז 4/2025 (החלפת רכב?)</li>
+      <li>שרה מזור — ידני 36,100/36,000 מול פריוריטי 20,219/20,000 (שני חודשים)</li>
+      <li>עקול ניסימוב — ק"מ אפריל 51,000 שאושר אך לא נקלט בפריוריטי; פריוריטי דוחה כתיבה אחורה — נדרשת הזנה ידנית בפריוריטי</li>
+      <li>סטיות ידניות קטנות — משה קסורלה, קרן משפטי, אדיר לניאצו</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

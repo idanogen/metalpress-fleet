@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תוכנית תיקון סנכרון — דשבורד / Priority / heyy</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif;background:linear-gradient(135deg,#eef2f7,#dde7f0);color:#1d1d1f;padding:36px 20px;line-height:1.65}
+  .wrap{max-width:1040px;margin:0 auto}
+  h1{font-size:30px;margin-bottom:4px;letter-spacing:-.5px}
+  .sub{color:#86868b;margin-bottom:26px;font-size:14px}
+  .card{background:rgba(255,255,255,.72);backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.85);border-radius:22px;padding:26px;margin-bottom:22px;box-shadow:0 6px 30px rgba(20,40,80,.06)}
+  .card h2{font-size:21px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .step-n{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#007aff;color:#fff;font-size:15px;font-weight:700;flex:none}
+  .verdict{display:flex;gap:14px;flex-wrap:wrap}
+  .pill{flex:1;min-width:230px;border-radius:16px;padding:18px}
+  .pill.ok{background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.32)}
+  .pill.bad{background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.32)}
+  .pill h3{font-size:15px;margin-bottom:4px}
+  .pill .big{font-size:20px;font-weight:700}
+  .pill .desc{font-size:13px;color:#555;margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th,td{padding:9px 11px;text-align:right;border-bottom:1px solid rgba(0,0,0,.07)}
+  th{color:#86868b;font-weight:600;font-size:12px}
+  td.num{font-variant-numeric:tabular-nums;font-weight:600}
+  .up{color:#ff3b30;font-weight:700}
+  .down{color:#ff9500;font-weight:700}
+  .principle{background:linear-gradient(135deg,rgba(0,122,255,.08),rgba(88,86,214,.08));border-right:4px solid #007aff;border-radius:14px;padding:18px 20px;font-size:15px}
+  code{background:rgba(0,0,0,.06);padding:1px 6px;border-radius:6px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+  pre{background:#1d1d1f;color:#e8e8ed;padding:16px 18px;border-radius:14px;overflow-x:auto;font-size:13px;line-height:1.55;margin:10px 0;direction:ltr;text-align:left}
+  pre .c{color:#7ee787}
+  pre .k{color:#ff7b72}
+  ol,ul{margin-right:22px}li{margin-bottom:9px}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:8px;font-weight:600}
+  .tag.pri{background:rgba(0,122,255,.12);color:#007aff}
+  .tag.bot{background:rgba(52,199,89,.14);color:#1a8c3e}
+  .tag.man{background:rgba(255,149,0,.14);color:#c26a00}
+  .safe{background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.25);border-radius:12px;padding:12px 15px;font-size:14px;margin-top:10px}
+  .review{background:rgba(255,149,0,.09);border:1px solid rgba(255,149,0,.3);border-radius:12px;padding:14px 16px;font-size:14px}
+  .await{background:rgba(255,59,48,.07);border:1px dashed rgba(255,59,48,.4);border-radius:14px;padding:16px 18px;font-size:15px;text-align:center;font-weight:600}
+  .muted{color:#86868b;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔧 תוכנית תיקון סנכרון</h1>
+  <div class="sub">צי MetalPress · דשבורד ↔ Priority ↔ heyy · אומת מול Priority חי · 12/06/2026</div>
+
+  <!-- VERDICT -->
+  <div class="card">
+    <div class="verdict">
+      <div class="pill ok">
+        <h3>✅ heyy ↔ דשבורד</h3>
+        <div class="big">זהים — 0 פערים</div>
+        <div class="desc">heyy יורש את <code>current_mileage</code>. אחרי התיקון + backfill — יתיישר אוטומטית.</div>
+      </div>
+      <div class="pill bad">
+        <h3>❌ מד אוצר נוכחי ↔ Priority</h3>
+        <div class="big">19 רכבים בפער</div>
+        <div class="desc">16 נמוך מ-Priority · 3 גבוה מ-Priority.</div>
+      </div>
+      <div class="pill bad">
+        <h3>❌ דיווחים חודשיים ↔ Priority</h3>
+        <div class="big">28 אי-התאמות</div>
+        <div class="desc">כולל 7 רכבים שמראים 0 ק"מ למאי בעוד ל-Priority יש קריאה אמיתית.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINCIPLE -->
+  <div class="card">
+    <h2>🧭 העיקרון המנחה</h2>
+    <div class="principle">
+      Priority הוא מקור האמת <b>באופן כללי</b> — אבל מרגע שאנחנו מזרימים נתונים (נהג ששלח קריאה הגיונית דרך הבוט),
+      אסור שכשל סנכרון מצידנו <b>ימחק בשקט</b> את הנתון שלו. הסכנה האמיתית אינה שהדשבורד מציג את הערך שלנו —
+      אלא שלא הצלחנו לדחוף אותו ל-Priority <b>ואף אחד לא יודע</b>.
+    </div>
+    <div style="margin-top:14px" class="verdict">
+      <div class="pill" style="background:rgba(0,122,255,.07);border:1px solid rgba(0,122,255,.2)">
+        <span class="tag pri">priority</span>
+        <div class="desc" style="margin-top:6px">שורות שמקורן Priority → תמיד מתיישרות לאמת של Priority.</div>
+      </div>
+      <div class="pill" style="background:rgba(52,199,89,.06);border:1px solid rgba(52,199,89,.2)">
+        <span class="tag bot">whatsapp_bot</span> <span class="tag man">manual</span>
+        <div class="desc" style="margin-top:6px">נתונים שלנו → <b>מוגנים, לא נדרסים לעולם</b> ע"י הסנכרון.</div>
+      </div>
+      <div class="pill" style="background:rgba(255,149,0,.06);border:1px solid rgba(255,149,0,.2)">
+        🔔 <b>הצפה</b>
+        <div class="desc" style="margin-top:6px">כל מקום שהערך שלנו ≠ Priority → מוצף לבירור, לא נפתר בשקט.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROOT CAUSE -->
+  <div class="card">
+    <h2>🐞 שורש הבעיה — שני באגים ב-RPC</h2>
+    <p class="muted" style="margin-bottom:10px">הפונקציה <code>sync_vehicle_from_priority</code> (הסנכרון החודשי מ-Priority):</p>
+    <ol>
+      <li><b>ענף UPDATE לא מרענן <code>current_mileage</code></b> — לרכב קיים, השדה נשאר קפוא על ערך הקליטה הראשונה. → 19 רכבים.</li>
+      <li><b><code>ON CONFLICT</code> מעדכן רק עמודות עלות, לא <code>mileage</code></b> — כשק"מ של חודש קיים מתמלא/משתנה ב-Priority, הדשבורד נתקע על הערך הישן (או 0). → משבש את דף הדיווחים עצמו.</li>
+    </ol>
+  </div>
+
+  <!-- FINDINGS A -->
+  <div class="card">
+    <h2>📊 ממצא א' — מד אוצר נוכחי מול Priority (19 רכבים)</h2>
+    <table>
+      <thead><tr><th>לוחית</th><th>נהג</th><th>דשבורד</th><th>Priority</th><th>פער</th></tr></thead>
+      <tbody>
+        <tr><td>86902803</td><td>יונס יאסין</td><td class="num">13,108</td><td class="num">172,896</td><td class="num up">+159,788 ⚠️</td></tr>
+        <tr><td>48934103</td><td>מזדבזדה ולדימיר</td><td class="num">22,562</td><td class="num">82,974</td><td class="num up">+60,412</td></tr>
+        <tr><td>78909602</td><td>פאיד</td><td class="num">72,000</td><td class="num">103,206</td><td class="num up">+31,206</td></tr>
+        <tr><td>13035704</td><td>יוסי שבלב</td><td class="num">52,478</td><td class="num">69,772</td><td class="num up">+17,294</td></tr>
+        <tr><td>43375103</td><td>עלי עמריה</td><td class="num">171,556</td><td class="num">183,087</td><td class="num up">+11,531</td></tr>
+        <tr><td>43375203</td><td>מוסטפא</td><td class="num">159,885</td><td class="num">170,465</td><td class="num up">+10,580</td></tr>
+        <tr><td>80360703</td><td>אסיר עלי אחמד</td><td class="num">50,000</td><td class="num">56,870</td><td class="num up">+6,870</td></tr>
+        <tr><td>35006103</td><td>דני פורת</td><td class="num">112,779</td><td class="num">117,537</td><td class="num up">+4,758</td></tr>
+        <tr><td>67999803</td><td>האוספאטר נעמן</td><td class="num">42,950</td><td class="num">45,110</td><td class="num up">+2,160</td></tr>
+        <tr><td>68125203</td><td>אייל ניסן</td><td class="num">53,000</td><td class="num">54,812</td><td class="num up">+1,812</td></tr>
+        <tr><td>15301304</td><td>רוברט פרידי</td><td class="num">57,200</td><td class="num">58,950</td><td class="num up">+1,750</td></tr>
+        <tr><td>25104504</td><td>פנחס דואני</td><td class="num">15,482</td><td class="num">16,627</td><td class="num up">+1,145</td></tr>
+        <tr><td>64015204</td><td>אדיר לניאצו</td><td class="num">1,332</td><td class="num">2,420</td><td class="num up">+1,088</td></tr>
+        <tr><td>7770854</td><td>ירדן ניסימוב</td><td class="num">69,549</td><td class="num">70,536</td><td class="num up">+987</td></tr>
+        <tr><td>34801403</td><td>מוסטקיס משה</td><td class="num">62,455</td><td class="num">62,590</td><td class="num up">+135</td></tr>
+        <tr><td>27257504</td><td>איריס שרביט רז</td><td class="num">4,200</td><td class="num">4,315</td><td class="num up">+115</td></tr>
+        <tr style="background:rgba(255,149,0,.06)"><td>82165320</td><td>גיא כספי (נגרר)</td><td class="num">174,452</td><td class="num">0</td><td class="num down">דשבורד גבוה</td></tr>
+        <tr style="background:rgba(255,149,0,.06)"><td>21038504</td><td>שרה מזור</td><td class="num">36,100</td><td class="num">20,219</td><td class="num down">−15,881</td></tr>
+        <tr style="background:rgba(255,149,0,.06)"><td>68893003</td><td>אתי מרקוביץ</td><td class="num">35,700</td><td class="num">29,240</td><td class="num down">−6,460</td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin-top:8px">שורות כתומות = הדשבורד גבוה מ-Priority (הערך שלנו) → לבירור, לא לדריסה.</p>
+  </div>
+
+  <!-- FINDINGS B -->
+  <div class="card">
+    <h2>📊 ממצא ב' — דיווחים חודשיים, ק"מ ב-0 בעוד ל-Priority יש קריאה</h2>
+    <p class="muted" style="margin-bottom:6px">קורבנות באג #2 (מאי 2026, מקור <span class="tag pri">priority</span>) — יתוקנו בסנכרון מחדש:</p>
+    <table>
+      <thead><tr><th>נהג</th><th>בדשבורד</th><th>ב-Priority</th></tr></thead>
+      <tbody>
+        <tr><td>דני פורת</td><td class="num">0</td><td class="num">117,537</td></tr>
+        <tr><td>פאיד</td><td class="num">0</td><td class="num">103,206</td></tr>
+        <tr><td>מזדבזדה ולדימיר</td><td class="num">0</td><td class="num">82,974</td></tr>
+        <tr><td>יוסי שבלב</td><td class="num">0</td><td class="num">69,772</td></tr>
+        <tr><td>אייל ניסן</td><td class="num">0</td><td class="num">54,812</td></tr>
+        <tr><td>האוספאטר נעמן</td><td class="num">0</td><td class="num">45,110</td></tr>
+        <tr><td>איריס שרביט רז</td><td class="num">0</td><td class="num">4,315</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- THE FIX -->
+  <div class="card">
+    <h2><span class="step-n">1</span> תיקון ה-RPC — שני שינויים</h2>
+    <p><b>שינוי 1</b> — בענף UPDATE, לרענן <code>current_mileage</code> בלי לסגת אחורה:</p>
+    <pre><span class="k">current_mileage</span> = GREATEST(
+  coalesce(fleet.vehicles.current_mileage, 0),
+  coalesce(round(nullif(p_payload-&gt;&gt;<span class="c">'MILEAGE'</span>,'')::numeric)::int, 0)
+),</pre>
+    <div class="safe">✅ <code>GREATEST</code> = אם הבוט כבר רשם ערך גבוה יותר מ-Priority, הוא <b>נשמר</b>. נהג לא נמחק.</div>
+
+    <p style="margin-top:16px"><b>שינוי 2</b> — ב-<code>ON CONFLICT</code>, לעדכן גם <code>mileage</code> — אך ורק לשורות priority:</p>
+    <pre><span class="k">mileage</span> = EXCLUDED.mileage,   <span class="c">-- נוסף בראש רשימת ה-SET</span>
+... <span class="c">(שאר העדכונים נשארים)</span>
+<span class="k">WHERE</span> fleet.monthly_reports.source = <span class="c">'priority'</span>   <span class="c">-- ההגנה הקיימת נשארת</span></pre>
+    <div class="safe">✅ ה-<code>WHERE source='priority'</code> הוא מנגנון ההגנה — שורות <span class="tag bot">whatsapp_bot</span> <span class="tag man">manual</span> לא נוגעים בהן.</div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="card">
+    <h2><span class="step-n">2</span> סנכרון מחדש + יישור heyy</h2>
+    <ol>
+      <li><b>להריץ מחדש את הסנכרון</b> (Make סנריו <code>4646251</code>) — דוחף את כל ערכי Priority החיים פנימה, אידמפוטנטי. כל 19 + 28 הסטיות שמקורן priority מתוקנות בבת אחת, ללא backfill ידני.</li>
+      <li><b><code>backfill-heyy-kilo.mjs</code></b> — heyy מתיישר אוטומטית ל-<code>current_mileage</code> המתוקן.</li>
+    </ol>
+  </div>
+
+  <!-- DIVERGENCE REPORT -->
+  <div class="card">
+    <h2><span class="step-n">3</span> דוח סטיות — "הערך שלנו ≠ Priority"</h2>
+    <p>רשימה שוטפת של כל מקום שבו קריאת <span class="tag bot">בוט</span> / <span class="tag man">ידני</span> שונה מ-Priority —
+    כדי שמישהו ידחוף ל-Priority או יתקן. <b>זה הפתרון ל"נכשלנו לסנכרן ואף אחד לא יודע".</b></p>
+  </div>
+
+  <!-- MANUAL REVIEW -->
+  <div class="card">
+    <h2>👤 לבירור אנושי (לא אוטומטי)</h2>
+    <div class="review">
+      <ul style="margin-bottom:0">
+        <li><b>אתי מרקוביץ</b> (68893003) — כל ההיסטוריה מוסטת ~7K–10K; נראה <b>החלפת רכב</b> על אותו מספר ציוד. הסנכרון יתקן ל-Priority, אך כדאי לאמת.</li>
+        <li><b>שרה מזור</b> (21038504) — ידני 36,100 מול Priority 20,219; הערך שלנו גבוה — לבדוק אם זה דיווח נהג שלא סונכרן.</li>
+        <li><b>נגרר 82165320</b> — אין מד-אוצר ב-Priority (0). תקין שיישאר; רק לסמן.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="await">⏳ מוצר בפרודקשן — לא מורץ דבר עד אישורך. ממתין ל-GO על שלב 1 (תיקון ה-RPC).</div>
+  <p class="muted" style="text-align:center;margin-top:14px">אומת מול קריאת Priority חיה (METL_EMPLOYEECARS · 155 רשומות) · heyy 101 אנשי קשר · 105 רכבי צי פעילים</p>
+</div>
+</body>
+</html>

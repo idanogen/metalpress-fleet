@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetalPress Fleet — מה צריך לעשות</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Heebo', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8edf3 100%);
+    color: #1d1d1f;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  header {
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+    border-radius: 24px;
+    padding: 40px;
+    color: white;
+    margin-bottom: 32px;
+    box-shadow: 0 10px 40px rgba(0,122,255,0.25);
+  }
+  header h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+  header p { font-size: 16px; opacity: 0.9; }
+  header .meta {
+    margin-top: 16px;
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    opacity: 0.85;
+  }
+
+  .section {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .section-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .badge-critical { background: rgba(255,59,48,0.12); color: #ff3b30; }
+  .badge-high     { background: rgba(255,149,0,0.12); color: #ff9500; }
+  .badge-medium   { background: rgba(0,122,255,0.12); color: #007AFF; }
+  .badge-low      { background: rgba(134,134,139,0.15); color: #86868b; }
+  .badge-info     { background: rgba(52,199,89,0.12); color: #34c759; }
+
+  .section h2 { font-size: 22px; font-weight: 800; }
+  .section .count {
+    background: rgba(0,0,0,0.05);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #86868b;
+    margin-right: auto;
+  }
+
+  .item {
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    background: rgba(255,255,255,0.5);
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 14px;
+    transition: all 0.2s;
+  }
+  .item:hover {
+    background: rgba(255,255,255,0.8);
+    transform: translateY(-1px);
+  }
+  .item-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .item-num {
+    background: rgba(0,0,0,0.06);
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #424245;
+    flex-shrink: 0;
+  }
+  .item h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1d1d1f;
+  }
+  .item .file {
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 12px;
+    color: #86868b;
+    background: rgba(0,0,0,0.04);
+    padding: 2px 8px;
+    border-radius: 6px;
+    direction: ltr;
+    display: inline-block;
+  }
+  .item p { font-size: 14px; color: #424245; margin-top: 8px; }
+  .item .fix {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(52,199,89,0.08);
+    border-right: 3px solid #34c759;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #248a3d;
+  }
+  .item .fix strong { color: #1d6b2f; }
+
+  .action-card {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 1px solid rgba(255,149,0,0.3);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 20px;
+  }
+  .action-card h3 { font-size: 16px; font-weight: 800; color: #c47600; margin-bottom: 12px; }
+  .action-card ol { margin-right: 20px; }
+  .action-card li { font-size: 14px; margin-bottom: 8px; color: #5a4500; }
+  .action-card code {
+    background: rgba(0,0,0,0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    direction: ltr;
+    display: inline-block;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    color: #86868b;
+    font-size: 13px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .summary-card {
+    background: rgba(255,255,255,0.4);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+  }
+  .summary-card .num {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .summary-card .label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🛠️ MetalPress Fleet — מה נשאר לעשות</h1>
+    <p>סיכום ממצאים שלא תוקנו בסבב הראשון</p>
+    <div class="meta">
+      <span>📅 2026-05-24</span>
+      <span>🌐 metalpress-fleet.vercel.app</span>
+      <span>🌿 master</span>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="num" style="color:#ffe0b2">1</div>
+        <div class="label">דחוי — לטיפול בהמשך</div>
+      </div>
+      <div class="summary-card">
+        <div class="num" style="color:#fff">9</div>
+        <div class="label">בינוני</div>
+      </div>
+      <div class="summary-card">
+        <div class="num" style="color:#fff">7</div>
+        <div class="label">נמוך / קוסמטיקה</div>
+      </div>
+      <div class="summary-card">
+        <div class="num" style="color:#fff">17</div>
+        <div class="label">סך הכל</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- DEFERRED -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-critical">⏸️</div>
+      <h2>דחוי — לטיפול בהמשך עם heyy.io</h2>
+      <span class="count">1 פריט</span>
+    </div>
+
+    <div class="item" style="background:rgba(255,243,224,0.5);border-color:rgba(255,149,0,0.2);">
+      <div class="item-title">
+        <span class="item-num">1</span>
+        <h3>אבטחת ה-endpoint של בוט הוואטסאפ</h3>
+      </div>
+      <div class="file">api/heyy-webhook.ts:144-152</div>
+      <p style="margin-top:10px;">
+        <strong>מה זה במילים פשוטות:</strong> ה-URL שה-heyy.io שולח אליו את הודעות הנהגים פתוח כרגע — לא רק heyy.io יכול לדבר איתו, אלא כל מי שמכיר את הכתובת. זה לא נורא כי הכתובת לא פרסומית, אבל בעתיד שווה לסגור.
+      </p>
+      <p style="margin-top:8px;color:#86868b;font-size:13px;">
+        <strong>למה זה דחוי:</strong> כדי לסגור צריך גם להגדיר ב-heyy.io שישלח "סיסמה" בכל בקשה. סיכמנו שתטפל בזה כשתחזור לעבוד עם heyy.io.
+      </p>
+      <p style="margin-top:8px;color:#86868b;font-size:13px;">
+        בינתיים — ה-endpoint כולל timing-safe compare, וגם <code>resolve-review</code> ו-<code>sync-drivers</code> כבר fail-closed.
+      </p>
+    </div>
+  </div>
+
+  <!-- MEDIUM -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-medium">🟡</div>
+      <h2>בינוני</h2>
+      <span class="count">9 פריטים</span>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">2</span>
+        <h3>סיכוי לדיווח כפול אם heyy שולחת אותה הודעה פעמיים בו-זמנית</h3>
+      </div>
+      <div class="file">api/heyy-webhook.ts:174-186</div>
+      <p><strong>מה קורה:</strong> אם נהג שולח הודעה ו-heyy שולחת לנו אותה פעמיים בדיוק באותו רגע (קורה לפעמים בגלל retry פנימי שלהם) — הקוד שלנו עלול לרשום את הדיווח פעמיים בפריוריטי ולשלוח לנהג שתי הודעות אישור.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>תדירות:</strong> נדיר מאוד, אבל אפשרי.</p>
+      <div class="fix"><strong>תיקון:</strong> להוסיף אילוץ ייחודיות במסד הנתונים — Postgres יחסום אוטומטית את הכפילות.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">3</span>
+        <h3>הקוד מקבל מספרי טלפון לא תקינים</h3>
+      </div>
+      <div class="file">api/heyy-webhook.ts:113-122</div>
+      <p><strong>מה קורה:</strong> אם heyy שולחת לנו מספר טלפון שבור (למשל רק ספרה אחת) — הקוד מנסה לחפש אותו במקום לדחות מיד. כרגע זה לא מסוכן אבל לא נקי.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>תדירות:</strong> כמעט לא קורה — heyy תמיד שולחים פורמט תקין.</p>
+      <div class="fix"><strong>תיקון:</strong> להחזיר null אם המספר לא בפורמט ישראלי תקין (10 ספרות עם 0 בהתחלה, או 12 ספרות עם 972).</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">4</span>
+        <h3>נהג מקבל "תודה ✅" גם כשפריוריטי לא עודכן</h3>
+      </div>
+      <div class="file">api/heyy-webhook.ts:371-388</div>
+      <p><strong>מה קורה:</strong> הזרימה היא: נהג שולח ק"מ → אנחנו שומרים ב-Supabase → שולחים ל-Make שיכתוב לפריוריטי → שולחים לנהג "תודה". אם השלב של Make נכשל באמצע, הנהג עדיין מקבל "תודה" אבל פריוריטי לא יודע על הדיווח.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> הדאשבורד יודע על הדיווח, אבל פריוריטי לא — צריך לעדכן ידנית.</p>
+      <div class="fix"><strong>תיקון:</strong> לסמן דיווחים כאלה כ"ממתינים לפריוריטי" + תהליך אוטומטי שמסיים אותם מאוחר יותר.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">5</span>
+        <h3>ספירת נהגים בדאשבורד עלולה להיות גבוהה ב-1</h3>
+      </div>
+      <div class="file">src/lib/analytics.ts:82</div>
+      <p><strong>מה קורה:</strong> אם יש רכב במערכת בלי נהג משויך — הוא נספר כאילו זה "נהג ייחודי" בנפרד, ומנפח את הספירה ב-1.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> הקוביה "סך נהגים" עלולה להראות 25 במקום 24.</p>
+      <div class="fix"><strong>תיקון:</strong> לסנן רכבים ללא נהג לפני הספירה — שורת קוד אחת.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">6</span>
+        <h3>שעת קיץ/חורף לא מטופלת בתאריכים</h3>
+      </div>
+      <div class="file">src/api/fleet.ts:55-57</div>
+      <p><strong>מה קורה:</strong> הקוד מניח שישראל תמיד <code>+02:00</code>, אבל בקיץ זה <code>+03:00</code> (שעון קיץ). סטייה של שעה.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> מינורית — יכול להזיז תאריך תוקף ליסינג ביום אחד כשמסתכלים בקיץ על תאריך גבול חודש.</p>
+      <div class="fix"><strong>תיקון:</strong> לפרסר תאריכים בלי לקבוע offset קשיח.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">7</span>
+        <h3>חלון "הוצאות לפי רכב" — חסרים Escape וניטרול גלילה</h3>
+      </div>
+      <div class="file">src/components/fleet-expenses/VehicleExpenseDetail.tsx</div>
+      <p><strong>מה קורה:</strong> כשפותחים את החלון הצדדי של פירוט הוצאות של רכב — אי אפשר לסגור בלחיצה על Escape (רק בלחיצה על הרקע), והדף מאחור עדיין נגלל.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> UX קטן, לא נוח.</p>
+      <div class="fix"><strong>תיקון:</strong> להוסיף הקשבה ל-Escape ולנעול גלילה של הדף ברקע.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">8</span>
+        <h3>קפיצת layout בזמן טעינת הדאשבורד</h3>
+      </div>
+      <div class="file">src/App.tsx:29 vs src/components/dashboard/KpiCards.tsx:75</div>
+      <p><strong>מה קורה:</strong> בזמן טעינה רואים 5 קוביות "שלד" אפורות, ואז כשהדאטה מגיע — מופיעות 6 קוביות. הדף קופץ.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> ויזואלי בלבד — 0.5 שניות של קפיצה בטעינה ראשונית.</p>
+      <div class="fix"><strong>תיקון:</strong> לשנות את ה-skeleton ל-6 קוביות.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">9</span>
+        <h3>בחירת חודש ב-Header — מצב לא עקבי בהחלפת שנה</h3>
+      </div>
+      <div class="file">src/components/layout/Header.tsx:102-110</div>
+      <p><strong>מה קורה:</strong> אם בחרת "דצמבר 2025" וקיים יוני 2026 — כשתבחר 2026, הדרופדאון יראה דצמבר אבל לא יהיה ב-list (כי עוד לא הגענו לדצמבר 2026).</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> מינורית — תלחץ חודש אחר ויסתדר.</p>
+      <div class="fix"><strong>תיקון:</strong> בהחלפת שנה — לקבוע את החודש לחודש הנוכחי או מוקדם יותר.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">10</span>
+        <h3>Cooldown תזכורות מסתמך על שעון המחשב של המשתמש</h3>
+      </div>
+      <div class="file">src/components/driver-reminders/DriverRemindersPage.tsx:111-115</div>
+      <p><strong>מה קורה:</strong> ה-48 שעות בין תזכורות נמדדות לפי שעון המחשב של מי שצופה בדאשבורד. אם השעון מוקדם או מאוחר — ה-cooldown יסתיים בזמן הלא נכון.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> בפועל כמעט אפס — שעון מחשב בדרך כלל מסונכרן.</p>
+      <div class="fix"><strong>תיקון:</strong> להעביר את חישוב הזמן לשרת.</div>
+    </div>
+  </div>
+
+  <!-- LOW -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-low">⚪</div>
+      <h2>נמוך / קוסמטיקה</h2>
+      <span class="count">7 פריטים</span>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">11</span>
+        <h3>שינוי של 0% מסומן בירוק עם חץ למטה</h3>
+      </div>
+      <div class="file">src/components/fleet-expenses/FleetExpensesPage.tsx:227</div>
+      <p><strong>מה קורה:</strong> בקוביית "סך הוצאות החודש" כשהחודש זהה לחודש שעבר (שינוי 0%) — מוצג חץ ירוק יורד. מטעה.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> נדיר שיהיה בדיוק 0%, אבל לא נראה טוב.</p>
+      <div class="fix"><strong>תיקון:</strong> להציג שינוי 0% עם עיצוב נייטרלי או להסתיר את ה-badge.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">12</span>
+        <h3>סיכון לחלוקה באפס בגרף עוגה</h3>
+      </div>
+      <div class="file">src/components/fleet-expenses/VehicleExpenseDetail.tsx:252,267</div>
+      <p><strong>מה קורה:</strong> אם רכב ללא הוצאות כלל — חישוב האחוזים בעוגה נותן NaN%.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> המסגרת של החלוקה לפי קטגוריה מוצגת רק כשיש דאטה — לכן בפועל לא קורה. הגנה דפנסיבית.</p>
+      <div class="fix"><strong>תיקון:</strong> שורה אחת — בדיקה ש-total &gt; 0 לפני חישוב אחוז.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">13</span>
+        <h3>טבלת רכבים בדאשבורד — מיון משנה את ה-cache</h3>
+      </div>
+      <div class="file">src/components/dashboard/FleetTable.tsx:48</div>
+      <p><strong>מה קורה:</strong> בעיה ארכיטקטונית — קוד שמשנה מערכים שהם cache במקום ליצור עותק. כרגע עובד נכון.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> אפס למשתמש. ניקיון קוד בלבד.</p>
+      <div class="fix"><strong>תיקון:</strong> ליצור עותק לפני מיון — שורת קוד אחת.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">14</span>
+        <h3>סיידבר נייד עלול לבטל נעילת גלילה של חלונות אחרים</h3>
+      </div>
+      <div class="file">src/components/layout/Sidebar.tsx:61-65</div>
+      <p><strong>מה קורה:</strong> אם בנייד פתחת חלון פירוט נהג, ואז פתחת את התפריט הראשי — סגירת התפריט מבטלת את נעילת הגלילה של חלון הנהג.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> מינורית, רק בנייד, רק במצב ספציפי.</p>
+      <div class="fix"><strong>תיקון:</strong> לשמור את הערך הקודם של overflow ולשחזר אותו.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">15</span>
+        <h3>חיפוש נהג רגיש לאותיות גדולות באנגלית</h3>
+      </div>
+      <div class="file">src/components/drivers-detail/DriversDetailPage.tsx:507</div>
+      <p><strong>מה קורה:</strong> אם תחפש "avi" — לא ימצא "Avi Cohen". בעברית אין הבדל כי אין אותיות גדולות.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> כל הנהגים בעברית, אז כמעט לא נתקלים בזה.</p>
+      <div class="fix"><strong>תיקון:</strong> להוסיף <code>.toLowerCase()</code> על שם הנהג בחיפוש.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">16</span>
+        <h3>חסרי תיוגי נגישות בכפתורי תפריט נייד</h3>
+      </div>
+      <div class="file">src/components/layout/Sidebar.tsx:112,147</div>
+      <p><strong>מה קורה:</strong> כפתור פתיחת/סגירת תפריט נייד לא מתויג לקוראי מסך — מי שמשתמש בקורא מסך שומע רק "button" בלי הקשר.</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> נגישות בלבד.</p>
+      <div class="fix"><strong>תיקון:</strong> להוסיף <code>aria-label</code> לשני הכפתורים.</div>
+    </div>
+
+    <div class="item">
+      <div class="item-title">
+        <span class="item-num">17</span>
+        <h3>צבעים לא נטענים ב-tooltips של גרפי הוצאות</h3>
+      </div>
+      <div class="file">FleetExpensesPage.tsx:432, VehicleExpenseDetail.tsx:199, OverheadExpensesPage.tsx:524</div>
+      <p><strong>מה קורה:</strong> כשמרחפים מעל גרף הוצאות — ב-tooltip הקטן שמופיע, שמות הקטגוריות מוצגים אבל בלי הצבע התואם (מופיעים בצבע ברירת מחדל).</p>
+      <p style="margin-top:6px;color:#86868b;font-size:13px;"><strong>השפעה:</strong> ויזואלית בלבד — המידע מוצג נכון, רק הצבעים חסרים.</p>
+      <div class="fix"><strong>תיקון:</strong> שינוי שדה הצבע שמסתכלים עליו ב-payload של recharts.</div>
+    </div>
+  </div>
+
+  <!-- ALREADY FIXED -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge badge-info">✅</div>
+      <h2>תוקן בסבב הראשון</h2>
+      <span class="count">13 פריטים</span>
+    </div>
+    <p style="color:#424245;font-size:14px;">
+      אבטחת endpoints (resolve-review + sync-drivers + timing-safe), DriverDetail N/N, סף חריגות ריאקטיבי,
+      chronic-no-report (applicable + חודש נוכחי), defaultMonth lazy, getMonthlyDeltas מדלג על חודשים מדולגים,
+      RTL wrapper על גרפים, source label whatsapp_bot, AnomaliesReview invalidate מיידי.
+    </p>
+    <p style="color:#86868b;font-size:13px;margin-top:10px;">
+      Commit: <code style="font-family:monospace;font-size:12px;direction:ltr;">cd98bda</code>
+    </p>
+  </div>
+
+  <footer>
+    סריקה הופקה ע"י 4 סוכנים מקבילים — Data Layer / Expense Pages / WhatsApp Bot / App Shell<br>
+    Ogen Solutions × MetalPress Fleet · 2026-05-24
+  </footer>
+
+</div>
+</body>
+</html>
