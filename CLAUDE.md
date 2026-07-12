@@ -115,12 +115,34 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 - **פורמט טלפון:** `0523694547` → `972523694547@c.us`
 - **Cooldown:** 48 שעות (localStorage, מפתח: `fleet-reminder-timestamps`)
 
-### תזכורת חודשית אוטומטית (broadcast ב-heyy)
-- **מי שולח:** broadcast חוזר ב-heyy בשם "תזכורת ק"מ חודשית לנהגים" (id `ae7cf40b-a091-4d5b-9f2e-e8039048438d`, לשעבר "tets") — לא Make ולא Vercel
-- **תזמון:** כל 1 לחודש, 05:00 UTC = 08:00 בקיץ / 07:00 בחורף שעון ישראל (RRULE ב-UTC; שונה מ-07:16 UTC ב-3/7/2026 לבקשת מעיין). מאחוריו workflow `c7e11410` ("עידן טסט שליחה לכל הנהגים") עם תבנית "תזכורת"
-- **פניה בשם:** התבנית פונה לפי שם איש הקשר ב-heyy. heyy מזהם `lastName` אוטומטית מפרופיל הוואטסאפ של הנהג ("Raz", אימוג'ים) — נוקה ב-3/7/2026 (92 אנשי קשר) ע"י `scripts/clean-heyy-lastnames.mjs`; גיבוי לשחזור ב-`backups/2026-07-03-heyy-lastnames.json`
-- **ניקוי אוטומטי חודשי:** Vercel Cron (`vercel.json`) קורא ל-`/api/clean-heyy-lastnames` כל 1 לחודש ב-03:00 UTC — שעתיים לפני שידור התזכורת — ומרוקן `lastName` שזוהם מחדש. אימות: `Bearer CRON_SECRET` (מוגדר ב-Vercel env) או `x-sync-secret`. כל ריצה נרשמת ל-`fleet.sync_log` (source='heyy_lastname_cleanup') עם הזוגות שנמחקו ב-metadata לשחזור
-- **מלכודת API:** עדכון איש קשר/broadcast ב-heyy = **PUT** (PATCH מחזיר 404). עדכון broadcast חייב לכלול `isReoccurring: true` יחד עם `recurrenceRules`, אחרת החזרתיות נמחקת
+### שליחה חודשית אוטומטית מהשרת (החליף את ה-broadcast של heyy ב-12/7/2026)
+עד 12/7/2026 ההודעה החודשית נשלחה דרך broadcast חוזר ב-heyy (`ae7cf40b-...`). התגלה
+שהוא קופסה שחורה שכשלה בשקט: ב-1/7/2026 הוא כלל **26 מתוך 102** נהגים בלבד, וכולם
+`isSubscribed=false` כך שלאף אחד לא נמסרה הודעה — בלי שנדע. הוחלף במנגנון שרת מלא:
+
+- **`/api/send-monthly-open`** — Vercel Cron ב-1 לחודש 05:00 UTC. עובר על **כל** הנהגים
+  הפעילים מ-Supabase (מקור האמת) ושולח לכל אחד את תבנית "הודעה בתחילת חודש"
+  (`95c9ac60-...`) ישירות דרך `POST /whatsapp_messages/send` (מסלול שעוקף את בעיית
+  ה-subscribe של broadcasts).
+- **`/api/send-monthly-reminder`** — Vercel Cron ב-15 לחודש 05:00 UTC. שולח את תבנית
+  "תזכורת" (`9224835e-...`) **רק** לנהגים שעדיין לא דיווחו ק"מ לחודש הקודם.
+- **מנוע משותף:** `api/_lib/monthly-messaging.ts` (הסינון זהה ל-useFleetData: ללא
+  overhead/מלאי/מושבת/בלי טלפון). אידמפוטנטי — נהג עם שורת 'accepted' מדולג.
+- **יומן:** כל שליחה נרשמת ל-`fleet.message_log` (kind, report_year/month, driver,
+  send_status, heyy_message_id, delivery_status, error). unique(year,month,driver,kind).
+- **אישורי מסירה:** ענף status ב-`api/heyy-webhook.ts` (`recordDeliveryStatus`) מעדכן
+  `delivery_status` (נמסר/נקרא/נכשל) לפי `heyy_message_id`. דורמנטי עד ש-heyy יוגדר
+  לשלוח אירועי status ל-webhook.
+- **דשבורד:** דף `message-tracking` ("מעקב הודעות") מציג פר-נהג מי קיבל/לא קיבל + סיכום.
+- **אבטחה:** `Bearer CRON_SECRET` (Vercel מוסיף לקרונים) או `x-sync-secret` להרצה ידנית.
+- **ה-broadcast הישן** (`ae7cf40b-...`, workflow `c7e11410`) **כובה** ב-12/7/2026
+  (recurrence הוסר) כדי למנוע כפל שליחה. שמור לשחזור אם צריך.
+- **פניה בשם:** תבניות "הודעה בתחילת חודש"/"תזכורת" הן טקסט סטטי בלי משתנה שם
+  (`whatsappComponents: []`), אז השליחה עם `variables: []`. ניקוי ה-`lastName` המזוהם
+  עדיין רץ (`/api/clean-heyy-lastnames`, cron 1 לחודש 03:00 UTC) כי הוא משפיע על
+  התצוגה ב-heyy ועל שיחות עתידיות.
+- **מלכודת API:** עדכון איש קשר/broadcast ב-heyy = **PUT** (PATCH מחזיר 404). עדכון
+  broadcast חייב לכלול `isReoccurring: true` יחד עם `recurrenceRules`, אחרת החזרתיות נמחקת
 
 ---
 
@@ -132,6 +154,7 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 | `fleet-management` | FleetManagementPage | מעקב תוקף ליסינג/רישוי עם toggle פנימי |
 | `inventory` | InventoryPage | רכבי מלאי (driverName === 'מלאי') |
 | `driver-reminders` | DriverRemindersPage | תזכורות WhatsApp לנהגים שלא דיווחו |
+| `message-tracking` | MessageTrackingPage | מעקב מי קיבל את ההודעה החודשית/תזכורת (מ-`message_log`) |
 | `drivers-detail` | DriversDetailPage | היסטוריית 12 חודשים לכל נהג + פרטי חוזה ורישוי |
 | `anomalies-review` | AnomaliesReviewPage | סקירת דיווחים חריגים |
 | `fuel-expenses` | FuelExpensesPage | הוצאות דלק (ממוקד דלק בלבד) |

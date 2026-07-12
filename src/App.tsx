@@ -14,6 +14,7 @@ import { FuelExpensesPage } from '@/components/fuel-expenses/FuelExpensesPage';
 import { FleetExpensesPage } from '@/components/fleet-expenses/FleetExpensesPage';
 import { OverheadExpensesPage } from '@/components/overhead-expenses/OverheadExpensesPage';
 import { DriverRemindersPage } from '@/components/driver-reminders/DriverRemindersPage';
+import { MessageTrackingPage } from '@/components/message-tracking/MessageTrackingPage';
 import { DriversDetailPage } from '@/components/drivers-detail/DriversDetailPage';
 import { AnomaliesReviewPage } from '@/components/anomalies-review/AnomaliesReviewPage';
 import { SettingsPage } from '@/components/settings/SettingsPage';
@@ -157,6 +158,14 @@ export default function App() {
 
           {currentView === 'driver-reminders' && (
             <DriverRemindersPage
+              vehicles={fleet.vehicles}
+              selectedYear={fleet.selectedYear}
+              selectedMonth={fleet.selectedMonth}
+            />
+          )}
+
+          {currentView === 'message-tracking' && (
+            <MessageTrackingPage
               vehicles={fleet.vehicles}
               selectedYear={fleet.selectedYear}
               selectedMonth={fleet.selectedMonth}

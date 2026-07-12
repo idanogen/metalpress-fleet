@@ -3,6 +3,14 @@
     {
       "path": "/api/clean-heyy-lastnames",
       "schedule": "0 3 1 * *"
+    },
+    {
+      "path": "/api/send-monthly-open",
+      "schedule": "0 5 1 * *"
+    },
+    {
+      "path": "/api/send-monthly-reminder",
+      "schedule": "0 5 15 * *"
     }
   ]
 }

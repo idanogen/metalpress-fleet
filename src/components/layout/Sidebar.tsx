@@ -1,7 +1,7 @@
-import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, Package, Wallet, AlertTriangle, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Truck, Settings, ShieldCheck, Users, Menu, X, Fuel, FileBarChart, Package, Wallet, AlertTriangle, Briefcase, MailCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'fleet-expenses' | 'overhead-expenses' | 'driver-reminders' | 'drivers-detail' | 'anomalies-review' | 'reports' | 'settings';
+export type ViewType = 'dashboard' | 'fleet-management' | 'inventory' | 'fuel-expenses' | 'fleet-expenses' | 'overhead-expenses' | 'driver-reminders' | 'message-tracking' | 'drivers-detail' | 'anomalies-review' | 'reports' | 'settings';
 
 // WhatsApp icon as inline SVG for accurate branding
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -23,6 +23,7 @@ const mainNavItems: NavItemDef[] = [
   { icon: LayoutDashboard, label: 'דאשבורד', view: 'dashboard' },
   { icon: Truck, label: 'ניהול צי', view: 'fleet-management' },
   { icon: WhatsAppIcon, label: 'תזכורת לנהגים', view: 'driver-reminders', customIcon: true },
+  { icon: MailCheck, label: 'מעקב הודעות', view: 'message-tracking' },
   { icon: AlertTriangle, label: 'דיווחים חריגים', view: 'anomalies-review' },
   { icon: Users, label: 'נהגים מפורט', view: 'drivers-detail' },
   { icon: Package, label: 'רכבי מלאי', view: 'inventory' },

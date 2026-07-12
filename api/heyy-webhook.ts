@@ -139,7 +139,23 @@ function parseMileage(text: string | undefined): number | null {
   if (!text) return null;
   const m = String(text).match(/(\d[\d,.]*)/);
   if (!m) return null;
-  const num = parseInt(m[1].replace(/[,.]/g, ''), 10);
+  const token = m[1];
+  // An odometer reading is a whole number. Drivers write separators inconsistently:
+  //   "27,219" / "27.219" → 27219  (thousands separator: comes before exactly 3 digits)
+  //   "351.9"  / "351,9"  → 352    (decimal separator: comes before 1-2 trailing digits)
+  // The old code stripped ALL "," and "." blindly, so "351.9" became 3519. We instead
+  // detect a trailing decimal fraction and round it, treating anything else as thousands.
+  const lastSep = Math.max(token.lastIndexOf(','), token.lastIndexOf('.'));
+  const fracDigits = lastSep >= 0 ? token.slice(lastSep + 1) : '';
+  let num: number;
+  if (lastSep >= 0 && /^\d{1,2}$/.test(fracDigits)) {
+    // Trailing 1-2 digits after the last separator → treat as a decimal fraction and round.
+    const intPart = token.slice(0, lastSep).replace(/[,.]/g, '');
+    num = Math.round(Number(intPart) + Number('0.' + fracDigits));
+  } else {
+    // No decimal fraction → every separator is a thousands separator.
+    num = parseInt(token.replace(/[,.]/g, ''), 10);
+  }
   return Number.isFinite(num) && num > 0 ? num : null;
 }
 
@@ -149,6 +165,41 @@ function previousMonth(): { year: number; month: number } {
   let y = now.getFullYear();
   if (m === 0) { m = 12; y -= 1; }
   return { year: y, month: m };
+}
+
+// Maps heyy/Meta WhatsApp delivery statuses to fleet.message_log.delivery_status.
+const DELIVERY_STATUS_MAP: Record<string, string> = {
+  sent: 'sent',
+  delivered: 'delivered',
+  read: 'read',
+  failed: 'failed',
+  undelivered: 'undelivered',
+  error: 'failed',
+};
+
+// Best-effort: when heyy posts a delivery-status event (delivered/read/failed) for a
+// message we sent from the monthly cron, update its ledger row so the dashboard shows
+// who actually RECEIVED the message, not just who we sent to. Dormant (no-op) until
+// heyy is configured to POST status events here; never throws into the main flow.
+async function recordDeliveryStatus(
+  supabase: { from: (table: string) => { update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => PromiseLike<unknown> } } },
+  payload: HeyyPayload,
+): Promise<boolean> {
+  const d = (payload.data ?? {}) as Record<string, unknown>;
+  const rawStatus = String((d.status as string) ?? payload.type ?? '').toLowerCase();
+  const mapped = DELIVERY_STATUS_MAP[rawStatus];
+  const messageId = (d.waMessageId as string) || (d.messageId as string) || (d.id as string) || null;
+  if (!mapped || !messageId) return false;
+  const errText = d.error ? String(d.error).slice(0, 400) : null;
+  await supabase
+    .from('message_log')
+    .update({
+      delivery_status: mapped,
+      delivery_error: mapped === 'failed' || mapped === 'undelivered' ? errText : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('heyy_message_id', messageId);
+  return true;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -173,9 +224,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const payload = (req.body || {}) as HeyyPayload;
 
-  // Ignore outbound message events (echo of our own sends) — only process inbound
+  // Non-inbound events (delivery receipts, echoes). Try to record a delivery status
+  // for our monthly messages, then acknowledge. Guarded so it never breaks the flow.
   if (payload.event && payload.event !== 'message.received') {
-    return res.status(200).json({ ok: true, ignored: payload.event });
+    let recorded = false;
+    try {
+      recorded = await recordDeliveryStatus(supabase, payload);
+    } catch (e) {
+      console.error('delivery status update failed:', e instanceof Error ? e.message : String(e));
+    }
+    return res.status(200).json({ ok: true, ignored: payload.event, deliveryRecorded: recorded });
   }
   if (payload.data?.sender === 'outbound') {
     return res.status(200).json({ ok: true, ignored: 'outbound message' });
