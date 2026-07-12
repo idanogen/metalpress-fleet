@@ -157,7 +157,7 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 | `message-tracking` | MessageTrackingPage | מעקב מי קיבל את ההודעה החודשית/תזכורת (מ-`message_log`) |
 | `drivers-detail` | DriversDetailPage | היסטוריית 12 חודשים לכל נהג + פרטי חוזה ורישוי |
 | `anomalies-review` | AnomaliesReviewPage | סקירת דיווחים חריגים |
-| `fuel-expenses` | FuelExpensesPage | הוצאות דלק (ממוקד דלק בלבד) |
+| `fuel-expenses` | FuelExpensesPage | הוצאות דלק (ממוקד דלק בלבד) + מדד ק"מ/ליטר פר רכב ופר חודש (`lib/fuelEfficiency.ts`) |
 | `fleet-expenses` | FleetExpensesPage | הוצאות צי — 14 קטגוריות, פילטרים, גרפים, drawer לרכב עם **טבלת חשבוניות מפורטות** (`vehicle_invoices`) |
 | `overhead-expenses` | OverheadExpensesPage | 7 חשבונות פיקטיביים (model='שוטף') — הוצאות כלליות לפי חברה |
 | `reports` | ReportsPage | דוחות + ייצוא Excel |

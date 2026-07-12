@@ -1,8 +1,9 @@
-import { X, Phone, Car, Building2, Fuel, Droplets } from 'lucide-react';
+import { X, Phone, Car, Building2, Fuel, Droplets, Gauge } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, ComposedChart, Line } from 'recharts';
 import type { Vehicle } from '@/types/fleet';
 import { VehicleImage } from '@/components/ui/VehicleImage';
+import { computeEfficiency, yearEfficiency, formatKmPerLiter } from '@/lib/fuelEfficiency';
 
 interface VehicleFuelDetailProps {
   vehicle: Vehicle | null;
@@ -13,6 +14,10 @@ interface VehicleFuelDetailProps {
 export function VehicleFuelDetail({ vehicle, year, onClose }: VehicleFuelDetailProps) {
   if (!vehicle) return null;
 
+  // יעילות דלק (ק"מ/ליטר) — מחושבת מכל ההיסטוריה כי צריך את קריאת החודש הקודם.
+  const efficiency = computeEfficiency(vehicle.monthlyUsage);
+  const yearEff = yearEfficiency(vehicle.monthlyUsage, year);
+
   const last12 = [...vehicle.monthlyUsage]
     .sort((a, b) => {
       if (a.year !== b.year) return a.year.localeCompare(b.year);
@@ -20,12 +25,17 @@ export function VehicleFuelDetail({ vehicle, year, onClose }: VehicleFuelDetailP
     })
     .slice(-12);
 
-  const chartData = last12.map(m => ({
-    month: `${m.monthName} ${m.year.slice(2)}`,
-    cost: Math.round(m.fuelCost || 0),
-    liters: Math.round(m.fuelConsumption || 0),
-    hasData: (m.fuelCost || 0) > 0 || (m.fuelConsumption || 0) > 0,
-  }));
+  const chartData = last12.map(m => {
+    const e = efficiency.get(`${m.year}-${m.monthNum}`);
+    return {
+      month: `${m.monthName} ${m.year.slice(2)}`,
+      cost: Math.round(m.fuelCost || 0),
+      liters: Math.round(m.fuelConsumption || 0),
+      kmDriven: e?.kmDriven ?? null,
+      kmPerLiter: e?.kmPerLiter ?? null,
+      hasData: (m.fuelCost || 0) > 0 || (m.fuelConsumption || 0) > 0,
+    };
+  });
 
   const yearData = vehicle.monthlyUsage.filter(m => m.year === year);
   const yearCost = Math.round(yearData.reduce((s, m) => s + (m.fuelCost || 0), 0));
@@ -86,6 +96,23 @@ export function VehicleFuelDetail({ vehicle, year, onClose }: VehicleFuelDetailP
               <StatBox label="חודשי דיווח" value={`${monthsReported}/12`} color="text-[#34c759]" />
             </div>
 
+            {/* יעילות דלק — ק"מ לליטר */}
+            <div className="rounded-2xl bg-[#34c759]/[0.07] border border-[#34c759]/25 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-[#34c759]/15 flex items-center justify-center shrink-0">
+                  <Gauge className="w-5 h-5 text-[#34c759]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#1d1d1f]">יעילות דלק ממוצעת · {year}</p>
+                  <p className="text-xs text-[#86868b]">ק"מ שנסעו ÷ ליטרים שתודלקו</p>
+                </div>
+              </div>
+              <div className="text-left shrink-0">
+                <p className="text-2xl font-extrabold text-[#34c759] leading-none">{formatKmPerLiter(yearEff.kmPerLiter)}</p>
+                <p className="text-[11px] text-[#86868b] mt-1">ק"מ / ליטר</p>
+              </div>
+            </div>
+
             {/* Chart — Cost + Liters */}
             <div className="rounded-2xl bg-white/30 border border-white/40 p-4">
               <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">הוצאות דלק — 12 חודשים אחרונים</h3>
@@ -105,6 +132,9 @@ export function VehicleFuelDetail({ vehicle, year, onClose }: VehicleFuelDetailP
                             <p className="text-xs text-[#86868b] mb-1">{label}</p>
                             <p className="text-sm font-bold text-[#ff9500]">₪{d.cost.toLocaleString()}</p>
                             <p className="text-sm font-bold text-[#007AFF]">{d.liters.toLocaleString()} ליטר</p>
+                            {d.kmPerLiter != null && (
+                              <p className="text-sm font-bold text-[#34c759]">{formatKmPerLiter(d.kmPerLiter)} ק"מ/ליטר</p>
+                            )}
                           </div>
                         );
                       }}
@@ -123,7 +153,10 @@ export function VehicleFuelDetail({ vehicle, year, onClose }: VehicleFuelDetailP
 
             {/* Monthly Breakdown Table */}
             <div className="rounded-2xl bg-white/30 border border-white/40 p-4">
-              <h3 className="text-sm font-bold text-[#1d1d1f] mb-3">פירוט חודשי</h3>
+              <h3 className="text-sm font-bold text-[#1d1d1f] mb-1">פירוט חודשי</h3>
+              <p className="text-[11px] text-[#86868b] mb-3 leading-snug">
+                ליטרים · <span className="text-[#34c759]">ק"מ/ליטר</span> · עלות. הק"מ/ליטר החודשי מושפע מעיתוי התדלוקים, המדד השנתי למעלה אמין יותר.
+              </p>
               <div className="space-y-1.5">
                 {[...chartData].reverse().map((m, i) => (
                   <div
@@ -140,6 +173,12 @@ export function VehicleFuelDetail({ vehicle, year, onClose }: VehicleFuelDetailP
                         <div className="flex items-center gap-1">
                           <Droplets className="w-3 h-3 text-[#007AFF]" />
                           <span className="text-xs text-[#424245]">{m.liters.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1 min-w-[64px]" title="ק&quot;מ לליטר">
+                          <Gauge className="w-3 h-3 text-[#34c759]" />
+                          <span className="text-xs font-medium text-[#34c759]">
+                            {m.kmPerLiter != null ? `${formatKmPerLiter(m.kmPerLiter)}` : '—'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1.5 min-w-[100px] justify-end">
                           {maxCost > 0 && (

@@ -8,6 +8,7 @@ import { Fuel, TrendingDown, TrendingUp, Droplets, Building2, Search, ArrowUpDow
 import type { Vehicle } from '@/types/fleet';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 import { VehicleFuelDetail } from './VehicleFuelDetail';
+import { yearEfficiency, formatKmPerLiter } from '@/lib/fuelEfficiency';
 
 const COLORS = ['#007AFF', '#34c759', '#ff9500', '#ff3b30', '#5856D6', '#ff2d55', '#5ac8fa', '#af52de'];
 
@@ -122,6 +123,7 @@ interface VehicleFuelData {
   monthsReported: number;
   avgMonthlyCost: number;
   currentMileage: number;
+  kmPerLiter: number | null;
 }
 
 function getVehicleFuelBreakdown(vehicles: Vehicle[], year: string): VehicleFuelData[] {
@@ -150,12 +152,13 @@ function getVehicleFuelBreakdown(vehicles: Vehicle[], year: string): VehicleFuel
         monthsReported: months,
         avgMonthlyCost: months > 0 ? Math.round(cost / months) : 0,
         currentMileage: v.currentMileage || 0,
+        kmPerLiter: yearEfficiency(v.monthlyUsage, year).kmPerLiter,
       };
     })
     .filter(v => v.totalCost > 0 || v.totalLiters > 0);
 }
 
-type VehicleSortKey = 'totalCost' | 'totalLiters' | 'avgMonthlyCost' | 'driverName' | 'monthsReported';
+type VehicleSortKey = 'totalCost' | 'totalLiters' | 'avgMonthlyCost' | 'driverName' | 'monthsReported' | 'kmPerLiter';
 
 function getYearOverYearChange(vehicles: Vehicle[], currentYear: string) {
   const prevYear = String(Number(currentYear) - 1);
@@ -319,7 +322,9 @@ export function FuelExpensesPage({ vehicles, selectedYear: initialYear }: FuelEx
     const sorted = [...result].sort((a, b) => {
       const dir = vehicleSortDir === 'asc' ? 1 : -1;
       if (vehicleSort === 'driverName') return a.driverName.localeCompare(b.driverName, 'he') * dir;
-      return (a[vehicleSort] - b[vehicleSort]) * dir;
+      // רכבים בלי ק"מ/ליטר (חשמלי / חסר נתונים) תמיד לתחתית
+      if (vehicleSort === 'kmPerLiter') return ((a.kmPerLiter ?? -1) - (b.kmPerLiter ?? -1)) * dir;
+      return ((a[vehicleSort] as number) - (b[vehicleSort] as number)) * dir;
     });
     return sorted;
   }, [vehicleFuelData, selectedCompany, vehicleSearch, vehicleSort, vehicleSortDir]);
@@ -748,6 +753,11 @@ export function FuelExpensesPage({ vehicles, selectedYear: initialYear }: FuelEx
                   </button>
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-bold text-[#86868b]">
+                  <button onClick={() => toggleVehicleSort('kmPerLiter')} className="flex items-center gap-1 hover:text-[#007AFF]">
+                    ק"מ/ליטר <ArrowUpDown className="w-3 h-3" />
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-bold text-[#86868b]">
                   <button onClick={() => toggleVehicleSort('totalCost')} className="flex items-center gap-1 hover:text-[#007AFF]">
                     עלות כוללת <ArrowUpDown className="w-3 h-3" />
                   </button>
@@ -785,6 +795,13 @@ export function FuelExpensesPage({ vehicles, selectedYear: initialYear }: FuelEx
                     <td className="px-4 py-3 text-[#86868b] font-mono text-xs">{v.plateNumber}</td>
                     <td className="px-4 py-3 text-[#424245] text-xs">{v.companyShort || '—'}</td>
                     <td className="px-4 py-3 text-[#424245]">{v.totalLiters.toLocaleString()}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {v.kmPerLiter != null ? (
+                        <span className="font-bold text-[#34c759]">{formatKmPerLiter(v.kmPerLiter)}</span>
+                      ) : (
+                        <span className="text-[#c7c7cc]">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-bold text-[#1d1d1f] whitespace-nowrap">₪{v.totalCost.toLocaleString()}</td>
                     <td className="px-4 py-3 text-[#424245] whitespace-nowrap">₪{v.avgMonthlyCost.toLocaleString()}</td>
                     <td className="px-4 py-3 text-[#424245] text-center">{v.monthsReported}</td>
@@ -801,7 +818,7 @@ export function FuelExpensesPage({ vehicles, selectedYear: initialYear }: FuelEx
               })}
               {filteredVehicleFuelData.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-[#86868b]">
+                  <td colSpan={10} className="px-4 py-12 text-center text-[#86868b]">
                     אין נתוני דלק תואמים
                   </td>
                 </tr>
