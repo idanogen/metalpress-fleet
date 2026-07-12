@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>דוח מערך ההודעות לנהגים — MetalPress Fleet</title>
+<style>
+  :root{
+    --blue:#007AFF; --green:#34c759; --orange:#ff9500; --red:#ff3b30;
+    --gray:#86868b; --ink:#1d1d1f; --line:rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Heebo,Arial,sans-serif;
+    color:var(--ink); background:linear-gradient(160deg,#eef3fb 0%,#f6f8fc 40%,#eaf1f8 100%);
+    -webkit-font-smoothing:antialiased; line-height:1.6;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:40px 22px 80px}
+  header.hero{
+    background:#fff; border:1px solid var(--line); border-radius:26px; padding:34px 32px;
+    box-shadow:0 10px 40px rgba(0,60,140,.06);
+  }
+  .kick{color:var(--blue); font-weight:800; letter-spacing:.4px; font-size:13px}
+  h1{font-size:30px; margin:8px 0 6px; font-weight:900}
+  .sub{color:var(--gray); font-size:15px}
+  .meta{display:flex; gap:22px; flex-wrap:wrap; margin-top:18px; font-size:14px}
+  .meta b{color:var(--ink)}
+  .meta span{color:var(--gray)}
+  section{
+    background:#fff; border:1px solid var(--line); border-radius:22px; padding:26px 28px; margin-top:20px;
+    box-shadow:0 6px 26px rgba(0,60,140,.04);
+  }
+  h2{font-size:21px; margin:0 0 4px; font-weight:800}
+  h2 .num{display:inline-flex; width:30px; height:30px; border-radius:9px; background:rgba(0,122,255,.1);
+    color:var(--blue); align-items:center; justify-content:center; font-size:15px; margin-left:9px; vertical-align:middle}
+  .lead{color:var(--gray); font-size:14px; margin:0 0 16px}
+  p{margin:10px 0}
+  .cards{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:18px 0}
+  .card{background:#f7f9fc; border:1px solid var(--line); border-radius:16px; padding:16px; text-align:center}
+  .card .v{font-size:30px; font-weight:900; line-height:1}
+  .card .l{font-size:12px; color:var(--gray); margin-top:6px}
+  table{width:100%; border-collapse:collapse; margin-top:8px; font-size:14px}
+  th,td{text-align:right; padding:11px 12px; border-bottom:1px solid var(--line)}
+  th{color:var(--gray); font-weight:700; font-size:12.5px}
+  .pill{display:inline-block; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:800}
+  .ok{background:rgba(52,199,89,.12); color:var(--green)}
+  .bad{background:rgba(255,59,48,.12); color:var(--red)}
+  .before{background:rgba(255,149,0,.12); color:var(--orange)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; direction:ltr; unicode-bidi:isolate;
+    background:#f2f4f8; padding:2px 7px; border-radius:6px; font-size:13px}
+  .flow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; margin:10px 0}
+  .flow .step{background:#f7f9fc; border:1px solid var(--line); border-radius:12px; padding:9px 13px; font-weight:600}
+  .flow .arrow{color:var(--blue); font-weight:900}
+  .timeline{list-style:none; padding:0; margin:6px 0 0}
+  .timeline li{position:relative; padding:12px 20px 12px 0; border-right:2px solid var(--line); margin-right:9px}
+  .timeline li::before{content:""; position:absolute; right:-8px; top:16px; width:14px; height:14px;
+    border-radius:50%; background:var(--blue); border:3px solid #fff; box-shadow:0 0 0 1px var(--line)}
+  .timeline b{display:block; font-size:15px}
+  .timeline span{color:var(--gray); font-size:13.5px}
+  .ask{background:linear-gradient(135deg,#fff6e9,#fffaf2); border:1px solid rgba(255,149,0,.35)}
+  .ask h2{color:#b5620a}
+  .choice{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+  .choice .opt{background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px}
+  .choice .opt b{display:block; margin-bottom:5px}
+  .foot{color:var(--gray); font-size:12.5px; text-align:center; margin-top:26px}
+  @media(max-width:640px){ .cards,.choice{grid-template-columns:1fr 1fr} h1{font-size:24px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kick">MetalPress Fleet · דוח עבודה</div>
+    <h1>מערך ההודעות לנהגים: אבחון ותיקון</h1>
+    <div class="sub">שדרוג מקצה לקצה של השליחה החודשית והתזכורות לנהגי הצי, כולל בקרה חדשה על מי קיבל הודעה.</div>
+    <div class="meta">
+      <div><span>תאריך:</span> <b>12 ביולי 2026</b></div>
+      <div><span>מוגש עבור:</span> <b>איריס</b></div>
+      <div><span>סטטוס:</span> <b class="pill ok">חי בפרודקשן</b></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>תקציר מנהלים</h2>
+    <p>היום טופלו שתי תלונות שהגיעו מהשטח. הראשונה: המערכת פירשה מספר עם נקודה עשרונית בטעות
+    כמספר גדול פי כמה. השנייה, והחשובה: <b>המון עובדים לא קיבלו בכלל את ההודעה בתחילת החודש</b>.</p>
+    <p>האבחון חשף שההודעה החודשית נשלחה עד היום דרך מנגנון פנימי של ספק הוואטסאפ (heyy) שהיה
+    "קופסה שחורה". בבדיקה עלה שב-1 ביולי הוא הגיע ל-<b>26 נהגים בלבד מתוך 102</b>, ולמעשה
+    <b>לאף אחד מהם לא נמסרה הודעה</b>, בלי שום התראה. בנינו מנגנון חדש לגמרי שהשרת שלנו שולט בו,
+    שולח לכל נהג בנפרד, ורושם פר-נהג בדיוק מה קרה, כך שאפשר לראות בדשבורד מי קיבל ומי לא.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">1</span>תלונה: מספר עם פסיק זוהה לא נכון</h2>
+    <p class="lead">נהג שלח קריאת מד-אוץ' עם נקודה עשרונית, והמערכת חיברה את הספרות למספר שגוי.</p>
+    <p>הנהג שלח <span class="mono">351.9</span>. המערכת מחקה את הנקודה וקיבלה
+    <span class="mono">3519</span>, ואז כשניסה לתקן ל-<span class="mono">351</span> הוא קיבל
+    "כבר קיבלנו ממך דיווח". התיקון: המערכת מבחינה עכשיו בין מפריד אלפים למפריד עשרוני ומעגלת נכון.</p>
+    <table>
+      <thead><tr><th>מה הנהג כותב</th><th>פירוש</th><th>לפני</th><th>אחרי</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">27,219</span></td><td>מפריד אלפים</td><td><span class="pill ok">27219</span></td><td><span class="pill ok">27219</span></td></tr>
+        <tr><td><span class="mono">351.9</span></td><td>עשרוני</td><td><span class="pill bad">3519</span></td><td><span class="pill ok">352</span></td></tr>
+        <tr><td><span class="mono">351,9</span></td><td>עשרוני</td><td><span class="pill bad">3519</span></td><td><span class="pill ok">352</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>תלונה: הרבה עובדים לא קיבלו את ההודעה החודשית</h2>
+    <p class="lead">האבחון: ה-broadcast של heyy היה קופסה שחורה שכשלה בשקט מוחלט.</p>
+    <div class="cards">
+      <div class="card"><div class="v" style="color:var(--ink)">102</div><div class="l">נהגים עם טלפון</div></div>
+      <div class="card"><div class="v" style="color:var(--orange)">26</div><div class="l">היו ברשימת השליחה</div></div>
+      <div class="card"><div class="v" style="color:var(--red)">0</div><div class="l">קיבלו הודעה בפועל</div></div>
+      <div class="card"><div class="v" style="color:var(--red)">26</div><div class="l">מסומנים "לא מנוי"</div></div>
+    </div>
+    <p>שתי תקלות שכבו זו על זו: הרשימה כללה רק רבע מהנהגים, ומי שכן היה בה סומן כ"מבוטל מנוי"
+    כך שהספק לא שלח לו כלום. שתיהן היו בלתי נראות לנו לחלוטין.</p>
+
+    <p style="margin-top:20px"><b>הפתרון: השרת שלנו לוקח שליטה על השליחה.</b></p>
+    <div class="flow">
+      <span class="step">רשימת הנהגים המלאה (Supabase)</span>
+      <span class="arrow">←</span>
+      <span class="step">השרת שולח לכל נהג בנפרד</span>
+      <span class="arrow">←</span>
+      <span class="step">רישום פר-נהג ביומן</span>
+      <span class="arrow">←</span>
+      <span class="step">דשבורד: מי קיבל / מי לא</span>
+    </div>
+
+    <table style="margin-top:18px">
+      <thead><tr><th>רכיב חדש</th><th>מה הוא עושה</th><th>סטטוס</th></tr></thead>
+      <tbody>
+        <tr><td>שליחה חודשית מהשרת</td><td>ב-1 לחודש שולח לכל 99 הנהגים הפעילים</td><td><span class="pill ok">פעיל</span></td></tr>
+        <tr><td>תזכורת אוטומטית</td><td>ב-15 לחודש, רק לנהגים שעדיין לא דיווחו</td><td><span class="pill ok">פעיל</span></td></tr>
+        <tr><td>יומן הודעות</td><td>רושם לכל נהג: נשלח / נמסר / נקרא / נכשל / לא נשלח</td><td><span class="pill ok">פעיל</span></td></tr>
+        <tr><td>אישורי מסירה</td><td>קולט מ-heyy עדכון אמיתי שההודעה נמסרה</td><td><span class="pill ok">פעיל</span></td></tr>
+        <tr><td>דף "מעקב הודעות"</td><td>מסך בדשבורד עם סיכום מי קיבל ומי לא</td><td><span class="pill ok">חי</span></td></tr>
+        <tr><td>קופסה שחורה ישנה (heyy)</td><td>כובתה כדי למנוע כפל שליחה</td><td><span class="pill before">כובה</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>לוח זמנים מעכשיו</h2>
+    <ul class="timeline">
+      <li><b>15 ביולי (עוד 3 ימים)</b><span>תזכורת אוטומטית ל-54 הנהגים שעדיין לא דיווחו על יוני.</span></li>
+      <li><b>1 באוגוסט, 08:00 בבוקר</b><span>ההודעה בתחילת החודש נשלחת אוטומטית לכל 99 הנהגים.</span></li>
+      <li><b>אחרי כל שליחה</b><span>דף "מעקב הודעות" מציג מי קיבל, מי נמסר, מי נכשל, ומי לא נשלח, עם סיכום "X מתוך Y קיבלו".</span></li>
+    </ul>
+    <p style="margin-top:16px; font-size:13.5px; color:var(--gray)">
+    הערה על השעה: השליחה מכוונת ל-8 בבוקר (שעון ישראל בקיץ). מערכת התזמון עובדת בשעון עולמי,
+    אז בסוף אוקטובר, במעבר לשעון חורף, נעדכן ידנית כדי שיישאר 8 בבוקר מדויק.</p>
+  </section>
+
+  <section class="ask">
+    <h2>שאלה פתוחה להחלטתך</h2>
+    <p>54 הנהגים שעדיין לא דיווחו על יוני יקבלו תזכורת אוטומטית ב-15 בחודש. השאלה: לשלוח להם
+    את התזכורת <b>עכשיו</b> כמהלך השלמה חד-פעמי, או להשאיר לתזמון הרגיל ב-15?</p>
+    <div class="choice">
+      <div class="opt"><b>לשלוח עכשיו</b>54 הנהגים מקבלים תזכורת מיד, וסוגרים את פער יוני מהר יותר.</div>
+      <div class="opt"><b>להשאיר ל-15</b>בלי פעולה נוספת, התזכורת האוטומטית תצא ממילא בעוד 3 ימים.</div>
+    </div>
+  </section>
+
+  <div class="foot">MetalPress Fleet · דוח נוצר ב-12 ביולי 2026</div>
+
+</div>
+</body>
+</html>
