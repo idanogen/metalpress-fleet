@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { isAuthorized, envReady, runMonthlySend } from './_lib/monthly-messaging';
+import { isAuthorized, envReady, runMonthlySend } from './_lib/monthly-messaging.js';
 
 /**
  * ההודעה בתחילת החודש — נשלחת מהשרת לכל הנהגים הפעילים.

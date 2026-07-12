@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { isAuthorized, envReady, runMonthlySend } from './_lib/monthly-messaging';
+import { isAuthorized, envReady, runMonthlySend } from './_lib/monthly-messaging.js';
 
 /**
  * תזכורת אמצע-חודש — נשלחת מהשרת רק לנהגים שעדיין לא דיווחו ק"מ לחודש הקודם.
