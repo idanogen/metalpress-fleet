@@ -23,7 +23,11 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // תבניות WhatsApp מאושרות (Meta) ב-heyy. ראה GET /message_templates.
 export const TEMPLATES = {
-  month_open: '95c9ac60-e944-49ae-a821-df83239501c4', // "הודעה בתחילת חודש"
+  // "מילוי קילומטרז חודשי עם שם" — מחליף את "הודעה בתחילת חודש" (95c9ac60) שהיה
+  // בנוי עם טוקן driver_name ריק ולכן יצא "שלום" בלי שם. התבנית החדשה בנויה עם
+  // הטוקן #first_name (זהה לתזכורת, מאוכלס מ-drivers.name) ומתקנת שתי שגיאות כתיב
+  // (קילומטרז, Metalpress). נוצרה ונשלחה לאישור Meta ב-2/8/2026.
+  month_open: '1c32ab60-406d-4712-bf41-96583f67510b', // "מילוי קילומטרז חודשי עם שם"
   reminder: '9224835e-e2a8-4818-b7ff-18250db2fac0', // "תזכורת"
 } as const;
 
