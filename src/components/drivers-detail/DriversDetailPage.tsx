@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import type { Vehicle } from '@/types/fleet';
 import { getDriverAvgUsage, getMonthlyDeltas } from '@/lib/analytics';
+import { getVehicleTenure, formatTenure } from '@/lib/vehicleTenure';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 
 function formatDateShort(iso: string): string {
@@ -62,6 +63,7 @@ const CHART_TABS: { key: ChartTab; label: string; icon: typeof TrendingUp; color
 function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: boolean; onToggle: () => void }) {
   const [chartTab, setChartTab] = useState<ChartTab>('km');
   const avg = getDriverAvgUsage(vehicle);
+  const tenure = useMemo(() => getVehicleTenure(vehicle), [vehicle]);
   const allDeltas = useMemo(() => getMonthlyDeltas(vehicle), [vehicle]);
   const last12 = useMemo(() =>
     [...(Array.isArray(vehicle.monthlyUsage) ? vehicle.monthlyUsage : [])]
@@ -116,11 +118,31 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
             <p className="text-[#86868b]">לוחית</p>
             <p className="font-mono text-[#424245]">{vehicle.plateNumber}</p>
           </div>
-          <div className="text-center w-[70px]">
-            <p className="text-[#86868b]">ממוצע</p>
-            <p className="font-bold text-[#007AFF]">{avg > 0 ? Math.round(avg).toLocaleString() : '—'}</p>
+          {/* ותק וממוצע מצטבר — בקשת עקול (בעלים). מוסתר במסכים צרים
+              כדי לא לרסק את השורה; הפירוט המלא נמצא בהרחבה. */}
+          <div className="text-center w-[80px] hidden lg:block">
+            <p className="text-[#86868b]">ותק</p>
+            <p className="font-bold text-[#424245]">
+              {tenure.monthsOnRoad !== null ? `${tenure.monthsOnRoad} ח׳` : '—'}
+            </p>
+          </div>
+          <div className="text-center w-[80px] hidden md:block">
+            <p className="text-[#86868b]">ק״מ מצטבר</p>
+            <p className="font-bold text-[#424245] tabular-nums">
+              {tenure.cumulativeKm !== null ? tenure.cumulativeKm.toLocaleString() : '—'}
+            </p>
+          </div>
+          <div className="text-center w-[80px]">
+            <p className="text-[#86868b]">ממוצע מצטבר</p>
+            <p className="font-bold text-[#5856d6] tabular-nums">
+              {tenure.avgKmPerMonth !== null ? tenure.avgKmPerMonth.toLocaleString() : '—'}
+            </p>
           </div>
           <div className="text-center w-[70px]">
+            <p className="text-[#86868b]">ממוצע חודשי</p>
+            <p className="font-bold text-[#007AFF]">{avg > 0 ? Math.round(avg).toLocaleString() : '—'}</p>
+          </div>
+          <div className="text-center w-[70px] hidden md:block">
             <p className="text-[#86868b]">דיווחים</p>
             <p className={`font-bold ${reportedMonths >= 10 ? 'text-[#34c759]' : reportedMonths >= 6 ? 'text-[#ff9500]' : 'text-[#ff3b30]'}`}>
               {reportedMonths}/12
@@ -149,6 +171,38 @@ function DriverRow({ vehicle, isOpen, onToggle }: { vehicle: Vehicle; isOpen: bo
                 <InfoMini icon={Phone} label="טלפון" value={vehicle.phone || '—'} isPhone={!!vehicle.phone} />
                 <InfoMini icon={Calendar} label="ספק" value={vehicle.supplier || '—'} />
                 <InfoMini icon={Gauge} label="מד אוזר" value={vehicle.currentMileage > 0 ? `${vehicle.currentMileage.toLocaleString()}` : '—'} />
+              </div>
+
+              {/* ותק ושימוש מצטבר — בקשת עקול ניסימוב מ-22/7/2026 */}
+              <div className="rounded-2xl bg-white/30 border border-white/40 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-3.5 h-3.5 text-[#86868b]" />
+                  <span className="text-xs font-bold text-[#86868b] uppercase tracking-wider">ותק ושימוש מצטבר</span>
+                </div>
+                <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+                  <InfoMini
+                    icon={Calendar}
+                    label="עלייה לכביש"
+                    value={tenure.onRoadSince ? formatDateFull(tenure.onRoadSince) : '—'}
+                  />
+                  <InfoMini
+                    icon={Clock}
+                    label="הרכב קיים"
+                    value={formatTenure(tenure.monthsOnRoad)}
+                    rtlValue
+                  />
+                  <InfoMini
+                    icon={Gauge}
+                    label="ק״מ מצטבר"
+                    value={tenure.cumulativeKm !== null ? tenure.cumulativeKm.toLocaleString() : '—'}
+                  />
+                  <InfoMini
+                    icon={TrendingUp}
+                    label="ממוצע ק״מ לחודש"
+                    value={tenure.avgKmPerMonth !== null ? tenure.avgKmPerMonth.toLocaleString() : '—'}
+                    highlight="blue"
+                  />
+                </div>
               </div>
 
               {/* Contract details */}
@@ -454,13 +508,14 @@ function LicenseInfo({ licenseEndDate }: { licenseEndDate: string }) {
   return <InfoMini icon={Clock} label="תוקף רישוי" value={`${formatDateFull(licenseEndDate)}${suffix}`} highlight={highlight} />;
 }
 
-function InfoMini({ icon: Icon, label, value, isPhone, highlight }: { icon: typeof Car; label: string; value: string; isPhone?: boolean; highlight?: 'orange' | 'green' | 'red' }) {
+function InfoMini({ icon: Icon, label, value, isPhone, highlight, rtlValue }: { icon: typeof Car; label: string; value: string; isPhone?: boolean; highlight?: 'orange' | 'green' | 'red' | 'blue'; rtlValue?: boolean }) {
   const highlightColors = {
     orange: 'bg-[#ff9500]/10 border-[#ff9500]/20',
     green: 'bg-[#34c759]/10 border-[#34c759]/20',
     red: 'bg-[#ff3b30]/10 border-[#ff3b30]/20',
+    blue: 'bg-[#007AFF]/10 border-[#007AFF]/20',
   };
-  const textColor = highlight === 'orange' ? 'text-[#ff9500]' : highlight === 'green' ? 'text-[#34c759]' : highlight === 'red' ? 'text-[#ff3b30]' : 'text-[#1d1d1f]';
+  const textColor = highlight === 'orange' ? 'text-[#ff9500]' : highlight === 'green' ? 'text-[#34c759]' : highlight === 'red' ? 'text-[#ff3b30]' : highlight === 'blue' ? 'text-[#007AFF]' : 'text-[#1d1d1f]';
   const bgClass = highlight ? highlightColors[highlight] : 'bg-white/30 border-white/40';
 
   const inner = (
@@ -468,7 +523,9 @@ function InfoMini({ icon: Icon, label, value, isPhone, highlight }: { icon: type
       <Icon className={`w-3.5 h-3.5 shrink-0 ${highlight ? textColor : 'text-[#86868b]'}`} />
       <div className="min-w-0">
         <p className="text-[10px] text-[#86868b]">{label}</p>
-        <p className={`text-xs font-medium truncate ${textColor}`} dir="ltr">{value}</p>
+        {/* ערכים לועזיים/מספריים ב-LTR; ערך עברי (למשל "שנתיים ו-3 חודשים")
+            חייב להישאר RTL אחרת הסדר נשבר. */}
+        <p className={`text-xs font-medium truncate ${textColor}`} dir={rtlValue ? 'rtl' : 'ltr'}>{value}</p>
       </div>
     </div>
   );
