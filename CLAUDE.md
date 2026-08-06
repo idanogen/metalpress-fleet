@@ -201,6 +201,7 @@ src/
 ├── api/fleet.ts              — fetch מ-Supabase + מיפוי ל-Vehicle[] + 14 קטגוריות עלות
 ├── lib/supabase.ts           — supabase client (schema: 'fleet')
 ├── lib/anomalies.ts          — fetchPendingAnomalies וכו'
+├── lib/syncHealth.ts         — גיל הסנכרון מפריוריטי (max last_synced_at) + ספי התראה
 ├── hooks/useFleetData.ts     — React Query hook ראשי + חישובים + פילטרים
 ├── types/fleet.ts            — Vehicle, MonthlyUsage, FleetStats, EXPENSE_CATEGORIES (14)
 ├── lib/
@@ -209,7 +210,7 @@ src/
 │   ├── vehicleImages.ts      — מיפוי דגם רכב → תמונה
 │   └── utils.ts              — cn() helper
 ├── components/
-│   ├── layout/               — Sidebar (ViewType), Header
+│   ├── layout/               — Sidebar (ViewType), Header, SyncHealthBanner
 │   ├── dashboard/            — KpiCards, ReportStatus, AnomalyAlerts, FleetCharts, FleetTable, DriverDetail
 │   ├── fleet-management/     — FleetManagementPage
 │   ├── inventory/            — InventoryPage
@@ -243,6 +244,38 @@ docs/
 4. **VehicleImage** — תמונות רכב לפי דגם, fallback לאייקון כללי
 5. **Cooldown mechanism** — localStorage-based, מפתח `{vehicleId}-{month}-{year}`, ניקוי אוטומטי של ישנים
 6. **מיגרציה ל-Supabase** — בוצעה ב-19/5/2026, החליפה את Make Data Store. אין יותר fallback לקובץ סטטי
+7. 🔴 **`lastUpdated` ב-Header אינו זמן הסנכרון** — הוא `dataUpdatedAt` של React Query, כלומר מתי הדפדפן משך. הוא תמיד "עכשיו" גם כשהנתונים בני שבועיים. זמן הסנכרון האמיתי הוא `vehicles.last_synced_at`, והוא מוצג ב-`SyncHealthBanner`.
+
+---
+
+## 🔴 מלכודות שנשרפנו עליהן (לא ללמוד פעמיים)
+
+### שם שדה מקוצר בפריוריטי = עמודה שהיא 0 לנצח
+פריוריטי **מקצר שמות שדות ארוכים**. `EDPE_MAINTENANCEPRICE` לא קיים, השם בפועל הוא
+`EDPE_MAINTENANCEPR`, ו-`->>` על שדה לא קיים מחזיר NULL בשקט. התוצאה: `maintenance_cost`
+היה 0 בכל שורה בכל חודש מאז היום הראשון, עד שתוקן ב-6/8/2026.
+- **לפני מיפוי שדה חדש:** לאמת מול ה-payload החי. הדגימות שמורות בבלופרינט של הסנריו
+  תחת `metadata.designer.samples` וזמינות דרך `scenarios_get` בלי להריץ כלום.
+- **עמודה מספרית שהיא 0 בכל ההיסטוריה = חשד למיפוי, לא "אין נתונים".** ההצלבה שסוגרת:
+  אם `vehicle_invoices` מראה כסף בקטגוריה והעמודה המצרפית 0, זה באג מיפוי ודאי.
+- ⚠️ **אבל `insurance_cost` ו-`license_cost` שהם 0 זה תקין** — השדות קיימים וריקים
+  בפריוריטי, ואין להם קטגוריית חשבוניות. ברכבי ליסינג הם מגולמים בשכירות. אותו סימפטום,
+  סיבה הפוכה. אל תרדוף אחרי זה שוב.
+
+### `maxErrors` במייק מכבה סנריו בשקט
+ב-20/7/2026 סנריו 4646251 נכבה אוטומטית אחרי 3 כשלים רצופים במודול **המייל האחרון**
+(403 על חיבור ג'ימייל שאיבד הרשאות). הנתונים נכנסו בכל שלוש הריצות, אבל הסנריו נסגר
+כשגיאה. 17 יום בלי סנכרון, והלקוחה גילתה לפנינו.
+- **ההתראה על תקלה לא יכולה לחיות באותו ערוץ שעלול להישבר.** מייל הסיכום היה ההתראה
+  היחידה, והוא בדיוק מה שנשבר. לכן נוסף `SyncHealthBanner` שנגזר מהנתונים עצמם.
+- **מודול מייל/נוטיפיקציה בסוף סנריו לא אמור להיות מסוגל להפיל את הסנכרון.** לתת לו
+  error handler מסוג Ignore, או להוריד את `maxErrors` ל-0.
+
+### החלפת פונקציית DB גדולה בפרודקשן
+`sync_vehicle_from_priority` היא כ-15 אלף תווים. לא מקלידים אותה מחדש (שגיאת תעתוק
+אחת = באג שקט). השיטה שעבדה: snapshot של `pg_get_functiondef` לטבלה זמנית, `replace`
+ממוקד בתוך `DO` block עם `execute`, ואז אימות ב-`replace` הפוך שהתוצאה **זהה
+בייט-לבייט** למקור פרט לשינוי המכוון. רק אחר כך מייצרים את קובץ המיגרציה.
 
 ---
 
