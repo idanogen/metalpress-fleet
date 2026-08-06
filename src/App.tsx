@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Sidebar, type ViewType } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { SyncHealthBanner } from '@/components/layout/SyncHealthBanner';
 import { KpiCards } from '@/components/dashboard/KpiCards';
 import { ReportStatus } from '@/components/dashboard/ReportStatus';
 import { AnomalyAlerts } from '@/components/dashboard/AnomalyAlerts';
@@ -81,6 +82,10 @@ export default function App() {
       ) : (
         /* Main Content — offset for sidebar */
         <main className="lg:mr-[300px] pt-[80px] lg:pt-[110px] px-3 lg:px-5 pb-10 space-y-6">
+          {/* גיל הסנכרון מפריוריטי — מוצג בכל הדפים, כי נתונים מיושנים
+              פוגעים בכל מסך ולא רק בדשבורד הראשי. */}
+          <SyncHealthBanner />
+
           {currentView === 'dashboard' && (
             <>
               {/* KPI Cards */}
