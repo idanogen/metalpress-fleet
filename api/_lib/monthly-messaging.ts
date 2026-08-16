@@ -92,13 +92,35 @@ export function toE164(phone: string): string | null {
   return '+972' + d;
 }
 
+export interface RecipientVehicle {
+  id: number;
+  startDate: string | null; // תחילת השירות ברכב (vehicles.start_date)
+}
+
 export interface Recipient {
   driverId: number;
   driverName: string;
   phone: string; // E.164
   vehicleId: number; // רכב מייצג (הראשון)
   plate: string;
-  vehicleIds: number[]; // כל הרכבים של הנהג
+  vehicles: RecipientVehicle[]; // כל הרכבים של הנהג
+}
+
+/**
+ * האם הרכב היה בשירות בחודש הדיווח. רכב שנכנס אחרי סוף אותו חודש לא חייב דיווח
+ * עליו, ואי אפשר לדווח עליו רטרואקטיבית.
+ * זהה ל-isApplicableForMonth ב-src/lib/analytics.ts (הדשבורד), שלא היה בשרת.
+ */
+export function isApplicableForMonth(
+  startDate: string | null,
+  year: number,
+  month: number,
+): boolean {
+  if (!startDate) return true;
+  const start = new Date(startDate);
+  if (Number.isNaN(start.getTime())) return true;
+  // month הוא 1-based, ולכן Date.UTC(y, month, 0) הוא היום האחרון של אותו חודש.
+  return start.getTime() <= Date.UTC(year, month, 0, 23, 59, 59, 999);
 }
 
 /** כל הנהגים הפעילים שאמורים לדווח ק"מ (deduped פר-נהג). */
@@ -106,7 +128,7 @@ export async function loadRecipients(supabase: FleetDB): Promise<Recipient[]> {
   const [{ data: vehicles, error: vErr }, { data: drivers, error: dErr }] = await Promise.all([
     supabase
       .from('vehicles')
-      .select('id, plate_number, model, current_driver_id')
+      .select('id, plate_number, model, current_driver_id, start_date')
       .eq('is_active', true)
       .eq('is_inventory', false)
       .not('current_driver_id', 'is', null),
@@ -129,8 +151,9 @@ export async function loadRecipients(supabase: FleetDB): Promise<Recipient[]> {
     if (!e164) continue;
 
     const existing = byDriver.get(drv.id);
+    const entry: RecipientVehicle = { id: v.id, startDate: v.start_date ?? null };
     if (existing) {
-      existing.vehicleIds.push(v.id);
+      existing.vehicles.push(entry);
     } else {
       byDriver.set(drv.id, {
         driverId: drv.id,
@@ -138,27 +161,70 @@ export async function loadRecipients(supabase: FleetDB): Promise<Recipient[]> {
         phone: e164,
         vehicleId: v.id,
         plate: v.plate_number ?? '',
-        vehicleIds: [v.id],
+        vehicles: [entry],
       });
     }
   }
   return [...byDriver.values()];
 }
 
-/** vehicle_ids שכבר יש להם דיווח ק"מ אמיתי (mileage>0) לתקופה. */
-export async function loadReportedVehicleIds(
+export interface PeriodReports {
+  /** רכבים שיש להם דיווח ק"מ אמיתי (mileage>0) לתקופה. */
+  vehicleIds: Set<number>;
+  /**
+   * הרכבים שדווחו בתקופה, מקובצים לפי הנהג שרשום על הדיווח.
+   * זה מה שמאפשר לזהות דיווח שנעשה על רכב שהנהג כבר לא נוהג בו (החלפת רכב).
+   */
+  vehicleIdsByDriver: Map<number, Set<number>>;
+}
+
+/** מה כבר דווח בתקופה, לפי רכב ולפי נהג. */
+export async function loadPeriodReports(
   supabase: FleetDB,
   year: number,
   month: number,
-): Promise<Set<number>> {
+): Promise<PeriodReports> {
   const { data, error } = await supabase
     .from('monthly_reports')
-    .select('vehicle_id')
+    .select('vehicle_id, driver_id')
     .eq('report_year', year)
     .eq('report_month', month)
     .gt('mileage', 0);
   if (error) throw new Error(`load reported: ${error.message}`);
-  return new Set((data ?? []).map((r) => r.vehicle_id));
+
+  const vehicleIds = new Set<number>();
+  const vehicleIdsByDriver = new Map<number, Set<number>>();
+  for (const r of data ?? []) {
+    vehicleIds.add(r.vehicle_id);
+    if (r.driver_id == null) continue;
+    const set = vehicleIdsByDriver.get(r.driver_id) ?? new Set<number>();
+    set.add(r.vehicle_id);
+    vehicleIdsByDriver.set(r.driver_id, set);
+  }
+  return { vehicleIds, vehicleIdsByDriver };
+}
+
+/**
+ * האם הנהג עדיין חייב דיווח לתקופה.
+ *
+ * 🔴 הכלל: החוב הוא של הנהג, לא של הרכב שרשום עליו ברגע הבדיקה.
+ * הבדיקה הישנה שאלה "האם לרכב הנוכחי יש דיווח", ולכן שני מצבים ייצרו תזכורת שקרית
+ * (נמדד ב-15/8/2026: 4 מתוך 29 נהגים, איריס שרביט רז חודשיים ברצף):
+ *   1. החלפת רכב — הדיווח יושב על הרכב הישן, שהסנכרון מפריוריטי כבר ניתק מהנהג,
+ *      ולכן הוא נעלם מהחישוב. לכן סופרים גם דיווחים שרשומים על שם הנהג.
+ *   2. רכב חדש — רכב שהתקבל אחרי סוף חודש הדיווח מעולם לא יכול היה להיות מדווח.
+ *      לכן הוא לא נספר בכלל.
+ */
+export function needsReminder(r: Recipient, year: number, month: number, reports: PeriodReports): boolean {
+  const applicable = r.vehicles.filter((v) => isApplicableForMonth(v.startDate, year, month));
+  if (applicable.length === 0) return false;
+
+  // דיווחי הנהג לתקופה: לפי שיוך הדיווח, ובנוסף לפי הרכבים שרשומים עליו עכשיו
+  // (רשת ביטחון לשורות היסטוריות שבהן driver_id ריק).
+  const filed = new Set(reports.vehicleIdsByDriver.get(r.driverId) ?? []);
+  for (const v of applicable) if (reports.vehicleIds.has(v.id)) filed.add(v.id);
+
+  return filed.size < applicable.length;
 }
 
 export interface SendResult {
@@ -217,13 +283,22 @@ export interface RunSummary {
   failed: number;
   skipped: number;
   failures: Array<{ driver: string; phone: string; error: string }>;
+  dryRun?: boolean;
+  wouldSend?: Array<{ driver: string; phone: string }>;
 }
 
 /**
  * הריצה המרכזית: שולח לכל הנהגים הרלוונטיים ורושם ל-message_log.
  * אידמפוטנטי — נהג עם שורה 'accepted' לתקופה+kind מדולג, אז אפשר להריץ שוב בבטחה.
+ *
+ * dryRun=true מחשב את רשימת היעד ומחזיר אותה בלי לשלוח הודעה ובלי לכתוב ליומן.
+ * זה מה שמאפשר לאמת שינוי בלוגיקת המיקוד על נתוני אמת בלי להתיז וואטסאפ לנהגים.
  */
-export async function runMonthlySend(kind: MessageKind, now = new Date()): Promise<RunSummary> {
+export async function runMonthlySend(
+  kind: MessageKind,
+  now = new Date(),
+  dryRun = false,
+): Promise<RunSummary> {
   const supabase = getSupabase();
   const { year, month } = reportingPeriod(now);
   const startedAt = now.toISOString();
@@ -231,11 +306,11 @@ export async function runMonthlySend(kind: MessageKind, now = new Date()): Promi
 
   const allRecipients = await loadRecipients(supabase);
 
-  // תזכורת נשלחת רק לנהגים שעדיין לא דיווחו על אף אחד מהרכבים שלהם.
+  // תזכורת נשלחת רק לנהגים שעדיין חייבים דיווח לתקופה. ראה needsReminder.
   let targets = allRecipients;
   if (kind === 'reminder') {
-    const reported = await loadReportedVehicleIds(supabase, year, month);
-    targets = allRecipients.filter((r) => r.vehicleIds.some((id) => !reported.has(id)));
+    const reports = await loadPeriodReports(supabase, year, month);
+    targets = allRecipients.filter((r) => needsReminder(r, year, month, reports));
   }
 
   // דילוג על נהגים שכבר קיבלו בהצלחה את ההודעה הזו החודש.
@@ -248,6 +323,22 @@ export async function runMonthlySend(kind: MessageKind, now = new Date()): Promi
   const accepted = new Set((existing ?? []).filter((e) => e.send_status === 'accepted').map((e) => e.driver_id));
 
   const toSend = targets.filter((r) => !accepted.has(r.driverId));
+
+  if (dryRun) {
+    return {
+      kind,
+      year,
+      month,
+      recipients: allRecipients.length,
+      targeted: targets.length,
+      sent: 0,
+      failed: 0,
+      skipped: targets.length - toSend.length,
+      failures: [],
+      dryRun: true,
+      wouldSend: toSend.map((r) => ({ driver: r.driverName, phone: r.phone })),
+    };
+  }
 
   let sent = 0;
   let failed = 0;

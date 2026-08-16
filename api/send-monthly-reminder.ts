@@ -7,14 +7,17 @@ import { isAuthorized, envReady, runMonthlySend } from './_lib/monthly-messaging
  *
  * תזמון: Vercel Cron — 15 לחודש 05:00 UTC. ראה vercel.json.
  * אבטחה: Bearer CRON_SECRET או x-sync-secret להרצה ידנית.
+ *
+ * ?dry=1 מחזיר את רשימת הנהגים שהיו מקבלים תזכורת, בלי לשלוח ובלי לכתוב ליומן.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
   const envErr = envReady();
   if (envErr) return res.status(500).json({ error: envErr });
+  const dryRun = req.query?.dry === '1' || req.query?.dry === 'true';
   try {
-    const summary = await runMonthlySend('reminder');
-    console.log('monthly_reminder sent:', JSON.stringify(summary));
+    const summary = await runMonthlySend('reminder', new Date(), dryRun);
+    console.log(`monthly_reminder ${dryRun ? 'dry-run' : 'sent'}:`, JSON.stringify(summary));
     return res.status(200).json({ ok: summary.failed === 0, ...summary });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
