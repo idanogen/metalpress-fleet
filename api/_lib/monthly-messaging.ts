@@ -12,6 +12,7 @@
 import type { VercelRequest } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { timingSafeEqual } from 'node:crypto';
+import { sendFailureMail } from './failure-mail.js';
 
 const HEYY_API_KEY = process.env.HEYY_API_KEY;
 const HEYY_BASE_URL = process.env.HEYY_BASE_URL || 'https://api.heyy.io/api/v2.0';
@@ -234,8 +235,49 @@ export interface SendResult {
   error: string | null;
 }
 
+/**
+ * 🔴 מגבלת הקצב של heyy: 100 בקשות לדקה לכל הדייר (חלון קבוע), גם כשלים נספרים,
+ * והמונה משותף לכל הערוצים והנתיבים (גם הוובהוק שעונה לנהגים בזמן אמת).
+ * ב-1/9/2026 יצאו 99 הודעות ב-46 שניות, והחמש האחרונות (בהן איריס שרביט רז)
+ * נדחו ב-429 "Too many requests" בלי שאיש ידע. לכן:
+ *   1. ריווח קבוע בין שליחות (SEND_SPACING_MS) שמשאיר מקום לתעבורת הוובהוק.
+ *   2. על 429 ממתינים עד x-ratelimit-reset ומנסים שוב (עד MAX_RATE_RETRIES).
+ */
+const SEND_SPACING_MS = 1000; // ≤60 שליחות לדקה, 40 נשארות לוובהוק ולשאר
+const MAX_RATE_RETRIES = 2;
+const MAX_RATE_WAIT_MS = 70_000;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** כמה להמתין אחרי 429: עד חותמת ה-reset של heyy (שניות יוניקס), עם רצפה ותקרה. */
+function rateLimitWaitMs(r: Response): number {
+  const reset = Number(r.headers.get('x-ratelimit-reset'));
+  const retryAfter = Number(r.headers.get('retry-after'));
+  let ms = 0;
+  if (Number.isFinite(reset) && reset > 0) ms = reset * 1000 - Date.now() + 1500;
+  else if (Number.isFinite(retryAfter) && retryAfter > 0) ms = retryAfter * 1000;
+  if (!(ms > 0)) ms = 61_000;
+  return Math.min(ms, MAX_RATE_WAIT_MS);
+}
+
 /** שולח תבנית WhatsApp לנהג דרך heyy. PENDING עם body ריק = הצלחה (שליחה אסינכרונית). */
-export async function sendTemplate(phoneE164: string, templateId: string): Promise<SendResult> {
+export async function sendTemplate(
+  phoneE164: string,
+  templateId: string,
+  onRateLimit?: (waitMs: number) => void,
+): Promise<SendResult> {
+  for (let attempt = 0; ; attempt++) {
+    const result = await sendTemplateOnce(phoneE164, templateId);
+    if (!result.rateLimited || attempt >= MAX_RATE_RETRIES) return result;
+    onRateLimit?.(result.waitMs);
+    await sleep(result.waitMs);
+  }
+}
+
+type SendAttempt = SendResult & { rateLimited: boolean; waitMs: number };
+
+async function sendTemplateOnce(phoneE164: string, templateId: string): Promise<SendAttempt> {
+  const plain = (r: SendResult): SendAttempt => ({ ...r, rateLimited: false, waitMs: 0 });
   try {
     const r = await fetch(`${HEYY_BASE_URL}/${HEYY_CHANNEL_ID}/whatsapp_messages/send`, {
       method: 'POST',
@@ -254,22 +296,26 @@ export async function sendTemplate(phoneE164: string, templateId: string): Promi
     const body = (await r.json().catch(() => null)) as
       | { success?: boolean; data?: { id?: string; waMessageId?: string; status?: string; errors?: unknown[] }; error?: { message?: string } }
       | null;
+    if (r.status === 429) {
+      const msg = body?.error?.message || 'HTTP 429';
+      return { ok: false, heyyMessageId: null, status: null, error: msg, rateLimited: true, waitMs: rateLimitWaitMs(r) };
+    }
     if (!r.ok || body?.success === false) {
       const msg = body?.error?.message || `HTTP ${r.status}`;
-      return { ok: false, heyyMessageId: null, status: null, error: msg };
+      return plain({ ok: false, heyyMessageId: null, status: null, error: msg });
     }
     const data = body?.data ?? {};
     if (Array.isArray(data.errors) && data.errors.length > 0) {
-      return { ok: false, heyyMessageId: null, status: data.status ?? null, error: JSON.stringify(data.errors).slice(0, 400) };
+      return plain({ ok: false, heyyMessageId: null, status: data.status ?? null, error: JSON.stringify(data.errors).slice(0, 400) });
     }
-    return {
+    return plain({
       ok: true,
       heyyMessageId: data.waMessageId || data.id || null,
       status: data.status ?? null,
       error: null,
-    };
+    });
   } catch (e) {
-    return { ok: false, heyyMessageId: null, status: null, error: e instanceof Error ? e.message : String(e) };
+    return plain({ ok: false, heyyMessageId: null, status: null, error: e instanceof Error ? e.message : String(e) });
   }
 }
 
@@ -283,6 +329,10 @@ export interface RunSummary {
   failed: number;
   skipped: number;
   failures: Array<{ driver: string; phone: string; error: string }>;
+  /** כמה פעמים heyy החזיר 429 והמתנו ל-reset (אמור להיות 0 בזכות הריווח). */
+  rateLimitWaits: number;
+  /** האם יצא מייל כשל לאיריס (רק כש-failed > 0). */
+  failureMailSent?: boolean;
   dryRun?: boolean;
   wouldSend?: Array<{ driver: string; phone: string }>;
 }
@@ -298,6 +348,8 @@ export async function runMonthlySend(
   kind: MessageKind,
   now = new Date(),
   dryRun = false,
+  /** להודעת תחילת החודש בלבד: לצמצם למי שעדיין חייב דיווח (הרצה חוזרת אחרי כשל חלקי). */
+  onlyUnreported = false,
 ): Promise<RunSummary> {
   const supabase = getSupabase();
   const { year, month } = reportingPeriod(now);
@@ -308,7 +360,7 @@ export async function runMonthlySend(
 
   // תזכורת נשלחת רק לנהגים שעדיין חייבים דיווח לתקופה. ראה needsReminder.
   let targets = allRecipients;
-  if (kind === 'reminder') {
+  if (kind === 'reminder' || onlyUnreported) {
     const reports = await loadPeriodReports(supabase, year, month);
     targets = allRecipients.filter((r) => needsReminder(r, year, month, reports));
   }
@@ -335,6 +387,7 @@ export async function runMonthlySend(
       failed: 0,
       skipped: targets.length - toSend.length,
       failures: [],
+      rateLimitWaits: 0,
       dryRun: true,
       wouldSend: toSend.map((r) => ({ driver: r.driverName, phone: r.phone })),
     };
@@ -342,10 +395,16 @@ export async function runMonthlySend(
 
   let sent = 0;
   let failed = 0;
+  let rateLimitWaits = 0;
   const failures: RunSummary['failures'] = [];
 
-  for (const r of toSend) {
-    const result = await sendTemplate(r.phone, templateId);
+  for (const [i, r] of toSend.entries()) {
+    // ריווח קבוע בין שליחות. 99 נהגים ≈ 100 שניות, בתוך maxDuration של הפונקציה (vercel.json).
+    if (i > 0) await sleep(SEND_SPACING_MS);
+    const result = await sendTemplate(r.phone, templateId, (waitMs) => {
+      rateLimitWaits++;
+      console.warn(`heyy 429 for ${r.driverName}, waiting ${Math.round(waitMs / 1000)}s`);
+    });
     if (result.ok) sent++;
     else {
       failed++;
@@ -383,7 +442,15 @@ export async function runMonthlySend(
     failed,
     skipped: targets.length - toSend.length,
     failures,
+    rateLimitWaits,
   };
+
+  // כשל שנשאר אחרי הניסיון החוזר → מייל לאיריס (ולעידן). ביום תקין לא יוצא מייל.
+  if (failed > 0) {
+    const mail = await sendFailureMail(summary);
+    if (!mail.ok) console.error('failure mail not sent:', mail.error);
+    summary.failureMailSent = mail.ok;
+  }
 
   // רישום לסיכום הסנכרון — לניטור ולמייל הבריאות.
   await supabase.from('sync_log').insert({

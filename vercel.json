@@ -12,5 +12,13 @@
       "path": "/api/send-monthly-reminder",
       "schedule": "0 5 15 * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/send-monthly-open.ts": {
+      "maxDuration": 300
+    },
+    "api/send-monthly-reminder.ts": {
+      "maxDuration": 300
+    }
+  }
 }

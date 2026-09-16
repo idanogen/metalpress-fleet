@@ -1,0 +1,1390 @@
+[
+ {
+  "id": 241,
+  "provider": "heyy",
+  "provider_message_id": "6c07e2a7-6633-411f-b6dd-51851a287bf0",
+  "phone": "0545333689",
+  "raw_text": "80032",
+  "parsed_mileage": 80032,
+  "parsed_year": 2026,
+  "parsed_month": 6,
+  "matched_vehicle_id": 106,
+  "matched_driver_id": 53,
+  "status": "pending_review",
+  "received_at": "2026-07-12T08:35:51.671121+00:00",
+  "processed_at": null,
+  "error": "mileage jump 10159 exceeds 10000 (floor 69873)",
+  "raw_payload": {
+   "id": "24987b84-a125-4edf-9f4a-852f1d3724f3",
+   "data": {
+    "id": "6c07e2a7-6633-411f-b6dd-51851a287bf0",
+    "chat": {
+     "id": "470fea40-65b2-4925-bd18-ddd8ecce9001"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "ddc7964b-7839-478c-8aee-f4702b81d272",
+     "type": "phone_number",
+     "value": "+972545333689"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "66549686-5135-436c-bed6-abf53a97f7b0",
+     "email": null,
+     "lastName": "ואיל",
+     "firstName": "ואהיל עאבס",
+     "phoneNumber": "+972545333689"
+    },
+    "content": {
+     "body": "80032",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQ1MzMzNjg5FQIAEhggQUNDNDgzNTc2OEFFNkY4QjUyMTRFNDFBNDAxN0M2QTAA",
+    "timestamp": "2026-07-12T08:35:47.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 242,
+  "provider": "heyy",
+  "provider_message_id": "57e4d46f-f952-41c0-a373-3d7787049985",
+  "phone": "0545333689",
+  "raw_text": "80032",
+  "parsed_mileage": 80032,
+  "parsed_year": 2026,
+  "parsed_month": 6,
+  "matched_vehicle_id": 106,
+  "matched_driver_id": 53,
+  "status": "pending_review",
+  "received_at": "2026-07-12T08:36:46.733117+00:00",
+  "processed_at": null,
+  "error": "mileage jump 10159 exceeds 10000 (floor 69873)",
+  "raw_payload": {
+   "id": "7fd5dd17-bfe6-42cf-beb1-4e521597da25",
+   "data": {
+    "id": "57e4d46f-f952-41c0-a373-3d7787049985",
+    "chat": {
+     "id": "470fea40-65b2-4925-bd18-ddd8ecce9001"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "ddc7964b-7839-478c-8aee-f4702b81d272",
+     "type": "phone_number",
+     "value": "+972545333689"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "66549686-5135-436c-bed6-abf53a97f7b0",
+     "email": null,
+     "lastName": "ואיל",
+     "firstName": "ואהיל עאבס",
+     "phoneNumber": "+972545333689"
+    },
+    "content": {
+     "body": "80032",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQ1MzMzNjg5FQIAEhggQUNGQzY1REZDOEQ1NzM1MUM2NDcwRkZDRUQwODU5MjkA",
+    "timestamp": "2026-07-12T08:36:43.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 277,
+  "provider": "heyy",
+  "provider_message_id": "d1259460-f175-4543-927a-d88d3ba230a6",
+  "phone": "0542424148",
+  "raw_text": "החודש החלפתי 3 מכוניות …",
+  "parsed_mileage": 3,
+  "parsed_year": 2026,
+  "parsed_month": 6,
+  "matched_vehicle_id": 14,
+  "matched_driver_id": 76,
+  "status": "pending_review",
+  "received_at": "2026-07-15T06:00:30.230231+00:00",
+  "processed_at": null,
+  "error": "mileage 3 below or equal to floor 117537 (current 117537, priority peak 117537)",
+  "raw_payload": {
+   "id": "6ead5ce1-5798-441a-9df0-1b2ed5ea03c5",
+   "data": {
+    "id": "d1259460-f175-4543-927a-d88d3ba230a6",
+    "chat": {
+     "id": "48a653c4-4a80-468f-bea5-a50be678ad01"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "2f9875cd-438c-4662-9470-35d414172e5a",
+     "type": "phone_number",
+     "value": "+972542424148"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "e27181de-3257-4991-8b71-1d3a27785477",
+     "email": null,
+     "lastName": "פורת",
+     "firstName": "דני פורת",
+     "phoneNumber": "+972542424148"
+    },
+    "content": {
+     "body": "החודש החלפתי 3 מכוניות …",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MTQ4FQIAEhgUM0EwODlBMjk4QjJDRDM3MUFCQjEA",
+    "timestamp": "2026-07-15T06:00:26.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 280,
+  "provider": "heyy",
+  "provider_message_id": "a1435b6d-058d-4ff5-98a9-2dee45271e65",
+  "phone": "0536331110",
+  "raw_text": "1902148",
+  "parsed_mileage": 1902148,
+  "parsed_year": 2026,
+  "parsed_month": 6,
+  "matched_vehicle_id": 101,
+  "matched_driver_id": 52,
+  "status": "pending_review",
+  "received_at": "2026-07-15T06:26:25.00812+00:00",
+  "processed_at": null,
+  "error": "mileage jump 1719061 exceeds 10000 (floor 183087)",
+  "raw_payload": {
+   "id": "bb2ce622-09d0-4418-9a96-5038e1d06e25",
+   "data": {
+    "id": "a1435b6d-058d-4ff5-98a9-2dee45271e65",
+    "chat": {
+     "id": "ab70cee3-fca7-4d5d-9fab-86a940aa26be"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "1b3a1f8a-2a1d-4e14-8058-f1a6e050865f",
+     "type": "phone_number",
+     "value": "+972536331110"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "4e93c40c-28c2-411c-89c3-28cda49ab921",
+     "email": null,
+     "lastName": "Ali",
+     "firstName": "עלי עמריה",
+     "phoneNumber": "+972536331110"
+    },
+    "content": {
+     "body": "1902148",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTM2MzMxMTEwFQIAEhgUM0E5NjcwNTc3NEU5Q0UzRkI0NUYA",
+    "timestamp": "2026-07-15T06:26:20.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 305,
+  "provider": "heyy",
+  "provider_message_id": "ef2124b4-7fb5-41e4-84db-0a8b96229476",
+  "phone": "0542424164",
+  "raw_text": "60000",
+  "parsed_mileage": 60000,
+  "parsed_year": 2026,
+  "parsed_month": 6,
+  "matched_vehicle_id": 62,
+  "matched_driver_id": 64,
+  "status": "pending_review",
+  "received_at": "2026-07-19T07:33:23.165099+00:00",
+  "processed_at": null,
+  "error": "mileage 60000 below or equal to floor 79400 (current 79400, priority peak 73752)",
+  "raw_payload": {
+   "id": "5e5690d2-1239-4b04-b8ba-7221e2cc9dbe",
+   "data": {
+    "id": "ef2124b4-7fb5-41e4-84db-0a8b96229476",
+    "chat": {
+     "id": "cc8c5b8f-4e3f-4c09-925b-55f48eb02c87"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "f002acab-0908-48e5-9d9e-053ad25454ee",
+     "type": "phone_number",
+     "value": "+972542424164"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "0e9745f4-ea2d-4cde-a65c-54d016f7a08d",
+     "email": null,
+     "lastName": "בלומין",
+     "firstName": "שוקי בלומין",
+     "phoneNumber": "+972542424164"
+    },
+    "content": {
+     "body": "60000",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MTY0FQIAEhggQUM0NDgxRDE4QjVCREFDNTg0NEYzOTI2ODVFMEFGMjUA",
+    "timestamp": "2026-07-19T07:33:18.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 309,
+  "provider": "priority_sync",
+  "provider_message_id": null,
+  "phone": "0542424145",
+  "raw_text": null,
+  "parsed_mileage": 31577,
+  "parsed_year": 2026,
+  "parsed_month": 6,
+  "matched_vehicle_id": 23,
+  "matched_driver_id": 15,
+  "status": "pending_review",
+  "received_at": "2026-07-20T20:00:45.910856+00:00",
+  "processed_at": null,
+  "error": "דיווח שלא נקלט בפריוריטי לחודש 6/2026: בדשבורד 31,577 ק\"מ (מקור: whatsapp_bot), אך בפריוריטי אין קריאת ק\"מ לחודש זה. כנראה הכתיבה לפריוריטי נכשלה. אישור = הקריאה תידחף לפריוריטי מחדש.",
+  "raw_payload": {
+   "kind": "priority_divergence",
+   "dashboard_source": "whatsapp_bot",
+   "priority_mileage": 0,
+   "dashboard_mileage": 31577
+  }
+ },
+ {
+  "id": 310,
+  "provider": "priority_sync",
+  "provider_message_id": null,
+  "phone": "0542424044",
+  "raw_text": null,
+  "parsed_mileage": 76435,
+  "parsed_year": 2026,
+  "parsed_month": 6,
+  "matched_vehicle_id": 43,
+  "matched_driver_id": 37,
+  "status": "pending_review",
+  "received_at": "2026-07-20T20:00:54.879944+00:00",
+  "processed_at": null,
+  "error": "דיווח שלא נקלט בפריוריטי לחודש 6/2026: בדשבורד 76,435 ק\"מ (מקור: whatsapp_bot), אך בפריוריטי אין קריאת ק\"מ לחודש זה. כנראה הכתיבה לפריוריטי נכשלה. אישור = הקריאה תידחף לפריוריטי מחדש.",
+  "raw_payload": {
+   "kind": "priority_divergence",
+   "dashboard_source": "whatsapp_bot",
+   "priority_mileage": 0,
+   "dashboard_mileage": 76435
+  }
+ },
+ {
+  "id": 316,
+  "provider": "heyy",
+  "provider_message_id": "1933f5ea-ac48-4602-9061-91f0e4b85b80",
+  "phone": "0542424148",
+  "raw_text": "57123",
+  "parsed_mileage": 57123,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 116,
+  "matched_driver_id": 76,
+  "status": "pending_review",
+  "received_at": "2026-08-01T05:05:28.234176+00:00",
+  "processed_at": null,
+  "error": "mileage 57123 below or equal to floor 117537 (current 117537, priority peak 117537) | תוקן 6/8/2026: הדיווח נתלה על הרכב הקודם של הנהג כי הסנכרון מפריוריטי היה כבוי מ-20/7 והחלפת הרכב לא הגיעה לדשבורד. שויך מחדש לרכב הנוכחי (50880203). הקריאה עצמה תקינה.",
+  "raw_payload": {
+   "id": "8cc96307-0831-415f-92a4-da1939443561",
+   "data": {
+    "id": "1933f5ea-ac48-4602-9061-91f0e4b85b80",
+    "chat": {
+     "id": "48a653c4-4a80-468f-bea5-a50be678ad01"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "2f9875cd-438c-4662-9470-35d414172e5a",
+     "type": "phone_number",
+     "value": "+972542424148"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "e27181de-3257-4991-8b71-1d3a27785477",
+     "email": null,
+     "lastName": "פורת",
+     "firstName": "דני פורת",
+     "phoneNumber": "+972542424148"
+    },
+    "content": {
+     "body": "57123",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MTQ4FQIAEhgUM0EwNERCM0YzRjhEOUU4MzRFREMA",
+    "timestamp": "2026-08-01T05:05:24.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 319,
+  "provider": "heyy",
+  "provider_message_id": "49abedd3-ed69-4d67-a118-3848bd0752ea",
+  "phone": "0542424148",
+  "raw_text": "57123",
+  "parsed_mileage": 57123,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 116,
+  "matched_driver_id": 76,
+  "status": "pending_review",
+  "received_at": "2026-08-01T05:20:12.687369+00:00",
+  "processed_at": null,
+  "error": "mileage 57123 below or equal to floor 117537 (current 117537, priority peak 117537) | תוקן 6/8/2026: הדיווח נתלה על הרכב הקודם של הנהג כי הסנכרון מפריוריטי היה כבוי מ-20/7 והחלפת הרכב לא הגיעה לדשבורד. שויך מחדש לרכב הנוכחי (50880203). הקריאה עצמה תקינה.",
+  "raw_payload": {
+   "id": "92085167-86db-4ab7-9f37-f4b6fe825132",
+   "data": {
+    "id": "49abedd3-ed69-4d67-a118-3848bd0752ea",
+    "chat": {
+     "id": "48a653c4-4a80-468f-bea5-a50be678ad01"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "2f9875cd-438c-4662-9470-35d414172e5a",
+     "type": "phone_number",
+     "value": "+972542424148"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "e27181de-3257-4991-8b71-1d3a27785477",
+     "email": null,
+     "lastName": "פורת",
+     "firstName": "דני פורת",
+     "phoneNumber": "+972542424148"
+    },
+    "content": {
+     "body": "57123",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MTQ4FQIAEhgUM0FDMzdERDI0MTlGNzQ4NUMzRjIA",
+    "timestamp": "2026-08-01T05:20:08.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 347,
+  "provider": "heyy",
+  "provider_message_id": "352e650e-df51-424d-805f-abe9d7687fe7",
+  "phone": "0542424152",
+  "raw_text": "38400",
+  "parsed_mileage": 38400,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 32,
+  "matched_driver_id": 23,
+  "status": "pending_review",
+  "received_at": "2026-08-01T19:56:15.760832+00:00",
+  "processed_at": null,
+  "error": "mileage 38400 below or equal to floor 46724 (current 46724, priority peak 37453)",
+  "raw_payload": {
+   "id": "75fa9c23-9cde-4c43-9eba-e8f92d28cf6b",
+   "data": {
+    "id": "352e650e-df51-424d-805f-abe9d7687fe7",
+    "chat": {
+     "id": "6c3e9c51-3a17-4ebe-994b-b695afa96968"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "b0661a63-cb41-49dd-81c0-18b095644cf9",
+     "type": "phone_number",
+     "value": "+972542424152"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "5d3bb914-6a5b-4d23-bb49-70d0e6ca3c4b",
+     "email": null,
+     "lastName": "קרידו",
+     "firstName": "שמוליק קרידו",
+     "phoneNumber": "+972542424152"
+    },
+    "content": {
+     "body": "38400",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MTUyFQIAEhgUMkEwREYwRDgwNUIyQjZGMUVCNEQA",
+    "timestamp": "2026-08-01T19:56:11.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 381,
+  "provider": "heyy",
+  "provider_message_id": "4ef675be-63a2-4b46-9ca0-2dae0707c45d",
+  "phone": "0546881037",
+  "raw_text": "2003",
+  "parsed_mileage": 2003,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 159,
+  "matched_driver_id": 46,
+  "status": "pending_review",
+  "received_at": "2026-08-05T04:56:53.120429+00:00",
+  "processed_at": null,
+  "error": "mileage 2003 below or equal to floor 3519 (current 3519, priority peak 0)",
+  "raw_payload": {
+   "id": "e212bc5e-e616-4780-bd8b-10b82010ccf8",
+   "data": {
+    "id": "4ef675be-63a2-4b46-9ca0-2dae0707c45d",
+    "chat": {
+     "id": "85d49fbc-5e33-4223-a775-16c2f9168b12"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "e41291a2-cb9e-4f6e-9c56-2b8c538cc173",
+     "type": "phone_number",
+     "value": "+972546881037"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "473ed181-be45-4d8a-8346-dff467f4c558",
+     "email": null,
+     "lastName": "כפיר",
+     "firstName": "יהושע כפיר",
+     "phoneNumber": "+972546881037"
+    },
+    "content": {
+     "body": "2003",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQ2ODgxMDM3FQIAEhgUM0FERDY2RkFEMjhDM0JEQjREMDUA",
+    "timestamp": "2026-08-05T04:56:49.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 384,
+  "provider": "heyy",
+  "provider_message_id": "ee28985b-8dff-43fb-bb2f-3ad923c508a4",
+  "phone": "0544242033",
+  "raw_text": "39101",
+  "parsed_mileage": 39101,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 30,
+  "matched_driver_id": 28,
+  "status": "pending_review",
+  "received_at": "2026-08-06T06:05:29.983448+00:00",
+  "processed_at": null,
+  "error": "mileage 39101 below or equal to floor 68414 (current 68414, priority peak 57033) | תוקן 6/8/2026: הדיווח נתלה על הרכב הקודם של הנהג כי הסנכרון מפריוריטי היה כבוי מ-20/7 והחלפת הרכב לא הגיעה לדשבורד. שויך מחדש לרכב הנוכחי (16181704). הקריאה עצמה תקינה.",
+  "raw_payload": {
+   "id": "ec483aef-6644-45e8-80e9-42c29c857a19",
+   "data": {
+    "id": "ee28985b-8dff-43fb-bb2f-3ad923c508a4",
+    "chat": {
+     "id": "19116090-36fd-4e56-a1a6-d2803b3de249"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "3438b114-8312-49bf-b428-bfd3963fab82",
+     "type": "phone_number",
+     "value": "+972544242033"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "f579f37f-6f36-4a3a-9925-b9b5ef83ca2b",
+     "email": null,
+     "lastName": "Aksham",
+     "firstName": "אדיר אקשם",
+     "phoneNumber": "+972544242033"
+    },
+    "content": {
+     "body": "39101",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQ0MjQyMDMzFQIAEhgUMkFDQTIwOTZCM0FBQjRGMTA3OUUA",
+    "timestamp": "2026-08-06T06:05:25.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 386,
+  "provider": "heyy",
+  "provider_message_id": "38ef3d01-0b7d-4eaf-82bd-56857d0e3e20",
+  "phone": "0542424065",
+  "raw_text": "1009",
+  "parsed_mileage": 1009,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 172,
+  "matched_driver_id": 21,
+  "status": "pending_review",
+  "received_at": "2026-08-06T06:05:47.243232+00:00",
+  "processed_at": null,
+  "error": "mileage 1009 below or equal to floor 37059 (current 37059, priority peak 32298) | תוקן 6/8/2026: הדיווח נתלה על הרכב הקודם של הנהג כי הסנכרון מפריוריטי היה כבוי מ-20/7 והחלפת הרכב לא הגיעה לדשבורד. שויך מחדש לרכב הנוכחי (81668504). הקריאה עצמה תקינה.",
+  "raw_payload": {
+   "id": "ad9c0215-995b-4716-8cb8-cdb6df9e2416",
+   "data": {
+    "id": "38ef3d01-0b7d-4eaf-82bd-56857d0e3e20",
+    "chat": {
+     "id": "8432c995-76f7-47ab-87e3-4ab3fd94f04c"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "9e20bcd2-4d53-4a7d-a70d-58fce5ba98d1",
+     "type": "phone_number",
+     "value": "+972542424065"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "a9a5450d-69c5-480b-9561-1f434e4ae075",
+     "email": null,
+     "lastName": "Azar",
+     "firstName": "עאזאר מרוואן",
+     "phoneNumber": "+972542424065"
+    },
+    "content": {
+     "body": "1009",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MDY1FQIAEhggQUNDRkQ4NjU1QzQyREUzM0UwRDlDMzA1MUI4MjIzMTYA",
+    "timestamp": "2026-08-06T06:05:43.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 393,
+  "provider": "heyy",
+  "provider_message_id": "0fcae5fa-01f2-4a04-99a3-ded923064e27",
+  "phone": "0549182998",
+  "raw_text": "18300",
+  "parsed_mileage": 18300,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 100,
+  "matched_driver_id": 50,
+  "status": "pending_review",
+  "received_at": "2026-08-06T06:17:05.906519+00:00",
+  "processed_at": null,
+  "error": "mileage 18300 below or equal to floor 178436 (current 178436, priority peak 161831)",
+  "raw_payload": {
+   "id": "feabc873-666f-496f-abc7-658ad89a7bf3",
+   "data": {
+    "id": "0fcae5fa-01f2-4a04-99a3-ded923064e27",
+    "chat": {
+     "id": "f94747a2-5d95-435e-8f16-52cd52d4bd06"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "fe941e3b-2be4-4c61-83e8-edb6f5bda988",
+     "type": "phone_number",
+     "value": "+972549182998"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "94212195-0fa5-42b5-a677-b05a2e0909ed",
+     "email": null,
+     "lastName": "",
+     "firstName": "אחמד יאסין",
+     "phoneNumber": "+972549182998"
+    },
+    "content": {
+     "body": "18300",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQ5MTgyOTk4FQIAEhggQUM0MzRCOEYxRkNCRUUxMTcwQzVGNTdBQzY4RkM3QUYA",
+    "timestamp": "2026-08-06T06:17:00.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 396,
+  "provider": "heyy",
+  "provider_message_id": "0d08f46a-0e13-4723-9400-c8799413b488",
+  "phone": "0542424065",
+  "raw_text": "הרכב הישן עם הקילומטרים(37,059) עבר לאדיר 0542424078",
+  "parsed_mileage": 37059,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 30,
+  "matched_driver_id": 21,
+  "status": "pending_review",
+  "received_at": "2026-08-06T06:23:11.024612+00:00",
+  "processed_at": null,
+  "error": "mileage 37059 below or equal to floor 37059 (current 37059, priority peak 32298)",
+  "raw_payload": {
+   "id": "f52589da-af83-48be-b9d5-764656e9d41f",
+   "data": {
+    "id": "0d08f46a-0e13-4723-9400-c8799413b488",
+    "chat": {
+     "id": "8432c995-76f7-47ab-87e3-4ab3fd94f04c"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "9e20bcd2-4d53-4a7d-a70d-58fce5ba98d1",
+     "type": "phone_number",
+     "value": "+972542424065"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "a9a5450d-69c5-480b-9561-1f434e4ae075",
+     "email": null,
+     "lastName": "Azar",
+     "firstName": "עאזאר מרוואן",
+     "phoneNumber": "+972542424065"
+    },
+    "content": {
+     "body": "הרכב הישן עם הקילומטרים(37,059) עבר לאדיר 0542424078",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MDY1FQIAEhggQUM2NjExRjQwN0M4MTlGMzBDQTNFM0JFNTUzNTkwRDAA",
+    "timestamp": "2026-08-06T06:23:07.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 408,
+  "provider": "heyy",
+  "provider_message_id": "73726935-d01b-4468-8b71-e0412bd619d6",
+  "phone": "0502540060",
+  "raw_text": "10870",
+  "parsed_mileage": 10870,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 58,
+  "matched_driver_id": 61,
+  "status": "pending_review",
+  "received_at": "2026-08-06T11:02:20.689337+00:00",
+  "processed_at": null,
+  "error": "mileage 10870 below or equal to floor 106500 (current 106500, priority peak 71472)",
+  "raw_payload": {
+   "id": "4873b1df-f4ba-4768-9ba1-b65cbb11d6b0",
+   "data": {
+    "id": "73726935-d01b-4468-8b71-e0412bd619d6",
+    "chat": {
+     "id": "27aea4cd-554a-4f67-a791-6506c7b0dbb4"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "bc5ce33f-6eea-4dff-b8b3-d6db42e03633",
+     "type": "phone_number",
+     "value": "+972502540060"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "550dc107-3991-48cd-92c7-2fe8c93aa3d0",
+     "email": null,
+     "lastName": "Pozar",
+     "firstName": "פו'זאר ויטלי",
+     "phoneNumber": "+972502540060"
+    },
+    "content": {
+     "body": "10870",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTAyNTQwMDYwFQIAEhggQUMzNkE3MzM4ODdCRThGNzlBRDczREQ5MjJBQTk2NzgA",
+    "timestamp": "2026-08-06T11:02:16.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 409,
+  "provider": "heyy",
+  "provider_message_id": "be81219b-35b5-42c4-947b-fefaacb74f22",
+  "phone": "0542424188",
+  "raw_text": "35882",
+  "parsed_mileage": 35882,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 160,
+  "matched_driver_id": 16,
+  "status": "pending_review",
+  "received_at": "2026-08-06T12:42:03.506233+00:00",
+  "processed_at": null,
+  "error": "mileage 35882 below or equal to floor 36000 (current 36000, priority peak 0)",
+  "raw_payload": {
+   "id": "86143792-fccb-4229-ac1b-65bab3e262e9",
+   "data": {
+    "id": "be81219b-35b5-42c4-947b-fefaacb74f22",
+    "chat": {
+     "id": "925df3d4-c504-44bc-9f2d-247cbdb8be9d"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "49fc820d-680d-47cf-bbb8-0c4a8dc35ed1",
+     "type": "phone_number",
+     "value": "+972542424188"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "6165382d-5f42-49b4-9a84-0cb70388169b",
+     "email": null,
+     "lastName": "",
+     "firstName": "איגור גרוש",
+     "phoneNumber": "+972542424188"
+    },
+    "content": {
+     "body": "35882",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MTg4FQIAEhgUM0ExM0REQUM1MkQ2ODNBNzlCRTQA",
+    "timestamp": "2026-08-06T12:41:58.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 432,
+  "provider": "priority_sync",
+  "provider_message_id": null,
+  "phone": "0542424189",
+  "raw_text": null,
+  "parsed_mileage": 118698,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 9,
+  "matched_driver_id": 5,
+  "status": "pending_review",
+  "received_at": "2026-08-17T20:00:41.42075+00:00",
+  "processed_at": null,
+  "error": "דיווח שלא נקלט בפריוריטי לחודש 7/2026: בדשבורד 118,698 ק\"מ (מקור: whatsapp_bot), אך בפריוריטי אין קריאת ק\"מ לחודש זה. כנראה הכתיבה לפריוריטי נכשלה. אישור = הקריאה תידחף לפריוריטי מחדש.",
+  "raw_payload": {
+   "kind": "priority_divergence",
+   "dashboard_source": "whatsapp_bot",
+   "priority_mileage": 0,
+   "dashboard_mileage": 118698
+  }
+ },
+ {
+  "id": 433,
+  "provider": "priority_sync",
+  "provider_message_id": null,
+  "phone": "0542424076",
+  "raw_text": null,
+  "parsed_mileage": 88717,
+  "parsed_year": 2026,
+  "parsed_month": 7,
+  "matched_vehicle_id": 129,
+  "matched_driver_id": 90,
+  "status": "pending_review",
+  "received_at": "2026-08-17T20:01:21.671456+00:00",
+  "processed_at": null,
+  "error": "דיווח שלא נקלט בפריוריטי לחודש 7/2026: בדשבורד 88,717 ק\"מ (מקור: whatsapp_bot), אך בפריוריטי אין קריאת ק\"מ לחודש זה. כנראה הכתיבה לפריוריטי נכשלה. אישור = הקריאה תידחף לפריוריטי מחדש.",
+  "raw_payload": {
+   "kind": "priority_divergence",
+   "dashboard_source": "whatsapp_bot",
+   "priority_mileage": 0,
+   "dashboard_mileage": 88717
+  }
+ },
+ {
+  "id": 469,
+  "provider": "heyy",
+  "provider_message_id": "3ca2f0fb-ce96-4f19-b833-902a8b930e92",
+  "phone": "0542424115",
+  "raw_text": "938",
+  "parsed_mileage": 938,
+  "parsed_year": 2026,
+  "parsed_month": 8,
+  "matched_vehicle_id": 8,
+  "matched_driver_id": 1,
+  "status": "pending_review",
+  "received_at": "2026-09-01T06:32:54.853745+00:00",
+  "processed_at": null,
+  "error": "mileage 938 below or equal to floor 140410 (current 140410, priority peak 126115)",
+  "raw_payload": {
+   "id": "e1d15532-13a0-473e-839f-75dd61f771f5",
+   "data": {
+    "id": "3ca2f0fb-ce96-4f19-b833-902a8b930e92",
+    "chat": {
+     "id": "ab603b44-552e-4d71-9a44-0fcae6de76ef"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "ff9435d0-c2f2-408d-8dd4-64c381aa6b8a",
+     "type": "phone_number",
+     "value": "+972542424115"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "1772effe-4f9c-43c7-ad0e-704c7999d919",
+     "email": null,
+     "lastName": "",
+     "firstName": "עידו חלילי",
+     "phoneNumber": "+972542424115"
+    },
+    "content": {
+     "body": "938",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyNDI0MTE1FQIAEhgUMkEwMkZGN0Q1MDdFRTk4QjkzMDMA",
+    "timestamp": "2026-09-01T06:32:51.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 481,
+  "provider": "heyy",
+  "provider_message_id": "ea440a32-b9c2-4821-a167-40c13d9d67dc",
+  "phone": "0546881037",
+  "raw_text": "3192",
+  "parsed_mileage": 3192,
+  "parsed_year": 2026,
+  "parsed_month": 8,
+  "matched_vehicle_id": 159,
+  "matched_driver_id": 46,
+  "status": "pending_review",
+  "received_at": "2026-09-01T08:26:41.584846+00:00",
+  "processed_at": null,
+  "error": "mileage 3192 below or equal to floor 3519 (current 3519, priority peak 0)",
+  "raw_payload": {
+   "id": "3cdf867a-1732-4435-bc66-a299d98096fc",
+   "data": {
+    "id": "ea440a32-b9c2-4821-a167-40c13d9d67dc",
+    "chat": {
+     "id": "85d49fbc-5e33-4223-a775-16c2f9168b12"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "e41291a2-cb9e-4f6e-9c56-2b8c538cc173",
+     "type": "phone_number",
+     "value": "+972546881037"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "473ed181-be45-4d8a-8346-dff467f4c558",
+     "email": null,
+     "lastName": "כפיר",
+     "firstName": "יהושע כפיר",
+     "phoneNumber": "+972546881037"
+    },
+    "content": {
+     "body": "3192",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQ2ODgxMDM3FQIAEhgUM0EyRTJBRUQ1NjM0MTk1NUU1NkQA",
+    "timestamp": "2026-09-01T08:26:37.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 532,
+  "provider": "heyy",
+  "provider_message_id": "5f9ab99e-c302-4985-bd2d-cc575d13961d",
+  "phone": "0546881037",
+  "raw_text": "3192",
+  "parsed_mileage": 3192,
+  "parsed_year": 2026,
+  "parsed_month": 8,
+  "matched_vehicle_id": 159,
+  "matched_driver_id": 46,
+  "status": "pending_review",
+  "received_at": "2026-09-15T06:05:27.097079+00:00",
+  "processed_at": null,
+  "error": "mileage 3192 below or equal to floor 3519 (current 3519, priority peak 3192)",
+  "raw_payload": {
+   "id": "d6ca39fa-4a2c-434e-a965-b11d11d99f9a",
+   "data": {
+    "id": "5f9ab99e-c302-4985-bd2d-cc575d13961d",
+    "chat": {
+     "id": "85d49fbc-5e33-4223-a775-16c2f9168b12"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "e41291a2-cb9e-4f6e-9c56-2b8c538cc173",
+     "type": "phone_number",
+     "value": "+972546881037"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "473ed181-be45-4d8a-8346-dff467f4c558",
+     "email": null,
+     "lastName": "כפיר",
+     "firstName": "יהושע כפיר",
+     "phoneNumber": "+972546881037"
+    },
+    "content": {
+     "body": "3192",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQ2ODgxMDM3FQIAEhgUM0FEMUYwNUYzN0UxRTE3NjcyRTYA",
+    "timestamp": "2026-09-15T06:05:22.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 533,
+  "provider": "heyy",
+  "provider_message_id": "dec2efed-f88e-4840-bce8-3b271ee69c70",
+  "phone": "0542222822",
+  "raw_text": "287847",
+  "parsed_mileage": 287847,
+  "parsed_year": 2026,
+  "parsed_month": 8,
+  "matched_vehicle_id": 110,
+  "matched_driver_id": 80,
+  "status": "pending_review",
+  "received_at": "2026-09-15T06:11:02.461466+00:00",
+  "processed_at": null,
+  "error": "mileage jump 11711 exceeds 10000 (floor 276136)",
+  "raw_payload": {
+   "id": "6e4cc995-56e6-42b3-9195-4cfa8bed83b9",
+   "data": {
+    "id": "dec2efed-f88e-4840-bce8-3b271ee69c70",
+    "chat": {
+     "id": "82964502-b889-4ec5-98a5-0f677fa3bcc5"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "4439f93a-ea04-4cfd-b94f-1f282d151c2c",
+     "type": "phone_number",
+     "value": "+972542222822"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "63790b82-12f5-4b1a-96cb-ab39e3f996eb",
+     "email": null,
+     "lastName": "💜",
+     "firstName": "רוני ניסימוב",
+     "phoneNumber": "+972542222822"
+    },
+    "content": {
+     "body": "287847",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyMjIyODIyFQIAEhgUM0E5RUQ2NDVCODMyRDQxNUE2OTEA",
+    "timestamp": "2026-09-15T06:10:58.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ },
+ {
+  "id": 534,
+  "provider": "heyy",
+  "provider_message_id": "408f7d13-2088-48d0-a723-f6e1b465e256",
+  "phone": "0542222822",
+  "raw_text": "287848",
+  "parsed_mileage": 287848,
+  "parsed_year": 2026,
+  "parsed_month": 8,
+  "matched_vehicle_id": 110,
+  "matched_driver_id": 80,
+  "status": "pending_review",
+  "received_at": "2026-09-15T06:13:18.802918+00:00",
+  "processed_at": null,
+  "error": "mileage jump 11712 exceeds 10000 (floor 276136)",
+  "raw_payload": {
+   "id": "2e675924-f0f2-44dd-a75c-40811288851c",
+   "data": {
+    "id": "408f7d13-2088-48d0-a723-f6e1b465e256",
+    "chat": {
+     "id": "82964502-b889-4ec5-98a5-0f677fa3bcc5"
+    },
+    "type": "message",
+    "errors": [],
+    "handle": {
+     "id": "4439f93a-ea04-4cfd-b94f-1f282d151c2c",
+     "type": "phone_number",
+     "value": "+972542222822"
+    },
+    "sender": "inbound",
+    "status": "delivered",
+    "channel": {
+     "id": "61171b95-b182-43a9-8ad0-aac17785ac8d",
+     "name": "Metalpress",
+     "type": "whatsapp"
+    },
+    "contact": {
+     "id": "63790b82-12f5-4b1a-96cb-ab39e3f996eb",
+     "email": null,
+     "lastName": "💜",
+     "firstName": "רוני ניסימוב",
+     "phoneNumber": "+972542222822"
+    },
+    "content": {
+     "body": "287848",
+     "attachments": []
+    },
+    "history": [],
+    "sources": [
+     {
+      "type": "vendor"
+     }
+    ],
+    "metadata": {},
+    "vendorId": "wamid.HBgMOTcyNTQyMjIyODIyFQIAEhgUM0E2RTMyMzk2NEJGMzM4MjYxQzEA",
+    "timestamp": "2026-09-15T06:13:15.000Z",
+    "isSensitive": false,
+    "scheduledAt": null,
+    "vendorDetails": null,
+    "aiGenerationId": null
+   },
+   "event": "message.received",
+   "tenantId": "af9f313b-34d0-4152-b143-ca19c4dcc4cb"
+  }
+ }
+]

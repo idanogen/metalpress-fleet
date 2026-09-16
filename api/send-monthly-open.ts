@@ -14,8 +14,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const envErr = envReady();
   if (envErr) return res.status(500).json({ error: envErr });
   try {
-    const summary = await runMonthlySend('month_open');
-    console.log('monthly_open sent:', JSON.stringify(summary));
+    // ?dry=1 מחזיר את רשימת היעד בלי לשלוח ובלי לכתוב ליומן (זהה לתזכורת).
+    const dry = req.query.dry === '1' || req.query.dry === 'true';
+    // ?only_unreported=1 להרצה חוזרת אחרי כשל חלקי: רק נהגים שעדיין לא דיווחו על החודש.
+    const onlyUnreported = req.query.only_unreported === '1' || req.query.only_unreported === 'true';
+    const summary = await runMonthlySend('month_open', new Date(), dry, onlyUnreported);
+    console.log(dry ? 'monthly_open dry-run:' : 'monthly_open sent:', JSON.stringify(summary));
     return res.status(200).json({ ok: summary.failed === 0, ...summary });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
