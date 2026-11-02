@@ -5,18 +5,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Vehicle } from '@/types/fleet';
 import { hasReported, isApplicableForMonth } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
-import { fetchReminders, insertReminder, type ReminderLogRow } from '@/lib/reminderLog';
+import { fetchReminders, type ReminderLogRow } from '@/lib/reminderLog';
+import { supabase } from '@/lib/supabase';
 
-const WEBHOOK_URL = 'https://hook.us1.make.com/piugtkez49mveettgmenuepb2v16w7pl';
+// 02/11/2026: השליחה עברה מהדפדפן ישר למייק (4627015) לשרת שלנו, שמאמת, שולח ורושם ב-message_log וב-reminder_log.
+const SEND_URL = '/api/send-manual-reminder';
 const COOLDOWN_MS = 48 * 60 * 60 * 1000; // 48 hours
-
-/** Convert Israeli phone like "0523694547" → "972523694547@c.us" for Green API */
-function formatWhatsAppId(phone: string): string {
-  if (!phone) return '';
-  const clean = phone.replace(/[\s\-()]/g, '');
-  const intl = clean.startsWith('0') ? '972' + clean.slice(1) : clean;
-  return intl + '@c.us';
-}
 
 /** Get remaining cooldown time as readable Hebrew string */
 function getCooldownLabel(sentAt: number): string {
@@ -121,15 +115,6 @@ export function DriverRemindersPage({
     return getCooldownLabel(last);
   }, [getLastSentDate]);
 
-  /** Persist a sent reminder to Supabase, then refresh the query */
-  const markSent = useCallback(async (vehicleId: number) => {
-    try {
-      await insertReminder(vehicleId, yearNum, selectedMonth);
-    } catch (err) {
-      console.error('Failed to log reminder to Supabase:', err);
-    }
-    queryClient.invalidateQueries({ queryKey: reminderQueryKey });
-  }, [queryClient, reminderQueryKey, yearNum, selectedMonth]);
 
   const unreportedVehicles = useMemo(
     () => vehicles.filter(v =>
@@ -152,47 +137,20 @@ export function DriverRemindersPage({
 
   const monthName = MONTH_NAMES[selectedMonth] || `חודש ${selectedMonth}`;
 
-  const buildPayload = useCallback((vehicle: Vehicle) => ({
-    action: 'km_reminder',
-    timestamp: new Date().toISOString(),
-    reportMonth: selectedMonth,
-    reportMonthName: MONTH_NAMES[selectedMonth],
-    reportYear: selectedYear,
-    driver: {
-      id: vehicle.id,
-      name: vehicle.driverName,
-      phone: vehicle.phone,
-      whatsappId: formatWhatsAppId(vehicle.phone),
-    },
-    vehicle: {
-      model: vehicle.model,
-      plateNumber: vehicle.plateNumber,
-      ownershipType: vehicle.ownershipType,
-      supplier: vehicle.supplier,
-      company: vehicle.company,
-      currentMileage: vehicle.currentMileage,
-      startDate: vehicle.startDate,
-      endDate: vehicle.endDate,
-      leaseEndDate: vehicle.leaseEndDate,
-      licenseEndDate: vehicle.licenseEndDate,
-      rentValue: vehicle.rentValue,
-      lastReportYear: vehicle.lastReportYear,
-      lastReportMonth: vehicle.lastReportMonth,
-    },
-  }), [selectedMonth, selectedYear]);
 
   const sendReminder = useCallback(async (vehicle: Vehicle) => {
     if (remindersLoading || isOnCooldown(vehicle.id)) return;
     setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'sending' }));
     try {
-      const response = await fetch(WEBHOOK_URL, {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(SEND_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildPayload(vehicle)),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ vehicleId: vehicle.id, year: yearNum, month: selectedMonth }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'sent' }));
-      await markSent(vehicle.id);
+      queryClient.invalidateQueries({ queryKey: reminderQueryKey });
     } catch (err) {
       console.error(`Failed to send reminder for ${vehicle.driverName}:`, err);
       setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'error' }));
@@ -200,7 +158,7 @@ export function DriverRemindersPage({
         setSendStatuses(prev => ({ ...prev, [vehicle.id]: 'idle' }));
       }, 3000);
     }
-  }, [buildPayload, isOnCooldown, markSent, remindersLoading]);
+  }, [isOnCooldown, remindersLoading, queryClient, reminderQueryKey, yearNum, selectedMonth]);
 
   const sendableCount = useMemo(
     () => filtered.filter(v => !isOnCooldown(v.id) && !!v.phone).length,
@@ -212,7 +170,7 @@ export function DriverRemindersPage({
     const toSend = filtered.filter(v => !isOnCooldown(v.id) && !!v.phone);
     for (const vehicle of toSend) {
       await sendReminder(vehicle);
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 700)); // heyy: 100 בקשות לדקה לכל החשבון, משותף לוובהוק
     }
     setSendAllStatus('done');
     setTimeout(() => setSendAllStatus('idle'), 3000);
