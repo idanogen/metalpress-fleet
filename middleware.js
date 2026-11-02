@@ -10,6 +10,9 @@
 export const config = { matcher: ['/((?!favicon\\.ico|favicon\\.svg|robots\\.txt).*)'] };
 
 const HOST = 'fleet.metalpress.ogensolutions.biz';
+// נתיבים ששרתים קוראים להם (קרון של ורסל, וובהוק של heyy, מייק). כל נקודת קצה כזאת בודקת סוד משלה,
+// ולכן הם עוברים לפני ההפניה לכתובת הקנונית ולפני השער. בלי זה הקרון והוובהוק נחסמים בשקט (צי רכב, 01/11/2026).
+const PUBLIC = ['/api/'];
 const SSO_DOMAIN = 'metalpress.ogensolutions.biz';
 const HUB = 'https://' + SSO_DOMAIN;
 const SB = 'https://mbodppnsdnmlejdldztp.supabase.co';
@@ -65,6 +68,7 @@ a{display:inline-block;background:#1b3a5c;color:#fff;text-decoration:none;paddin
 
 export default async function middleware(req) {
   const url = new URL(req.url);
+  if (PUBLIC.some((p) => url.pathname.startsWith(p))) return;
   if (url.hostname !== HOST && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
     url.hostname = HOST; url.protocol = 'https:'; url.port = '';
     return Response.redirect(url.toString(), 308);
