@@ -44,7 +44,7 @@ export function ReportStatus({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-[#1d1d1f]">סטטוס דיווח חודשי</h2>
           <span className="text-sm text-[#86868b]">
-            {stats.reportedThisMonth} מתוך {stats.totalVehicles}
+            {stats.reportedThisMonth} מתוך {stats.dueThisMonth}
           </span>
         </div>
         <div className="h-2 bg-black/5 rounded-[10px] overflow-hidden">
@@ -53,7 +53,10 @@ export function ReportStatus({
             style={{ width: `${stats.reportPercentage}%` }}
           />
         </div>
-        <p className="text-xs text-[#86868b] mt-2">{stats.reportPercentage.toFixed(1)}% דיווחו</p>
+        <p className="text-xs text-[#86868b] mt-2">
+          {stats.reportPercentage.toFixed(1)}% דיווחו
+          {stats.notDueThisMonth > 0 && ` · ${stats.notDueThisMonth} רכבים הצטרפו אחרי החודש ואינם חייבים בדיווח`}
+        </p>
       </div>
 
       {/* Tabs */}
@@ -91,7 +94,8 @@ export function ReportStatus({
             placeholder="חיפוש נהג, רכב או לוחית..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-black/5 border-none rounded-xl pr-9 pl-3 py-2.5 text-sm text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+            className="w-full bg-black/5 border-none rounded-xl pr-9 pl-3
+              py-2.5 text-sm text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
           />
         </div>
       </div>

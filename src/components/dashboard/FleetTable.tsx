@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Vehicle } from '@/types/fleet';
-import { getDriverAvgUsage, getMonthData, getDisplayMonthKm } from '@/lib/analytics';
+import { getDriverAvgUsage, getMonthData, getMonthKmCell } from '@/lib/analytics';
 import { VehicleImage } from '@/components/ui/VehicleImage';
 
 interface FleetTableProps {
@@ -24,9 +24,11 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
     return vehicles.map(v => {
       const monthData = getMonthData(v, selectedYear, selectedMonth);
       const avg = getDriverAvgUsage(v);
+      const kmCell = getMonthKmCell(v, selectedYear, selectedMonth);
       return {
         vehicle: v,
-        mileage: getDisplayMonthKm(v, selectedYear, selectedMonth),
+        kmCell,
+        mileage: kmCell.kind === 'km' ? kmCell.km : 0,
         avg: Math.round(avg),
         reported: (monthData?.mileage || 0) > 0,
       };
@@ -101,7 +103,8 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
             placeholder="חיפוש..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-black/5 border-none rounded-xl pr-9 pl-3 py-2.5 text-sm text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+            className="w-full bg-black/5 border-none rounded-xl pr-9 pl-3
+              py-2.5 text-sm text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
           />
         </div>
       </div>
@@ -152,7 +155,12 @@ export function FleetTable({ vehicles, selectedYear, selectedMonth, onSelectVehi
                     {row.vehicle.ownershipType}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-[#1d1d1f] font-medium">{row.mileage > 0 ? row.mileage.toLocaleString() : '—'}</td>
+                <td className="px-4 py-3 text-[#1d1d1f] font-medium">
+                  {row.kmCell.kind === 'km' && row.kmCell.km.toLocaleString()}
+                  {row.kmCell.kind === 'first-reading' && <span className="text-xs text-[#86868b]">קריאה ראשונה</span>}
+                  {row.kmCell.kind === 'no-distance' && <span className="text-xs text-[#86868b]">אין הפרש לחישוב</span>}
+                  {row.kmCell.kind === 'not-reported' && '—'}
+                </td>
                 <td className="px-4 py-3 text-[#86868b]">{row.avg > 0 ? row.avg.toLocaleString() : '—'}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-block w-2.5 h-2.5 rounded-full ${row.reported ? 'bg-[#34c759]' : 'bg-[#ff9500]'}`} />

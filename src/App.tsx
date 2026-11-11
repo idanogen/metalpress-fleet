@@ -71,7 +71,6 @@ export default function App() {
         selectedMonth={fleet.selectedMonth}
         onYearChange={fleet.setSelectedYear}
         onMonthChange={fleet.setSelectedMonth}
-        lastUpdated={fleet.lastUpdated}
         isLoading={fleet.isLoading}
         hideControls={currentView === 'fuel-expenses'}
       />
@@ -188,6 +187,7 @@ export default function App() {
           {currentView === 'reports' && (
             <ReportsPage
               vehicles={fleet.vehicles}
+              allVehicles={fleet.allVehicles}
               selectedYear={fleet.selectedYear}
               selectedMonth={fleet.selectedMonth}
             />

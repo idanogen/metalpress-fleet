@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import { MONTH_NAMES } from '@/lib/analytics';
+import { fetchSyncHealth } from '@/lib/syncHealth';
 
 interface HeaderProps {
   selectedYear: string;
   selectedMonth: number;
   onYearChange: (year: string) => void;
   onMonthChange: (month: number) => void;
-  lastUpdated?: Date | null;
   isLoading?: boolean;
   hideControls?: boolean;
 }
@@ -61,7 +62,9 @@ function GlassDropdown({ value, options, onChange, width = 120 }: GlassDropdownP
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute top-full left-0 right-0 z-50 mt-1 py-1.5 rounded-2xl bg-white/80 backdrop-blur-[30px] border border-white/60 shadow-[0_12px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.03)] overflow-hidden"
+            className="absolute top-full left-0 right-0 z-50 mt-1 py-1.5
+              rounded-2xl bg-white/80 backdrop-blur-[30px] border border-white/60
+              shadow-[0_12px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.03)] overflow-hidden"
           >
             <div className="max-h-[240px] overflow-y-auto">
               {options.map(option => {
@@ -94,7 +97,12 @@ function GlassDropdown({ value, options, onChange, width = 120 }: GlassDropdownP
   );
 }
 
-export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChange, lastUpdated, isLoading, hideControls }: HeaderProps) {
+const formatTime = (d: Date) => d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChange, isLoading, hideControls }: HeaderProps) {
+  // השעה בכותרת היא זמן הסנכרון מפריוריטי, לא זמן הטעינה של הדפדפן (שתמיד "עכשיו").
+  const { data: syncHealth } = useQuery({ queryKey: ['sync-health'], queryFn: fetchSyncHealth, staleTime: 60_000 });
+  const syncedAt = syncHealth?.lastSyncedAt ?? null;
   const now = new Date();
   const currentYear = String(now.getFullYear());
   const currentMonth = now.getMonth() + 1;
@@ -112,7 +120,10 @@ export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChang
   const yearOptions = ['2026', '2025', '2024'].map(y => ({ value: y, label: y }));
 
   return (
-    <header className="fixed top-3 lg:top-5 right-3 lg:right-[300px] left-3 lg:left-5 h-[60px] lg:h-[70px] bg-white/40 backdrop-blur-[25px] border border-white/60 rounded-2xl lg:rounded-[20px] px-3 lg:px-6 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.03)] z-40">
+    <header
+      className="fixed top-3 lg:top-5 right-3 lg:right-[300px] left-3 lg:left-5 h-[60px] lg:h-[70px] bg-white/40 backdrop-blur-[25px]
+        border border-white/60 rounded-2xl lg:rounded-[20px] px-3 lg:px-6 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.03)] z-40"
+    >
       <div className="flex items-center gap-2 lg:gap-4">
         {/* Spacer for hamburger button on mobile */}
         <div className="w-8 lg:hidden" />
@@ -121,7 +132,7 @@ export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChang
         <div className="hidden lg:flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-[#ff9500] animate-pulse' : 'bg-[#34c759]'}`} />
           <span className="text-xs font-bold text-[#86868b] uppercase tracking-wider">
-            {isLoading ? 'מסנכרן...' : 'מסונכרן'}
+            {isLoading ? 'טוען...' : 'מחובר'}
           </span>
         </div>
       </div>
@@ -146,9 +157,9 @@ export function Header({ selectedYear, selectedMonth, onYearChange, onMonthChang
         )}
 
         <div className="text-xs text-[#86868b] hidden lg:block">
-          {lastUpdated
-            ? `עדכון: ${lastUpdated.toLocaleDateString('he-IL')}, ${lastUpdated.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`
-            : 'עדכון: —'
+          {syncedAt
+            ? `סנכרון פריוריטי: ${syncedAt.toLocaleDateString('he-IL')}, ${formatTime(syncedAt)}`
+            : 'סנכרון פריוריטי: לא ידוע'
           }
         </div>
       </div>

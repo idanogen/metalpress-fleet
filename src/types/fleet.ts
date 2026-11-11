@@ -104,8 +104,15 @@ export interface FleetStats {
   totalDrivers: number;
   reportedThisMonth: number;
   notReportedThisMonth: number;
+  /** חייבי הדיווח לחודש: דיווחו + טרם דיווחו. המכנה של שני האחוזים. */
+  dueThisMonth: number;
+  /** רכבים שהצטרפו אחרי סוף החודש ואינם חייבים בדיווח עליו. */
+  notDueThisMonth: number;
   reportPercentage: number;
+  notReportedPercentage: number;
   avgMonthlyKm: number;
+  /** מספר הרכבים שנכנסו לממוצע (יש להם הפרש מול החודש הקודם). */
+  avgKmVehicleCount: number;
   totalMonthlyKm: number;
   anomalyCount: number;
 }

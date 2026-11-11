@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchFleetData } from '@/api/fleet';
-import { getFleetStats, detectAnomalies, hasReported, isApplicableForMonth, getMonthData } from '@/lib/analytics';
+import {
+  getFleetStats, detectAnomalies, hasReported, isApplicableForMonth, getMonthData, isInventoryVehicle,
+} from '@/lib/analytics';
 import { useSettings } from '@/components/settings/SettingsPage';
 import type { Vehicle } from '@/types/fleet';
 
@@ -47,7 +49,7 @@ export function useFleetData() {
   // and reminders views. Treating them as inventory keeps stats/reminders clean.
   // Reversible by design: add a phone in Priority and the vehicle rejoins the fleet
   // on the next sync, no code change needed.
-  const isInventory = (v: Vehicle) => v.driverName === 'מלאי' || !v.phone;
+  const isInventory = isInventoryVehicle;
   const vehicles = useMemo(() => allVehicles.filter(v => !isInventory(v)), [allVehicles]);
   const inventoryVehicles = useMemo(() => allVehicles.filter(isInventory), [allVehicles]);
   const inventoryCount = inventoryVehicles.length;

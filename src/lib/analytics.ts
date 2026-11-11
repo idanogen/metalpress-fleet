@@ -59,24 +59,33 @@ export function getMonthDelta(vehicle: Vehicle, year: string, monthNum: number):
   return found?.km || 0;
 }
 
-/** Kilometers to display for a month. Normally the odometer delta vs the previous
- * consecutive month. But a vehicle's FIRST reported month has no prior reading to
- * subtract from, so the delta is 0 and the column would show nothing — even though
- * we do have a reading. In that case fall back to the raw odometer reading so a
- * brand-new vehicle isn't shown as blank. */
-export function getDisplayMonthKm(vehicle: Vehicle, year: string, monthNum: number): number {
-  const delta = getMonthDelta(vehicle, year, monthNum);
-  if (delta > 0) return delta;
+export type MonthKmCell =
+  | { kind: 'km'; km: number }
+  | { kind: 'first-reading'; odometer: number }
+  | { kind: 'no-distance' }
+  | { kind: 'not-reported' };
+
+/** מה מציגים בעמודת הק"מ של חודש. הק"מ הוא תמיד הפרש מהחודש הקודם (אותו חישוב של
+ * כרטיס הממוצע), כך שסכום העמודה חלקי מספר השורות המספריות שווה לממוצע בכרטיס.
+ * קריאה ראשונה של רכב אינה מרחק שנסע ולכן מוצגת בנפרד ולא כמספר ק"מ. */
+export function getMonthKmCell(vehicle: Vehicle, year: string, monthNum: number): MonthKmCell {
   const month = getMonthData(vehicle, year, monthNum);
-  if (!month || month.mileage <= 0) return 0;
-  // Only fall back for the EARLIEST reading — otherwise a missing middle month
-  // would wrongly show the raw odometer as if it were the month's distance.
+  if (!month || month.mileage <= 0) return { kind: 'not-reported' };
+  const delta = getMonthDelta(vehicle, year, monthNum);
+  if (delta > 0) return { kind: 'km', km: delta };
   const hasEarlierReading = (vehicle.monthlyUsage ?? []).some(m =>
     m.mileage > 0 &&
     (Number(m.year) < Number(year) ||
       (Number(m.year) === Number(year) && m.monthNum < monthNum))
   );
-  return hasEarlierReading ? 0 : month.mileage;
+  return hasEarlierReading ? { kind: 'no-distance' } : { kind: 'first-reading', odometer: month.mileage };
+}
+
+/** רכב שאינו בצי המדווח: רשום על "מלאי", או שלנהג שלו אין טלפון (אי אפשר לבקש ממנו
+ * דיווח). ההגדרה היחידה, לכל המסכים. */
+export const INVENTORY_DRIVER_NAME = 'מלאי';
+export function isInventoryVehicle(v: Vehicle): boolean {
+  return v.driverName === INVENTORY_DRIVER_NAME || !v.phone;
 }
 
 export function getDriverAvgUsage(vehicle: Vehicle, excludeYear?: string, excludeMonth?: number): number {
@@ -94,6 +103,9 @@ export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: numbe
   const notReported = vehicles.filter(v =>
     isApplicableForMonth(v, year, monthNum) && !hasReported(v, year, monthNum)
   );
+  // חייבי הדיווח לחודש = מי שדיווח + מי שהיה אמור לדווח ולא דיווח. רכב שהצטרף אחרי
+  // סוף החודש אינו חייב, ולכן אינו במכנה. הספירות והאחוזים יוצאים מאותה אוכלוסייה.
+  const dueCount = reported.length + notReported.length;
 
   const monthDeltas = vehicles
     .map(v => getMonthDelta(v, year, monthNum))
@@ -109,8 +121,12 @@ export function getFleetStats(vehicles: Vehicle[], year: string, monthNum: numbe
     totalDrivers: new Set(vehicles.map(v => v.driverName)).size,
     reportedThisMonth: reported.length,
     notReportedThisMonth: notReported.length,
-    reportPercentage: vehicles.length > 0 ? (reported.length / vehicles.length) * 100 : 0,
+    dueThisMonth: dueCount,
+    notDueThisMonth: vehicles.length - dueCount,
+    reportPercentage: dueCount > 0 ? (reported.length / dueCount) * 100 : 0,
+    notReportedPercentage: dueCount > 0 ? (notReported.length / dueCount) * 100 : 0,
     avgMonthlyKm: Math.round(avgKm),
+    avgKmVehicleCount: monthDeltas.length,
     totalMonthlyKm: totalKm,
     anomalyCount: anomalies.length,
   };
@@ -308,6 +324,13 @@ export function getAvailableMonths(vehicles: Vehicle[]): { year: string; monthNu
     if (a.year !== b.year) return b.year.localeCompare(a.year);
     return b.monthNum - a.monthNum;
   });
+}
+
+/** חודש שעדיין מתמלא: החשבוניות שלו ממשיכות להיות מוקלדות בפריוריטי כחודש אחרי
+ * שנגמר, ולכן סכום ההוצאות שלו חלקי ואי אפשר להשוות אותו לחודש שלם. */
+export function isMonthStillFilling(year: string, monthNum: number, now = new Date()): boolean {
+  const monthEnd = new Date(Number(year), monthNum, 0, 23, 59, 59);
+  return now.getTime() - monthEnd.getTime() < 30 * 86_400_000;
 }
 
 export const MONTH_NAMES: Record<number, string> = {

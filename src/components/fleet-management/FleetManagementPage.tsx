@@ -12,8 +12,8 @@ import {
   URGENCY_LABELS,
 } from '@/lib/fleetDates';
 import { VehicleImage } from '@/components/ui/VehicleImage';
+import { isInventoryVehicle, INVENTORY_DRIVER_NAME } from '@/lib/analytics';
 
-const INVENTORY_DRIVER_NAME = 'מלאי';
 type TabType = DateType | 'inventory';
 
 interface FleetManagementPageProps {
@@ -57,8 +57,10 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
   const tableTitle = activeTab === 'lease' ? 'סיום ליסינג' : activeTab === 'license' ? 'סיום רישוי' : 'מלאי';
 
   // Separate inventory from regular vehicles
+  // מעקב ליסינג ורישוי נשאר על כל רכב שיש לו נהג, גם נהג בלי טלפון. לשונית המלאי
+  // משתמשת בהגדרת המלאי של הדשבורד, כדי שהספירה תהיה זהה בשני המסכים.
   const regularVehicles = useMemo(() => vehicles.filter(v => v.driverName !== INVENTORY_DRIVER_NAME), [vehicles]);
-  const inventoryVehicles = useMemo(() => vehicles.filter(v => v.driverName === INVENTORY_DRIVER_NAME), [vehicles]);
+  const inventoryVehicles = useMemo(() => vehicles.filter(isInventoryVehicle), [vehicles]);
 
   const suppliers = useMemo(() => getUniqueSuppliers(regularVehicles), [regularVehicles]);
 
@@ -229,7 +231,8 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
               placeholder="חיפוש נהג, דגם, לוחית..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-black/5 border-none rounded-xl pr-9 pl-3 py-2.5 text-sm text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+              className="w-full bg-black/5 border-none rounded-xl pr-9 pl-3
+                py-2.5 text-sm text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
             />
           </div>
 
@@ -275,7 +278,8 @@ export function FleetManagementPage({ vehicles, onSelectVehicle }: FleetManageme
                     <select
                       value={filterSupplier}
                       onChange={e => setFilterSupplier(e.target.value)}
-                      className="bg-black/5 border-none rounded-xl px-3 py-2 text-xs font-bold text-[#424245] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 cursor-pointer"
+                      className="bg-black/5 border-none rounded-xl px-3 py-2 text-xs
+                        font-bold text-[#424245] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 cursor-pointer"
                     >
                       <option value="all">הכל</option>
                       {suppliers.map(s => (

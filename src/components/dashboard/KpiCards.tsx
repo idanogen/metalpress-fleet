@@ -13,6 +13,7 @@ type CardDef = {
   icon: typeof Car;
   getValue: (s: FleetStats, inventoryCount: number) => string | number;
   getSubtext?: (s: FleetStats, inventoryCount: number) => string;
+  getNote?: (s: FleetStats) => string;
   iconBg: string;
   iconColor: string;
 };
@@ -48,7 +49,8 @@ const cards: CardDef[] = [
     label: 'טרם דיווחו',
     icon: AlertCircle,
     getValue: (s) => s.notReportedThisMonth,
-    getSubtext: (s) => `${(100 - s.reportPercentage).toFixed(0)}%`,
+    getSubtext: (s) => `${s.notReportedPercentage.toFixed(0)}%`,
+    getNote: (s) => s.notDueThisMonth > 0 ? `ועוד ${s.notDueThisMonth} שאינם חייבים בדיווח` : '',
     iconBg: 'bg-[#ff9500]/10',
     iconColor: 'text-[#c93400]',
   },
@@ -57,6 +59,7 @@ const cards: CardDef[] = [
     label: 'ק"מ ממוצע חודשי',
     icon: Gauge,
     getValue: (s) => s.avgMonthlyKm.toLocaleString(),
+    getNote: (s) => s.avgKmVehicleCount > 0 ? `ממוצע של ${s.avgKmVehicleCount} רכבים` : '',
     iconBg: 'bg-[#5856D6]/10',
     iconColor: 'text-[#5856D6]',
   },
@@ -77,6 +80,7 @@ export function KpiCards({ stats, inventoryCount }: KpiCardsProps) {
         const Icon = card.icon;
         const value = card.getValue(stats, inventoryCount);
         const subtext = card.getSubtext?.(stats, inventoryCount);
+        const note = card.getNote?.(stats);
 
         return (
           <motion.div
@@ -98,6 +102,7 @@ export function KpiCards({ stats, inventoryCount }: KpiCardsProps) {
               </div>
 
               <p className="text-sm text-[#86868b] mt-1">{card.label}</p>
+              {note && <p className="text-xs text-[#86868b] mt-1">{note}</p>}
             </div>
           </motion.div>
         );
